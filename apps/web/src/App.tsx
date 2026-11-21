@@ -12,6 +12,8 @@ import { LessonPage } from './pages/LessonPage';
 import { MyCoursesPage } from './pages/MyCoursesPage';
 import { ResultPage } from './pages/ResultPage';
 import { PrivacyPage } from './pages/PrivacyPage';
+import { AdminLoginPage } from './pages/AdminLoginPage';
+import { Icon } from './components/Icon';
 
 // Lazy: ujian, admin — tidak membebani rute awal learner.
 const ExamPage = lazy(() => import('./exam/ExamPage'));
@@ -27,6 +29,7 @@ function routes(path: string) {
   if ((m = match('/kelas/:id', path))) return <CoursePage id={m.id!} />;
   if ((m = match('/materi/:id', path))) return <LessonPage id={m.id!} />;
   if ((m = match('/hasil/:id', path))) return <ResultPage id={m.id!} />;
+  if (path === '/admin/masuk') return <AdminLoginPage />;
   if (path === '/admin' || path.startsWith('/admin/')) return <AdminApp path={path} />;
   return (
     <>
@@ -69,10 +72,27 @@ export function App() {
         )}
         <Suspense fallback={<Loading />}>{routes(path)}</Suspense>
       </main>
-      <footer className="muted" style={{ maxWidth: '72rem', margin: '0 auto', padding: '1rem' }}>
-        <p>
-          PatraDesa Belajar — data latihan bersifat fiktif. <Link href="/privasi">Privasi</Link>
-        </p>
+      <footer className="site-footer">
+        <div className="footer-inner">
+          <p>
+            <strong>PatraDesa Belajar</strong> — pelatihan daring untuk perangkat desa. Data latihan bersifat fiktif.
+          </p>
+          <ul className="footer-links">
+            <li>
+              <Link href="/privasi">Privasi</Link>
+            </li>
+            <li>
+              <a href="https://patradesa.id/" rel="noopener">
+                patradesa.id
+              </a>
+            </li>
+            <li>
+              <Link href="/admin/masuk">
+                <Icon name="shield" /> Masuk pengelola
+              </Link>
+            </li>
+          </ul>
+        </div>
       </footer>
     </>
   );

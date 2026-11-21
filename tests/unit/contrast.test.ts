@@ -35,7 +35,22 @@ const PAIRS: [string, string, number, string][] = [
   ['color-focus', 'color-bg', 3, 'cincin fokus di latar'],
   ['color-focus', 'color-surface', 3, 'cincin fokus di kartu'],
   ['color-header-text', 'color-header-bg', 4.5, 'teks header'],
-  ['color-focus-on-dark', 'color-header-bg', 3, 'cincin fokus di header gelap'],
+  ['color-header-text', 'color-nav-active-bg', 4.5, 'menu aktif (pil)'],
+  ['color-focus', 'color-header-bg', 3, 'cincin fokus di header'],
+  ['color-accent-button-text', 'color-accent-button-bg', 4.5, 'tombol amber (CTA)'],
+  ['color-accent-button-text', 'color-accent-button-hover-bg', 4.5, 'tombol amber (hover)'],
+  ['color-heading', 'color-bg', 4.5, 'judul di latar halaman'],
+  ['color-heading', 'color-surface-soft', 4.5, 'judul di kartu hijau muda'],
+  ['color-heading', 'color-chip-bg', 4.5, 'label pil / badge'],
+  ['color-text', 'color-surface-soft', 4.5, 'teks di kartu hijau muda'],
+  ['color-muted', 'color-surface-soft', 4.5, 'teks sekunder di kartu hijau muda'],
+  ['color-hero-text', 'color-hero-bg', 4.5, 'judul hero'],
+  ['color-hero-muted', 'color-hero-bg', 4.5, 'teks hero'],
+  ['color-focus-on-dark', 'color-hero-bg', 3, 'cincin fokus di hero gelap'],
+  ['color-footer-text', 'color-footer-bg', 4.5, 'teks footer'],
+  ['color-footer-link', 'color-footer-bg', 4.5, 'tautan footer'],
+  ['color-focus-on-dark', 'color-footer-bg', 3, 'cincin fokus di footer gelap'],
+  ['color-heading', 'color-surface', 4.5, 'tombol terang di hero'],
   ['color-border-strong', 'color-surface', 3, 'batas input'],
   ['color-success', 'color-surface', 4.5, 'teks status berhasil'],
   ['color-success', 'color-success-bg', 4.5, 'teks di alert berhasil'],
@@ -56,7 +71,7 @@ describe('kontras warna WCAG 2.2 AA', () => {
   it('warna brand terang (hijau muda, amber) TIDAK lulus sebagai teks kecil di putih → tidak boleh dipakai untuk teks', () => {
     expect(contrast(t('pd-green-light'), '#ffffff')).toBeLessThan(4.5);
     expect(contrast(t('pd-amber'), '#ffffff')).toBeLessThan(4.5);
-    for (const token of ['color-text', 'color-muted', 'color-link', 'color-success', 'color-danger', 'color-warning-text']) {
+    for (const token of ['color-text', 'color-heading', 'color-muted', 'color-link', 'color-success', 'color-danger', 'color-warning-text']) {
       expect([t('pd-green-light'), t('pd-amber')]).not.toContain(t(token));
     }
   });

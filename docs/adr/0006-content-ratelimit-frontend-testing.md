@@ -11,6 +11,12 @@ Fixed-window di D1 (`rate_limits`) untuk login, heartbeat, autosave, start attem
 ## Frontend
 React 19 + Vite, **tanpa** router/UI library: router mini (History API) + CSS variables. Rute ujian, admin, PDF, YouTube, dan panel AI di-*lazy load*. Skala teks via `--font-scale` pada `html { font-size: calc(100% * var(--font-scale)) }` sehingga semua ukuran `rem` ikut membesar tanpa mengunci zoom browser. Preferensi disimpan di `localStorage` dengan fallback bila diblokir.
 
+## Gaya visual (selaras patradesa.id)
+Token warna & komponen meniru patradesa.id: hijau hutan `#334E0F` untuk judul/tautan/tombol utama, latar krem `#FBFAF6`, aksen amber `#DD9933` dengan teks gelap `#1B2620` untuk CTA, kartu radius 16px dengan garis `#E7E3D8`, label pil huruf kapital, ikon garis (stroke 1.8), hero & footer hijau gelap. Judul memakai **Plus Jakarta Sans** (font yang dipakai patradesa.id; lisensi OFL) yang di-*self-host* lewat `@fontsource` — hanya subset latin bobot 700/800 (~12 KB woff2 per bobot, `font-display: swap`), tanpa Google Fonts. Teks badan tetap font sistem 16px (SPEC §3A). Logo resmi belum dipakai; header memakai tanda sederhana sampai berkas logo disediakan. Semua pasangan warna diuji otomatis (WCAG 2.2 AA).
+
+## Halaman masuk admin
+`/admin/masuk` adalah UI khusus pengelola dengan autentikasi yang sama (Google OIDC, tanpa kata sandi). Tamu yang membuka `/admin` diarahkan ke halaman ini; akun tanpa role pengelola mendapat pesan "tidak memiliki akses". Penegakan tetap di server (`requireRole` pada setiap `/api/v1/admin/*`).
+
 ## Anti-copy
 `QuizQuestionRegion` hanya membungkus stem & opsi: `user-select: none`, `contextmenu` dicegah, `copy/cut` ditolak bila seleksi berasal dari area itu. Textarea esai berada di luar region. Kebijakan per kuis (`exam_copy_deterrence_enabled`) + pengecualian per peserta (`user_accommodations.copy_deterrence_exempt`) dihitung server saat attempt dibuat (`attempts.copy_deterrence_active`). Ini penghalang ringan, bukan jaminan.
 

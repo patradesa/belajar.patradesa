@@ -3,42 +3,75 @@ import { api } from '../lib/api';
 import { Link } from '../lib/router';
 import { useSession } from '../lib/session';
 import { ErrorAlert, Loading, PageTitle, useAsync } from '../components/common';
+import { HeroWaves, Icon } from '../components/Icon';
 
 export function HomePage() {
   const { me } = useSession();
   const { data, error, loading, reload } = useAsync(() => api<{ courses: CatalogCourse[] }>('/catalog'), [me?.user.id, me?.profile.villageRole]);
   return (
-    <div className="stack">
-      <PageTitle>Belajar untuk perangkat desa</PageTitle>
-      <p className="prose">
-        Materi singkat, kuis, dan umpan balik untuk mendukung tugas perangkat desa. Dapat dibuka di ponsel dengan koneksi terbatas.
-        {!me && (
-          <>
-            {' '}
-            <Link href="/masuk">Masuk</Link> untuk mulai belajar.
-          </>
-        )}
-      </p>
+    <div>
+      <section className="hero" aria-labelledby="hero-judul">
+        <HeroWaves />
+        <p className="eyebrow">
+          <Icon name="leaf" /> Daya bersama, sama berdaya
+        </p>
+        <div id="hero-judul">
+          <PageTitle>Belajar untuk perangkat desa</PageTitle>
+        </div>
+        <p>Materi singkat, kuis, dan umpan balik untuk mendukung tugas perangkat desa. Dapat dibuka di ponsel dengan koneksi terbatas.</p>
+        <div className="btn-row">
+          <a className="btn btn-accent" href="#katalog-judul">
+            Lihat katalog <Icon name="arrow" />
+          </a>
+          {me ? (
+            <Link className="btn btn-light" href="/kelas-saya">
+              Kelas Saya
+            </Link>
+          ) : (
+            <Link className="btn btn-light" href="/masuk">
+              Masuk untuk mulai belajar
+            </Link>
+          )}
+        </div>
+      </section>
+
       {me && !me.profile.villageRole && (
         <div className="alert alert-warning">
           <Link href="/profil">Lengkapi profil jabatan</Link> agar kami dapat menyarankan materi yang relevan.
         </div>
       )}
+
       <section aria-labelledby="katalog-judul" className="stack">
-        <h2 id="katalog-judul">Katalog kelas</h2>
+        <div>
+          <p className="eyebrow">Kelas tersedia</p>
+          <h2 id="katalog-judul">Katalog kelas</h2>
+        </div>
         {loading && <Loading />}
         {Boolean(error) && <ErrorAlert error={error} onRetry={reload} />}
-        {data && data.courses.length === 0 && <p>Belum ada kelas yang terbit.</p>}
-        {data && (
-          <ul className="grid lesson-list">
+        {data && data.courses.length === 0 && (
+          <div className="card card-soft">
+            <p style={{ margin: 0 }}>Belum ada kelas yang terbit.</p>
+          </div>
+        )}
+        {data && data.courses.length > 0 && (
+          <ul className="grid grid-3 lesson-list">
             {data.courses.map((c) => (
-              <li key={c.id} className="card">
-                <h3>
+              <li key={c.id} className="card card-link">
+                <span className="icon-tile">
+                  <Icon name="layers" />
+                </span>
+                {c.recommended && <p className="badge badge-success" style={{ alignSelf: 'flex-start', margin: 0 }}>Disarankan untuk jabatan Anda</p>}
+                <h3 style={{ margin: 0 }}>
                   <Link href={`/kelas/${c.slug}`}>{c.title}</Link>
                 </h3>
-                {c.recommended && <p className="badge badge-success">Disarankan untuk jabatan Anda</p>}
-                <p>{c.description}</p>
-                <p className="muted">{c.lessonCount} materi</p>
+                <p className="muted" style={{ margin: 0 }}>
+                  {c.description}
+                </p>
+                <p className="meta card-cta">
+                  <span>
+                    <Icon name="book" /> {c.lessonCount} materi
+                  </span>
+                </p>
               </li>
             ))}
           </ul>
