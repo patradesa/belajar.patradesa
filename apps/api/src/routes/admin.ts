@@ -25,6 +25,17 @@ import { currentUser, hasRole, requireRole } from '../middleware/auth';
 import { recomputeAfterReviewStatement, resultFromScoreStatement } from '../services/finalize';
 
 const MAX_PDF_BYTES = 20 * 1024 * 1024;
+const MAX_COVER_BYTES = 2 * 1024 * 1024;
+
+/** Cocokkan tanda tangan berkas (magic bytes) dengan jenis gambar yang diklaim. */
+export function imageMagicMatches(head: Uint8Array, contentType: string): boolean {
+  const b = (i: number) => head[i] ?? -1;
+  const ascii = (from: number, to: number) => String.fromCharCode(...head.slice(from, to));
+  if (contentType === 'image/jpeg') return b(0) === 0xff && b(1) === 0xd8 && b(2) === 0xff;
+  if (contentType === 'image/png') return b(0) === 0x89 && ascii(1, 4) === 'PNG';
+  if (contentType === 'image/webp') return ascii(0, 4) === 'RIFF' && ascii(8, 12) === 'WEBP';
+  return false;
+}
 
 async function draftLesson(db: D1Database, lessonId: string) {
   const l = await db
@@ -207,7 +218,16 @@ export function adminRoutes(deps: Deps) {
       .prepare('SELECT m.mentor_id, u.display_name FROM mentor_assignments m JOIN users u ON u.id = m.mentor_id WHERE m.course_id = ?')
       .bind(id)
       .all();
-    return c.json({ course, versions, editingVersion: editing, lessons: outLessons, recommendedFor: recs.map((x) => x.village_role), mentors });
+    const cover = await db.prepare('SELECT updated_at FROM course_covers WHERE course_id = ?').bind(id).first<{ updated_at: number }>();
+    return c.json({
+      course,
+      versions,
+      editingVersion: editing,
+      lessons: outLessons,
+      recommendedFor: recs.map((x) => x.village_role),
+      mentors,
+      coverUrl: cover ? `/api/v1/courses/${id}/cover?v=${cover.updated_at}` : null,
+    });
   });
 
   r.patch('/courses/:id', admins, async (c) => {
@@ -252,6 +272,48 @@ export function adminRoutes(deps: Deps) {
     }
     stmts.push(auditStmt(c.env.DB, now, u.id, 'course.update', 'course', id, { fields: Object.keys(b).join(',') }));
     await c.env.DB.batch(stmts);
+    return c.json({ ok: true });
+  });
+
+  // Foto sampul kelas: JPG/PNG/WebP ≤ 2 MB, diverifikasi lewat magic bytes, disimpan di R2 privat.
+  r.put('/courses/:id/cover', editors, async (c) => {
+    const u = currentUser(c);
+    const id = param(c, 'id');
+    const course = await c.env.DB.prepare('SELECT id FROM courses WHERE id = ?').bind(id).first<{ id: string }>();
+    if (!course) throw notFound('Kelas');
+    const ct = (c.req.header('content-type') ?? '').split(';')[0]!.trim();
+    const ext = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp' }[ct];
+    if (!ext) throw new HttpError(415, ERROR_CODES.VALIDATION, 'Gunakan gambar JPG, PNG, atau WebP.');
+    if (Number(c.req.header('content-length') ?? '0') > MAX_COVER_BYTES) throw new HttpError(413, ERROR_CODES.VALIDATION, 'Gambar melebihi 2 MB.');
+    const buf = await c.req.arrayBuffer();
+    if (buf.byteLength > MAX_COVER_BYTES || buf.byteLength < 12) throw new HttpError(413, ERROR_CODES.VALIDATION, 'Ukuran gambar tidak valid.');
+    if (!imageMagicMatches(new Uint8Array(buf, 0, 12), ct)) throw new HttpError(415, ERROR_CODES.VALIDATION, 'Isi berkas tidak sesuai jenis gambar.');
+    const now = deps.now();
+    const old = await c.env.DB.prepare('SELECT file_key FROM course_covers WHERE course_id = ?').bind(id).first<{ file_key: string }>();
+    const key = `covers/${id}/${randomToken(16)}.${ext}`;
+    await c.env.FILES.put(key, buf, { httpMetadata: { contentType: ct } });
+    await c.env.DB.batch([
+      c.env.DB.prepare(
+        `INSERT INTO course_covers (course_id, file_key, content_type, updated_by, updated_at) VALUES (?, ?, ?, ?, ?)
+         ON CONFLICT (course_id) DO UPDATE SET file_key = excluded.file_key, content_type = excluded.content_type,
+           updated_by = excluded.updated_by, updated_at = excluded.updated_at`,
+      ).bind(id, key, ct, u.id, now),
+      auditStmt(c.env.DB, now, u.id, 'course.cover', 'course', id, { bytes: buf.byteLength }),
+    ]);
+    if (old) await c.env.FILES.delete(old.file_key).catch(() => {});
+    return c.json({ ok: true, coverUrl: `/api/v1/courses/${id}/cover?v=${now}` });
+  });
+
+  r.delete('/courses/:id/cover', editors, async (c) => {
+    const u = currentUser(c);
+    const id = param(c, 'id');
+    const old = await c.env.DB.prepare('SELECT file_key FROM course_covers WHERE course_id = ?').bind(id).first<{ file_key: string }>();
+    if (!old) return c.json({ ok: true });
+    await c.env.DB.batch([
+      c.env.DB.prepare('DELETE FROM course_covers WHERE course_id = ?').bind(id),
+      auditStmt(c.env.DB, deps.now(), u.id, 'course.cover_delete', 'course', id),
+    ]);
+    await c.env.FILES.delete(old.file_key).catch(() => {});
     return c.json({ ok: true });
   });
 

@@ -690,6 +690,149 @@ th {
   color: var(--color-heading);
 }
 
+/* ---------------------------------------------------------------- kartu katalog */
+.course-grid > li + li {
+  margin-top: 0;
+}
+.course-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 1.25rem;
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+}
+.course-card-media {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background: var(--color-surface-soft);
+  overflow: hidden;
+}
+.course-card-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.course-card-media--empty {
+  display: grid;
+  place-items: center;
+  color: var(--color-heading);
+}
+.course-card-media--empty .hero-waves {
+  color: var(--color-heading);
+  opacity: 0.12;
+}
+.icon-tile-lg {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 1.25rem;
+  position: relative;
+}
+.icon-tile-lg .icon {
+  width: 2rem;
+  height: 2rem;
+}
+.course-card-flag {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+}
+.course-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  flex: 1;
+  padding: var(--space-5);
+}
+.course-card-body h3 {
+  margin: 0;
+}
+.course-card-desc {
+  margin: 0;
+  color: var(--color-muted);
+}
+.check-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+.check-list li {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+}
+.check-dot {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 1.4rem;
+  height: 1.4rem;
+  margin-top: 0.15rem;
+  border-radius: 999px;
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+.check-dot .icon {
+  width: 0.9rem;
+  height: 0.9rem;
+  stroke-width: 2.5;
+}
+.rating {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-text);
+}
+.rating-empty {
+  color: var(--color-muted);
+  font-size: 0.9375rem;
+}
+.stars {
+  display: inline-flex;
+  color: var(--color-star);
+}
+.star {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+.star-input {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.star-input-row {
+  display: flex;
+  gap: var(--space-1);
+}
+.star-input label {
+  display: inline-grid;
+  place-items: center;
+  min-width: var(--touch);
+  min-height: var(--touch);
+  margin: 0;
+  color: var(--color-star);
+  cursor: pointer;
+}
+.star-input label .star {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+.star-input input:focus-visible + label {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius);
+}
+.course-card-actions {
+  margin-top: auto;
+  display: flex;
+  justify-content: flex-end;
+}
+
 /* ---------------------------------------------------------------- halaman masuk */
 .auth-layout {
   display: grid;

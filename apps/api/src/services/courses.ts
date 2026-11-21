@@ -1,4 +1,13 @@
-import { ERROR_CODES, type AssessmentSummary, type CatalogCourse, type CourseDetail, type LessonSummary } from '@patradesa/shared';
+import {
+  ERROR_CODES,
+  VILLAGE_ROLES,
+  type AssessmentSummary,
+  type CatalogCourse,
+  type CourseDetail,
+  type CourseRating,
+  type LessonSummary,
+  type VillageRole,
+} from '@patradesa/shared';
 import { HttpError, notFound } from '../lib/http';
 import { newId } from '../lib/crypto';
 import { assessmentEligibility, loadAssessment } from './attempts';
@@ -18,26 +27,82 @@ interface CourseRow {
   access_duration_days: number | null;
 }
 
-export async function catalog(db: D1Database, villageRole: string | null): Promise<CatalogCourse[]> {
+export function coverUrl(slug: string, version: number | null): string | null {
+  return version === null ? null : `/api/v1/courses/${encodeURIComponent(slug)}/cover?v=${version}`;
+}
+
+export async function courseRating(db: D1Database, courseId: string): Promise<CourseRating> {
+  const r = await db
+    .prepare('SELECT ROUND(AVG(stars), 1) AS avg, COUNT(*) AS n FROM course_ratings WHERE course_id = ?')
+    .bind(courseId)
+    .first<{ avg: number | null; n: number }>();
+  return { average: r?.n ? r.avg : null, count: r?.n ?? 0 };
+}
+
+/** Katalog publik dalam SATU query (aman untuk batas query D1 per request). */
+export async function catalog(db: D1Database, villageRole: string | null, userId: string | null): Promise<CatalogCourse[]> {
   const { results } = await db
     .prepare(
       `SELECT c.id, c.slug, c.title, c.description,
               (SELECT COUNT(*) FROM lessons l WHERE l.course_version_id = c.current_version_id) AS lesson_count,
-              (SELECT MIN(priority) FROM role_recommendations r WHERE r.course_id = c.id AND r.village_role = ?) AS rec
-       FROM courses c
+              (SELECT COALESCE(SUM(l.required_active_seconds), 0) FROM lessons l WHERE l.course_version_id = c.current_version_id) AS study_seconds,
+              (SELECT COALESCE(SUM(a.mcq_count + a.essay_count), 0) FROM assessments a JOIN lessons l ON l.id = a.lesson_id
+                WHERE l.course_version_id = c.current_version_id) AS quiz_count,
+              (SELECT group_concat(village_role) FROM (SELECT village_role FROM role_recommendations r WHERE r.course_id = c.id ORDER BY priority)) AS roles,
+              (SELECT MIN(priority) FROM role_recommendations r WHERE r.course_id = c.id AND r.village_role = ?) AS rec,
+              (SELECT ROUND(AVG(stars), 1) FROM course_ratings cr WHERE cr.course_id = c.id) AS rating_avg,
+              (SELECT COUNT(*) FROM course_ratings cr WHERE cr.course_id = c.id) AS rating_count,
+              cc.updated_at AS cover_v,
+              EXISTS (SELECT 1 FROM enrollments e WHERE e.course_id = c.id AND e.user_id = ?) AS enrolled
+       FROM courses c LEFT JOIN course_covers cc ON cc.course_id = c.id
        WHERE c.status = 'published' AND c.visibility = 'public' AND c.current_version_id IS NOT NULL
        ORDER BY (rec IS NULL), rec, c.title`,
     )
-    .bind(villageRole)
-    .all<{ id: string; slug: string; title: string; description: string; lesson_count: number; rec: number | null }>();
+    .bind(villageRole, userId)
+    .all<{
+      id: string;
+      slug: string;
+      title: string;
+      description: string;
+      lesson_count: number;
+      study_seconds: number;
+      quiz_count: number;
+      roles: string | null;
+      rec: number | null;
+      rating_avg: number | null;
+      rating_count: number;
+      cover_v: number | null;
+      enrolled: number;
+    }>();
   return results.map((r) => ({
     id: r.id,
     slug: r.slug,
     title: r.title,
     description: r.description,
     lessonCount: r.lesson_count,
+    studyMinutes: Math.ceil(r.study_seconds / 60),
+    quizQuestionCount: r.quiz_count,
+    recommendedRoles: (r.roles ? r.roles.split(',') : []).filter((x): x is VillageRole => (VILLAGE_ROLES as readonly string[]).includes(x)),
+    rating: { average: r.rating_count ? r.rating_avg : null, count: r.rating_count },
+    coverUrl: coverUrl(r.slug, r.cover_v),
+    enrolled: r.enrolled === 1,
     recommended: r.rec !== null,
   }));
+}
+
+/** Simpan/ubah rating (1–5). Hanya peserta yang terdaftar di kelas. */
+export async function rateCourse(db: D1Database, userId: string, idOrSlug: string, stars: number, now: number) {
+  const c = await findPublishedCourse(db, idOrSlug);
+  const enr = await db.prepare('SELECT 1 AS x FROM enrollments WHERE user_id = ? AND course_id = ?').bind(userId, c.id).first();
+  if (!enr) throw new HttpError(403, ERROR_CODES.NOT_ELIGIBLE, 'Daftar kelas terlebih dahulu sebelum memberi rating.');
+  await db
+    .prepare(
+      `INSERT INTO course_ratings (user_id, course_id, stars, created_at, updated_at) VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT (user_id, course_id) DO UPDATE SET stars = excluded.stars, updated_at = excluded.updated_at`,
+    )
+    .bind(userId, c.id, stars, now, now)
+    .run();
+  return { rating: await courseRating(db, c.id), myRating: stars };
 }
 
 export async function findPublishedCourse(db: D1Database, idOrSlug: string): Promise<CourseRow> {
@@ -139,6 +204,14 @@ export async function courseDetail(db: D1Database, idOrSlug: string, userId: str
     enrollment: enr ? { id: enr.id, status: enr.status, expiresAt: enr.expires_at } : null,
     lessons: out,
     completion: enr ? { passed: reasons.length === 0, reasons } : null,
+    rating: await courseRating(db, c.id),
+    myRating: userId
+      ? ((await db.prepare('SELECT stars FROM course_ratings WHERE user_id = ? AND course_id = ?').bind(userId, c.id).first<{ stars: number }>())?.stars ?? null)
+      : null,
+    coverUrl: coverUrl(
+      c.slug,
+      (await db.prepare('SELECT updated_at FROM course_covers WHERE course_id = ?').bind(c.id).first<{ updated_at: number }>())?.updated_at ?? null,
+    ),
   };
 }
 

@@ -61,6 +61,8 @@
   --color-progress-fill: #334e0f;
   --color-progress-track: #e5e7eb;
   --color-accent-decor: #dd9933;
+  /* Bintang rating: amber gelap agar kontras grafis ≥ 3:1 di latar putih (angka rating tetap tampil sebagai teks). */
+  --color-star: #b7791f;
 
   /* Tipografi: heading Plus Jakarta Sans (self-hosted, OFL, latin), teks badan font sistem */
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
