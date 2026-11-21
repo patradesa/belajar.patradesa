@@ -27,6 +27,8 @@ Worker `belajar-patradesa` (akun Patradesa.id). Settings → Build:
 
 `APP_ORIGIN` di `[env.staging.vars]` harus sama persis dengan URL workers.dev Worker. Migrasi D1 dijalankan terpisah (wrangler yang login ke akun Patradesa.id): `npx wrangler d1 migrations apply DB --env staging --remote`.
 
+Tanpa wrangler: tempel `db/console/<migrasi>.console.sql` ke D1 → Console (dibuat dengan `node scripts/make-console-sql.mjs <file>`). Console menggabungkan baris, sehingga file migrasi asli yang berisi komentar `--` tidak bisa dipakai langsung. Versi console idempoten dan mencatat dirinya di `d1_migrations`.
+
 ## 2. Deploy
 ```bash
 npm ci && npm run check && npm run test:e2e        # semua hijau dulu
