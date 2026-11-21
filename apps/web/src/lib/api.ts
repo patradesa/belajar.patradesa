@@ -51,5 +51,7 @@ export async function api<T>(path: string, init: { method?: string; body?: unkno
 
 export function errorMessage(e: unknown): string {
   if (e instanceof ApiError) return e.message;
+  // Pesan Error buatan aplikasi (mis. validasi unggah) boleh tampil; galat jaringan teknis tidak.
+  if (e instanceof Error && !(e instanceof TypeError) && e.message) return e.message;
   return 'Terjadi kesalahan. Coba lagi.';
 }

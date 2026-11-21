@@ -46,7 +46,9 @@ export const answersPatchSchema = z
 
 export const aiPromptSchema = z.object({ message: z.string().trim().min(1).max(1000) }).strict();
 
-export const appealSchema = z.object({ reason: z.string().trim().min(10).max(2000) }).strict();
+export const ratingSchema = z.object({ stars: z.number().int().min(1).max(5) }).strict();
+
+export const appealSchema =z.object({ reason: z.string().trim().min(10).max(2000) }).strict();
 
 export const googleStartSchema = z
   .object({

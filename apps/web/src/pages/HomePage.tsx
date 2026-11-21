@@ -4,6 +4,7 @@ import { Link } from '../lib/router';
 import { useSession } from '../lib/session';
 import { ErrorAlert, Loading, PageTitle, useAsync } from '../components/common';
 import { HeroWaves, Icon } from '../components/Icon';
+import { CourseCard } from '../components/CourseCard';
 
 export function HomePage() {
   const { me } = useSession();
@@ -54,24 +55,10 @@ export function HomePage() {
           </div>
         )}
         {data && data.courses.length > 0 && (
-          <ul className="grid grid-3 lesson-list">
+          <ul className="grid grid-3 lesson-list course-grid">
             {data.courses.map((c) => (
-              <li key={c.id} className="card card-link">
-                <span className="icon-tile">
-                  <Icon name="layers" />
-                </span>
-                {c.recommended && <p className="badge badge-success" style={{ alignSelf: 'flex-start', margin: 0 }}>Disarankan untuk jabatan Anda</p>}
-                <h3 style={{ margin: 0 }}>
-                  <Link href={`/kelas/${c.slug}`}>{c.title}</Link>
-                </h3>
-                <p className="muted" style={{ margin: 0 }}>
-                  {c.description}
-                </p>
-                <p className="meta card-cta">
-                  <span>
-                    <Icon name="book" /> {c.lessonCount} materi
-                  </span>
-                </p>
+              <li key={c.id}>
+                <CourseCard course={c} />
               </li>
             ))}
           </ul>

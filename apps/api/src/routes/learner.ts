@@ -5,6 +5,7 @@ import {
   appealSchema,
   heartbeatSchema,
   profilePatchSchema,
+  ratingSchema,
   type Block,
   type LessonContent,
   type MeResponse,
@@ -13,9 +14,9 @@ import type { AppEnv, Deps } from '../env';
 import { HttpError, notFound, param, readJson } from '../lib/http';
 import { enforceRateLimit } from '../lib/rateLimit';
 import { newId } from '../lib/crypto';
-import { csrfTokenFor, currentUser, requireAuth } from '../middleware/auth';
+import { csrfTokenFor, currentUser, hasRole, requireAuth } from '../middleware/auth';
 import { getActiveAttempt } from '../services/examLock';
-import { catalog, courseDetail, enroll, myCourses } from '../services/courses';
+import { catalog, courseDetail, enroll, myCourses, rateCourse } from '../services/courses';
 import { requireLessonAccess } from '../services/access';
 import { heartbeat, startLearningSession, touchProgressStatement } from '../services/learning';
 import { attemptResult, attemptView, loadOwnedAttempt, saveAnswers, startAttempt, submitAttempt } from '../services/attempts';
@@ -31,7 +32,7 @@ export function learnerRoutes(deps: Deps) {
       const p = await c.env.DB.prepare('SELECT village_role FROM user_profiles WHERE user_id = ?').bind(u.id).first<{ village_role: string | null }>();
       role = p?.village_role ?? null;
     }
-    const courses = await catalog(c.env.DB, role);
+    const courses = await catalog(c.env.DB, role, u?.id ?? null);
     if (!u) c.header('Cache-Control', 'public, max-age=60');
     return c.json({ courses });
   });
@@ -39,6 +40,41 @@ export function learnerRoutes(deps: Deps) {
   r.get('/courses/:id', async (c) => {
     const u = c.get('user');
     return c.json(await courseDetail(c.env.DB, param(c, 'id'), u?.id ?? null, deps.now()));
+  });
+
+  /**
+   * Foto sampul kelas. Publik (boleh di-cache) untuk kelas terbit & publik; editor/admin dapat
+   * melihat sampul kelas draft (tanpa cache). URL memuat ?v=<updated_at> sehingga cache aman.
+   */
+  r.get('/courses/:id/cover', async (c) => {
+    const id = param(c, 'id');
+    const row = await c.env.DB.prepare(
+      `SELECT c.status, c.visibility, cc.file_key, cc.content_type FROM courses c JOIN course_covers cc ON cc.course_id = c.id
+       WHERE c.id = ? OR c.slug = ?`,
+    )
+      .bind(id, id)
+      .first<{ status: string; visibility: string; file_key: string; content_type: string }>();
+    if (!row) throw notFound('Sampul');
+    const isPublic = row.status === 'published' && row.visibility === 'public';
+    if (!isPublic && !hasRole(c, 'content_editor', 'admin')) throw notFound('Sampul');
+    const obj = await c.env.FILES.get(row.file_key);
+    if (!obj) throw notFound('Sampul');
+    return new Response(obj.body, {
+      headers: {
+        'Content-Type': row.content_type,
+        'Cache-Control': isPublic ? 'public, max-age=86400' : 'private, no-store',
+        'X-Content-Type-Options': 'nosniff',
+        'Content-Security-Policy': "default-src 'none'",
+      },
+    });
+  });
+
+  r.post('/courses/:id/rating', requireAuth, async (c) => {
+    const u = currentUser(c);
+    const now = deps.now();
+    await enforceRateLimit(c.env.DB, `rating:${u.id}`, 20, 60_000, now);
+    const body = await readJson(c, ratingSchema);
+    return c.json(await rateCourse(c.env.DB, u.id, param(c, 'id'), body.stars, now));
   });
 
   // ---------------------------------------------------------------- profil

@@ -21,12 +21,29 @@ export interface MeResponse {
   activeAttempt: { id: string; assessmentId: string; deadlineAt: number } | null;
 }
 
+export interface CourseRating {
+  /** Rata-rata 1–5 (satu desimal) atau null bila belum ada rating. */
+  average: number | null;
+  count: number;
+}
+
 export interface CatalogCourse {
   id: string;
   slug: string;
   title: string;
   description: string;
   lessonCount: number;
+  /** Total waktu belajar minimum seluruh materi (menit, dibulatkan ke atas). */
+  studyMinutes: number;
+  /** Jumlah soal yang ditampilkan di kuis (PG + esai) pada versi terbit. */
+  quizQuestionCount: number;
+  /** Jabatan desa yang dicentang admin sebagai sasaran kelas (urut prioritas). */
+  recommendedRoles: VillageRole[];
+  rating: CourseRating;
+  coverUrl: string | null;
+  /** Peserta yang sedang login sudah terdaftar di kelas ini. */
+  enrolled: boolean;
+  /** Jabatan peserta yang login termasuk sasaran kelas. */
   recommended?: boolean;
 }
 
@@ -63,6 +80,10 @@ export interface CourseDetail {
   enrollment: { id: string; status: string; expiresAt: number | null } | null;
   lessons: LessonSummary[];
   completion: { passed: boolean; reasons: string[] } | null;
+  rating: CourseRating;
+  /** Rating dari peserta yang login (1–5) atau null. */
+  myRating: number | null;
+  coverUrl: string | null;
 }
 
 export interface LessonContent {

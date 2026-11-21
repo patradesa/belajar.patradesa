@@ -24,6 +24,19 @@ export const VILLAGE_ROLE_LABELS: Record<VillageRole, string> = {
   lainnya: 'Lainnya',
 };
 
+/** Label singkat jabatan untuk kartu katalog. */
+export const VILLAGE_ROLE_SHORT: Record<VillageRole, string> = {
+  perbekel: 'Perbekel/Kades',
+  sekdes: 'Sekdes',
+  kaur: 'Kaur',
+  kasi: 'Kasi',
+  kawil: 'Kawil/Kelian',
+  operator_sid: 'Operator SID',
+  bpd: 'BPD',
+  kader: 'Kader',
+  lainnya: 'Umum',
+};
+
 /** Role sistem (hak akses). Hanya ditetapkan backend/admin. */
 export const SYSTEM_ROLES = ['learner', 'mentor', 'content_editor', 'admin', 'super_admin'] as const;
 export type SystemRole = (typeof SYSTEM_ROLES)[number];
