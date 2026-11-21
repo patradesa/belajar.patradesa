@@ -1,6 +1,7 @@
 import {
   ERROR_CODES,
   VILLAGE_ROLES,
+  summarize,
   type AssessmentSummary,
   type CatalogCourse,
   type CourseDetail,
@@ -78,7 +79,7 @@ export async function catalog(db: D1Database, villageRole: string | null, userId
     id: r.id,
     slug: r.slug,
     title: r.title,
-    description: r.description,
+    summary: summarize(r.description),
     lessonCount: r.lesson_count,
     studyMinutes: Math.ceil(r.study_seconds / 60),
     quizQuestionCount: r.quiz_count,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { extractYoutubeId, parseContent, splitSlides, questionCreateSchema, profilePatchSchema, heartbeatSchema } from '@patradesa/shared';
+import { extractYoutubeId, parseContent, splitSlides, summarize, questionCreateSchema, profilePatchSchema, heartbeatSchema } from '@patradesa/shared';
 import { pickBalanced } from '../../apps/api/src/services/attempts';
 import { secureRandomInt, secureShuffle, timingSafeEqual } from '../../apps/api/src/lib/crypto';
 import { isLearnerAiPath } from '../../apps/api/src/services/examLock';
@@ -16,6 +16,29 @@ describe('parser konten', () => {
     expect(s).not.toContain('"href":"javascript');
     expect(s).not.toContain('"href":"http://');
     expect(s).toContain('"href":"https://a.b/c"');
+  });
+  it('"# Judul" menjadi h2 (bukan teks "#")', () => {
+    expect(parseContent('# Judul Besar\n\nIsi')).toEqual([
+      { type: 'h2', text: 'Judul Besar' },
+      { type: 'p', inlines: [{ t: 'text', v: 'Isi' }] },
+    ]);
+  });
+  it('summarize: tanpa simbol Markdown, lewati judul & label tebal, potong di batas kata', () => {
+    const md =
+      '# Pembangunan Desa Berbasis Desa Cerdas\n\n**Deskripsi Kelas**\n\nBagaimana membangun desa yang cerdas, mandiri, dan mampu memanfaatkan **teknologi**?\n\n' +
+      'Desa Cerdas bukan sekadar desa yang memiliki internet. '.repeat(10) +
+      '\n\n**Tujuan Pembelajaran**\n\n1. Menjelaskan konsep.\n2. Mengidentifikasi peluang.';
+    const s = summarize(md, 200);
+    expect(s.startsWith('Bagaimana membangun desa yang cerdas')).toBe(true);
+    expect(s).not.toMatch(/[#*]/);
+    expect(s).not.toContain('Deskripsi Kelas');
+    expect(s.length).toBeLessThanOrEqual(201);
+    expect(s.endsWith('…')).toBe(true);
+    expect(s).not.toMatch(/\s…$/);
+  });
+  it('summarize: teks pendek dikembalikan utuh; tanpa paragraf memakai judul/daftar', () => {
+    expect(summarize('Kelas singkat.')).toBe('Kelas singkat.');
+    expect(summarize('## Hanya Judul\n\n- satu\n- dua')).toBe('Hanya Judul satu; dua');
   });
   it('YouTube ID divalidasi', () => {
     expect(extractYoutubeId('dQw4w9WgXcQ')).toBe('dQw4w9WgXcQ');

@@ -754,9 +754,15 @@ th {
 .course-card-body h3 {
   margin: 0;
 }
+/* Ringkasan maksimal 5 baris (juga saat teks diperbesar); deskripsi lengkap ada di halaman kelas. */
 .course-card-desc {
   margin: 0;
   color: var(--color-muted);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+  overflow: hidden;
 }
 .check-list {
   list-style: none;
@@ -847,6 +853,14 @@ th {
     gap: var(--space-6);
     align-items: center;
   }
+}
+/* Judul di dalam deskripsi kelas sedikit lebih kecil dari judul bagian "Tentang kelas". */
+.course-about .content h2 {
+  font-size: 1.15rem;
+  margin-top: var(--space-5);
+}
+.course-about .content h3 {
+  font-size: 1.05rem;
 }
 .course-card-actions {
   margin-top: auto;

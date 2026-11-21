@@ -31,7 +31,8 @@ export interface CatalogCourse {
   id: string;
   slug: string;
   title: string;
-  description: string;
+  /** Ringkasan teks biasa dari deskripsi (tanpa Markdown, ≤ ~280 karakter). Deskripsi lengkap ada di halaman kelas. */
+  summary: string;
   lessonCount: number;
   /** Total waktu belajar minimum seluruh materi (menit, dibulatkan ke atas). */
   studyMinutes: number;
