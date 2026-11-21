@@ -4,8 +4,10 @@ import { api, errorMessage } from '../lib/api';
 import { Link, navigate } from '../lib/router';
 import { useSession } from '../lib/session';
 import { ErrorAlert, Loading, PageTitle, formatDuration, useAsync } from '../components/common';
+import { Icon } from '../components/Icon';
 
 const TYPE_LABEL = { html: 'Bacaan', slides: 'Slide', pdf: 'PDF', youtube: 'Video' } as const;
+const TYPE_ICON = { html: 'book', slides: 'slides', pdf: 'file', youtube: 'play' } as const;
 const RESULT_LABEL = { passed: 'Lulus', failed: 'Belum lulus', pending_review: 'Menunggu penilaian', pending: 'Diproses' } as const;
 
 export function CoursePage({ id }: { id: string }) {
@@ -45,24 +47,29 @@ export function CoursePage({ id }: { id: string }) {
   };
 
   return (
-    <div className="stack">
-      <PageTitle>{data.title}</PageTitle>
-      <p className="prose">{data.description}</p>
+    <div className="stack-lg">
+      <header className="page-head">
+        <p className="eyebrow">
+          <Icon name="layers" /> Kelas
+        </p>
+        <PageTitle>{data.title}</PageTitle>
+        <p>{data.description}</p>
+        {!data.enrolled &&
+          (me ? (
+            <button type="button" className="btn btn-accent" onClick={enroll} disabled={busy}>
+              Daftar kelas ini <Icon name="arrow" />
+            </button>
+          ) : (
+            <Link className="btn btn-accent" href="/masuk">
+              Masuk untuk mendaftar
+            </Link>
+          ))}
+      </header>
       {actionErr && (
         <div className="alert alert-error" role="alert">
           {actionErr}
         </div>
       )}
-      {!data.enrolled &&
-        (me ? (
-          <button type="button" className="btn" onClick={enroll} disabled={busy}>
-            Daftar kelas ini
-          </button>
-        ) : (
-          <p>
-            <Link href="/masuk">Masuk</Link> untuk mendaftar kelas ini.
-          </p>
-        ))}
       {data.completion && (
         <div className={`alert ${data.completion.passed ? 'alert-success' : 'alert-warning'}`}>
           {data.completion.passed ? (
@@ -70,7 +77,7 @@ export function CoursePage({ id }: { id: string }) {
           ) : (
             <>
               <strong>Syarat kelulusan yang belum terpenuhi:</strong>
-              <ul>
+              <ul style={{ marginBottom: 0 }}>
                 {data.completion.reasons.map((r) => (
                   <li key={r}>{r}</li>
                 ))}
@@ -79,60 +86,85 @@ export function CoursePage({ id }: { id: string }) {
           )}
         </div>
       )}
-      <section aria-labelledby="materi-judul">
+      <section aria-labelledby="materi-judul" className="stack">
         <h2 id="materi-judul">Materi</h2>
         <ol className="lesson-list">
           {data.lessons.map((l) => {
             const pct = l.requiredActiveSeconds ? Math.min(100, Math.round((l.activeSeconds / l.requiredActiveSeconds) * 100)) : 100;
             return (
               <li key={l.id} className="card">
-                <h3>
-                  {data.enrolled ? <Link href={`/materi/${l.id}`}>{l.title}</Link> : l.title}{' '}
-                  <span className="muted">({TYPE_LABEL[l.contentType]})</span>
-                </h3>
-                {l.summary && <p>{l.summary}</p>}
-                {data.enrolled && (
-                  <p>
-                    {l.completed ? (
-                      <span className="badge badge-success">✓ Selesai</span>
-                    ) : (
-                      <>
-                        Waktu belajar: {formatDuration(l.activeSeconds)} dari minimal {formatDuration(l.requiredActiveSeconds)} ({pct}%)
-                      </>
-                    )}
-                  </p>
-                )}
-                {l.assessment && data.enrolled && (
+                <div className="lesson-item">
+                  <span className="icon-tile">
+                    <Icon name={l.completed ? 'check' : TYPE_ICON[l.contentType]} />
+                  </span>
                   <div className="stack">
-                    <p>
-                      <strong>{l.assessment.title}</strong> — {Math.round(l.assessment.timeLimitSeconds / 60)} menit, nilai lulus{' '}
-                      {l.assessment.passingScorePct}%, percobaan {l.assessment.attemptsUsed}/{l.assessment.maxAttempts}.
-                      {l.assessment.bestResult && <> Status: {RESULT_LABEL[l.assessment.bestResult]}.</>}
-                    </p>
-                    {me?.activeAttempt?.assessmentId === l.assessment.id ? (
-                      <Link className="btn" href={`/kuis/${me.activeAttempt.id}`}>
-                        Lanjutkan kuis
-                      </Link>
-                    ) : (
-                      <button
-                        type="button"
-                        className="btn"
-                        onClick={() => void startQuiz(l.assessment!.id)}
-                        disabled={busy || !l.assessment.eligible || !!me?.activeAttempt}
-                        aria-describedby={`kuis-${l.id}-help`}
-                      >
-                        Mulai Kuis
-                      </button>
+                    <div>
+                      <p className="meta" style={{ marginBottom: '0.25rem' }}>
+                        <span className="step-no">{String(l.seq).padStart(2, '0')}</span>
+                        <span className="badge">{TYPE_LABEL[l.contentType]}</span>
+                        {l.completed && <span className="badge badge-success">Selesai</span>}
+                      </p>
+                      <h3 style={{ margin: 0 }}>{data.enrolled ? <Link href={`/materi/${l.id}`}>{l.title}</Link> : l.title}</h3>
+                    </div>
+                    {l.summary && <p className="muted" style={{ margin: 0 }}>{l.summary}</p>}
+                    {data.enrolled && !l.completed && (
+                      <div>
+                        <p className="meta">
+                          <span>
+                            <Icon name="clock" /> {formatDuration(l.activeSeconds)} dari minimal {formatDuration(l.requiredActiveSeconds)} ({pct}%)
+                          </span>
+                        </p>
+                        <div className="progress" role="img" aria-label={`Progres waktu belajar ${pct} persen`} style={{ marginTop: '0.5rem' }}>
+                          <span style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
                     )}
-                    <p id={`kuis-${l.id}-help`} className="help">
-                      {l.assessment.eligible
-                        ? 'Waktu dihitung server sejak kuis dimulai. Pendamping AI tidak tersedia selama kuis.'
-                        : l.completed
-                          ? 'Kuis belum dapat dimulai (batas percobaan atau masa jeda).'
-                          : 'Kuis terbuka setelah waktu belajar minimum materi ini terpenuhi.'}
-                    </p>
+                    {l.assessment && data.enrolled && (
+                      <div className="card card-soft stack" style={{ padding: '1rem' }}>
+                        <p style={{ margin: 0 }}>
+                          <strong>
+                            <Icon name="quiz" /> {l.assessment.title}
+                          </strong>
+                        </p>
+                        <p className="meta">
+                          <span>
+                            <Icon name="clock" /> {Math.round(l.assessment.timeLimitSeconds / 60)} menit
+                          </span>
+                          <span>Nilai lulus {l.assessment.passingScorePct}%</span>
+                          <span>
+                            Percobaan {l.assessment.attemptsUsed}/{l.assessment.maxAttempts}
+                          </span>
+                          {l.assessment.bestResult && <span className="badge">{RESULT_LABEL[l.assessment.bestResult]}</span>}
+                        </p>
+                        <div>
+                          {me?.activeAttempt?.assessmentId === l.assessment.id ? (
+                            <Link className="btn btn-accent" href={`/kuis/${me.activeAttempt.id}`}>
+                              Lanjutkan kuis
+                            </Link>
+                          ) : (
+                            <button
+                              type="button"
+                              className="btn btn-accent"
+                              onClick={() => void startQuiz(l.assessment!.id)}
+                              disabled={busy || !l.assessment.eligible || !!me?.activeAttempt}
+                              aria-describedby={`kuis-${l.id}-help`}
+                            >
+                              {l.assessment.eligible ? null : <Icon name="lock" />}
+                              Mulai Kuis
+                            </button>
+                          )}
+                        </div>
+                        <p id={`kuis-${l.id}-help`} className="help" style={{ margin: 0 }}>
+                          {l.assessment.eligible
+                            ? 'Waktu dihitung server sejak kuis dimulai. Pendamping AI tidak tersedia selama kuis.'
+                            : l.completed
+                              ? 'Kuis belum dapat dimulai (batas percobaan atau masa jeda).'
+                              : 'Kuis terbuka setelah waktu belajar minimum materi ini terpenuhi.'}
+                        </p>
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
               </li>
             );
           })}

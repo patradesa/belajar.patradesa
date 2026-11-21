@@ -156,8 +156,10 @@ test('tanpa scroll horizontal pada 320px dan teks 200% (katalog, kelas, materi)'
 
 test('dev-login & admin: peserta tidak dapat membuka admin', async ({ page }) => {
   await uiLogin(page, `bukan-admin-${Date.now()}@contoh.test`, 'Bukan Admin');
+  await page.waitForURL((u) => !u.pathname.startsWith('/masuk'));
   await page.goto('/admin');
-  await expect(page.getByRole('heading', { name: 'Akses ditolak' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Masuk Admin' })).toBeVisible();
+  await expect(page.getByText('tidak memiliki akses pengelola')).toBeVisible();
   const r = await page.request.get('/api/v1/admin/courses');
   expect(r.status()).toBe(403);
 });

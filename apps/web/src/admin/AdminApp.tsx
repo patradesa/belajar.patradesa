@@ -5,6 +5,7 @@ import { Link, match, navigate } from '../lib/router';
 import { hasRole, useSession } from '../lib/session';
 import { ErrorAlert, Loading, PageTitle, useAsync } from '../components/common';
 import { CourseEditor } from './CourseEditor';
+import { AdminLoginPage } from '../pages/AdminLoginPage';
 
 /** Area admin/mentor/editor — dimuat lazy, tidak termasuk bundle awal learner. */
 
@@ -403,14 +404,8 @@ function Report({ courseId }: { courseId: string }) {
 export default function AdminApp({ path }: { path: string }) {
   const { me, loading } = useSession();
   if (loading) return <Loading />;
-  if (!me || !hasRole(me, 'admin', 'content_editor', 'mentor')) {
-    return (
-      <>
-        <h1>Akses ditolak</h1>
-        <p>Halaman ini hanya untuk admin, editor konten, atau mentor.</p>
-      </>
-    );
-  }
+  // Belum login / tanpa role pengelola → halaman masuk admin (server tetap menolak API admin).
+  if (!me || !hasRole(me, 'admin', 'content_editor', 'mentor')) return <AdminLoginPage />;
   let body: ReactNode;
   let m: Record<string, string> | null;
   if ((m = match('/admin/kelas/:id', path))) body = <CourseEditor id={m.id!} />;
@@ -422,7 +417,10 @@ export default function AdminApp({ path }: { path: string }) {
   else body = hasRole(me, 'admin', 'content_editor') ? <CourseList /> : <Reviews />;
   return (
     <div className="stack">
-      <PageTitle>Admin</PageTitle>
+      <div>
+        <p className="eyebrow">Panel pengelola</p>
+        <PageTitle>Admin</PageTitle>
+      </div>
       <Tabs />
       {body}
     </div>
