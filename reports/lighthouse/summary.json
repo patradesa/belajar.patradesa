@@ -1,0 +1,46 @@
+{
+  "env": {
+    "date": "2026-11-21T12:39:42.890Z",
+    "device": "Lighthouse mobile emulation (Moto G Power class), simulated slow 4G, 4x CPU slowdown",
+    "base": "http://localhost:8787"
+  },
+  "budget": {
+    "performance": 0.9,
+    "accessibility": 0.95,
+    "lcpMs": 2500,
+    "cls": 0.1,
+    "tbtMs": 200
+  },
+  "summary": [
+    {
+      "page": "/",
+      "performance": 1,
+      "accessibility": 1,
+      "bestPractices": 0.96,
+      "lcpMs": 851,
+      "cls": 0,
+      "tbtMs": 6,
+      "transferKiB": 83
+    },
+    {
+      "page": "/kelas/dasar-transparansi-desa",
+      "performance": 1,
+      "accessibility": 1,
+      "bestPractices": 0.96,
+      "lcpMs": 1710,
+      "cls": 0,
+      "tbtMs": 0,
+      "transferKiB": 84
+    },
+    {
+      "page": "/masuk",
+      "performance": 1,
+      "accessibility": 1,
+      "bestPractices": 0.96,
+      "lcpMs": 1696,
+      "cls": 0,
+      "tbtMs": 0,
+      "transferKiB": 83
+    }
+  ]
+}

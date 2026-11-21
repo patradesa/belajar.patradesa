@@ -1,0 +1,430 @@
+import { useState, type FormEvent, type ReactNode } from 'react';
+import { api } from '../lib/api';
+import { useAction } from './useAction';
+import { Link, match, navigate } from '../lib/router';
+import { hasRole, useSession } from '../lib/session';
+import { ErrorAlert, Loading, PageTitle, useAsync } from '../components/common';
+import { CourseEditor } from './CourseEditor';
+
+/** Area admin/mentor/editor — dimuat lazy, tidak termasuk bundle awal learner. */
+
+type Row = Record<string, unknown>;
+
+function Tabs() {
+  const { me } = useSession();
+  const items: [string, string, boolean][] = [
+    ['/admin', 'Kelas', hasRole(me, 'admin', 'content_editor')],
+    ['/admin/review', 'Review esai', hasRole(me, 'admin', 'mentor')],
+    ['/admin/banding', 'Banding', hasRole(me, 'admin', 'mentor')],
+    ['/admin/pengguna', 'Pengguna', hasRole(me, 'admin', 'mentor')],
+    ['/admin/audit', 'Audit', hasRole(me, 'admin')],
+  ];
+  return (
+    <nav aria-label="Menu admin">
+      <ul className="btn-row" style={{ listStyle: 'none', padding: 0 }}>
+        {items
+          .filter((i) => i[2])
+          .map(([href, label]) => (
+            <li key={href}>
+              <Link className="btn btn-secondary" href={href}>
+                {label}
+              </Link>
+            </li>
+          ))}
+      </ul>
+    </nav>
+  );
+}
+
+function CourseList() {
+  const { me } = useSession();
+  const { data, error, loading, reload } = useAsync(() => api<{ courses: Row[] }>('/admin/courses'), []);
+  const { run, view } = useAction();
+  const create = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const f = new FormData(e.currentTarget);
+    let id = '';
+    const ok = await run(async () => {
+      const r = await api<{ id: string }>('/admin/courses', {
+        method: 'POST',
+        body: { slug: String(f.get('slug')), title: String(f.get('title')), description: String(f.get('description') ?? '') },
+      });
+      id = r.id;
+    }, 'Kelas dibuat.');
+    if (ok) navigate(`/admin/kelas/${id}`);
+  };
+  return (
+    <div className="stack">
+      <h2>Kelas</h2>
+      {view}
+      {loading && <Loading />}
+      {Boolean(error) && <ErrorAlert error={error} onRetry={reload} />}
+      <div className="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Judul</th>
+              <th scope="col">Status</th>
+              <th scope="col">Versi</th>
+              <th scope="col">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data?.courses.map((c) => (
+              <tr key={String(c.id)}>
+                <td>{String(c.title)}</td>
+                <td>{String(c.status)}</td>
+                <td>
+                  v{String(c.latest_version ?? 1)}
+                  {c.draft_version_id ? ' (ada draft)' : ''}
+                </td>
+                <td>
+                  <Link href={`/admin/kelas/${String(c.id)}`}>Kelola</Link>
+                  {hasRole(me, 'admin') && (
+                    <>
+                      {' · '}
+                      <Link href={`/admin/laporan/${String(c.id)}`}>Laporan</Link>
+                    </>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {hasRole(me, 'admin') && (
+        <form className="card" onSubmit={create}>
+          <h3>Buat kelas baru</h3>
+          <div className="field">
+            <label htmlFor="c-title">Judul</label>
+            <input id="c-title" name="title" type="text" required minLength={3} maxLength={160} />
+          </div>
+          <div className="field">
+            <label htmlFor="c-slug">Slug URL</label>
+            <input id="c-slug" name="slug" type="text" required pattern="[a-z0-9-]{3,80}" aria-describedby="c-slug-help" />
+            <span id="c-slug-help" className="help">
+              Huruf kecil, angka, tanda minus. Contoh: dasar-keterbukaan
+            </span>
+          </div>
+          <div className="field">
+            <label htmlFor="c-desc">Deskripsi</label>
+            <textarea id="c-desc" name="description" maxLength={2000} rows={3} />
+          </div>
+          <button className="btn" type="submit">
+            Buat kelas
+          </button>
+        </form>
+      )}
+    </div>
+  );
+}
+
+function Reviews() {
+  const { data, error, loading, reload } = useAsync(() => api<{ reviews: Row[] }>('/admin/reviews'), []);
+  const { run, view } = useAction();
+  return (
+    <div className="stack">
+      <h2>Antrean review esai</h2>
+      <p className="muted">Review buta: identitas peserta tidak ditampilkan. Nilai final hanya setelah penilaian manusia.</p>
+      {view}
+      {loading && <Loading />}
+      {Boolean(error) && <ErrorAlert error={error} onRetry={reload} />}
+      {data?.reviews.length === 0 && <p>Tidak ada esai yang menunggu penilaian.</p>}
+      {data?.reviews.map((r) => {
+        const rubric = JSON.parse(String(r.rubric_json ?? '[]')) as { criterion: string; maxScore: number }[];
+        const submit = async (e: FormEvent<HTMLFormElement>) => {
+          e.preventDefault();
+          const f = new FormData(e.currentTarget);
+          const ok = await run(
+            () =>
+              api(`/admin/reviews/${String(r.answer_id)}/decision`, {
+                method: 'POST',
+                body: {
+                  rubricScores: rubric.map((c, i) => ({ criterion: c.criterion, score: Number(f.get(`s${i}`)) })),
+                  feedback: String(f.get('feedback') ?? ''),
+                },
+              }),
+            'Nilai tersimpan.',
+          );
+          if (ok) reload();
+        };
+        return (
+          <form key={String(r.answer_id)} className="card stack" onSubmit={submit}>
+            <h3>{String(r.assessment_title)}</h3>
+            <p>
+              <strong>Soal:</strong> {String(r.stem_snapshot)}
+            </p>
+            <p style={{ whiteSpace: 'pre-wrap' }}>
+              <strong>Jawaban:</strong> {r.essay_text ? String(r.essay_text) : <em>(kosong)</em>}
+            </p>
+            {Boolean(r.model_answer) && (
+              <details>
+                <summary>Contoh jawaban (khusus penilai)</summary>
+                <p>{String(r.model_answer)}</p>
+              </details>
+            )}
+            {rubric.map((c, i) => (
+              <div className="field" key={c.criterion}>
+                <label htmlFor={`${String(r.answer_id)}-s${i}`}>
+                  {c.criterion} (0–{c.maxScore})
+                </label>
+                <input id={`${String(r.answer_id)}-s${i}`} name={`s${i}`} type="number" min={0} max={c.maxScore} required inputMode="numeric" />
+              </div>
+            ))}
+            <div className="field">
+              <label htmlFor={`${String(r.answer_id)}-fb`}>Umpan balik untuk peserta</label>
+              <textarea id={`${String(r.answer_id)}-fb`} name="feedback" maxLength={4000} rows={3} />
+            </div>
+            <button className="btn" type="submit">
+              Simpan nilai
+            </button>
+          </form>
+        );
+      })}
+    </div>
+  );
+}
+
+function Appeals() {
+  const { data, error, loading, reload } = useAsync(() => api<{ appeals: Row[] }>('/admin/appeals'), []);
+  const { run, view } = useAction();
+  return (
+    <div className="stack">
+      <h2>Banding nilai</h2>
+      {view}
+      {loading && <Loading />}
+      {Boolean(error) && <ErrorAlert error={error} onRetry={reload} />}
+      {data?.appeals.length === 0 && <p>Belum ada banding.</p>}
+      {data?.appeals.map((a) => (
+        <form
+          key={String(a.id)}
+          className="card"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const f = new FormData(e.currentTarget);
+            if (await run(() => api(`/admin/appeals/${String(a.id)}`, { method: 'POST', body: { status: String(f.get('status')), resolution: String(f.get('resolution')) } })))
+              reload();
+          }}
+        >
+          <p>
+            <strong>Status:</strong> {String(a.status)} — hasil {String(a.result_status)} ({String(a.final_score_pct ?? '–')}%)
+          </p>
+          <p>{String(a.reason)}</p>
+          {a.status === 'open' && (
+            <>
+              <div className="field">
+                <label htmlFor={`res-${String(a.id)}`}>Tanggapan</label>
+                <textarea id={`res-${String(a.id)}`} name="resolution" required minLength={3} rows={2} />
+              </div>
+              <div className="field">
+                <label htmlFor={`st-${String(a.id)}`}>Keputusan</label>
+                <select id={`st-${String(a.id)}`} name="status">
+                  <option value="resolved">Diterima / ditinjau ulang</option>
+                  <option value="rejected">Ditolak</option>
+                </select>
+              </div>
+              <button className="btn" type="submit">
+                Simpan
+              </button>
+            </>
+          )}
+        </form>
+      ))}
+    </div>
+  );
+}
+
+function Users() {
+  const { me } = useSession();
+  const [q, setQ] = useState('');
+  const { data, error, loading, reload } = useAsync(() => api<{ users: Row[] }>(`/admin/users?q=${encodeURIComponent(q)}`), [q]);
+  const { run, view } = useAction();
+  const roles = ['mentor', 'content_editor', 'admin'];
+  return (
+    <div className="stack">
+      <h2>Pengguna & akomodasi</h2>
+      {view}
+      <form
+        role="search"
+        onSubmit={(e) => {
+          e.preventDefault();
+          setQ(String(new FormData(e.currentTarget).get('q') ?? ''));
+        }}
+        className="btn-row"
+      >
+        <label htmlFor="user-q" className="visually-hidden">
+          Cari pengguna
+        </label>
+        <input id="user-q" name="q" type="search" placeholder="Cari nama atau email" style={{ maxWidth: '20rem' }} />
+        <button className="btn btn-secondary" type="submit">
+          Cari
+        </button>
+      </form>
+      {loading && <Loading />}
+      {Boolean(error) && <ErrorAlert error={error} onRetry={reload} />}
+      <div className="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Nama</th>
+              <th scope="col">Role</th>
+              <th scope="col">Pengecualian anti-salin</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data?.users.map((u) => {
+              const userRoles = String(u.roles ?? '').split(',');
+              return (
+                <tr key={String(u.id)}>
+                  <td>
+                    {String(u.display_name)}
+                    {u.email ? <div className="muted">{String(u.email)}</div> : null}
+                  </td>
+                  <td>
+                    {hasRole(me, 'admin')
+                      ? roles.map((r) => (
+                          <label key={r} className="check">
+                            <input
+                              type="checkbox"
+                              checked={userRoles.includes(r)}
+                              onChange={async (e) => {
+                                if (await run(() => api(`/admin/users/${String(u.id)}/roles`, { method: 'POST', body: { role: r, grant: e.target.checked } })))
+                                  reload();
+                              }}
+                            />
+                            {r}
+                          </label>
+                        ))
+                      : userRoles.join(', ')}
+                  </td>
+                  <td>
+                    <label className="check">
+                      <input
+                        type="checkbox"
+                        checked={u.copy_deterrence_exempt === 1}
+                        onChange={async (e) => {
+                          if (
+                            await run(() =>
+                              api(`/admin/users/${String(u.id)}/accommodation`, {
+                                method: 'PUT',
+                                body: { copyDeterrenceExempt: e.target.checked, note: 'akomodasi aksesibilitas' },
+                              }),
+                            )
+                          )
+                            reload();
+                        }}
+                      />
+                      Bebaskan dari pembatasan salin/klik kanan (akomodasi aksesibilitas)
+                    </label>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function Audit() {
+  const { data, error, loading, reload } = useAsync(() => api<{ logs: Row[] }>('/admin/audit'), []);
+  return (
+    <div className="stack">
+      <h2>Log audit admin</h2>
+      {loading && <Loading />}
+      {Boolean(error) && <ErrorAlert error={error} onRetry={reload} />}
+      <div className="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Waktu</th>
+              <th scope="col">Pelaku</th>
+              <th scope="col">Aksi</th>
+              <th scope="col">Target</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data?.logs.map((l) => (
+              <tr key={String(l.id)}>
+                <td>{new Date(Number(l.created_at)).toLocaleString('id-ID')}</td>
+                <td>{String(l.actor ?? '–')}</td>
+                <td>{String(l.action)}</td>
+                <td>
+                  {String(l.target_type)} {String(l.target_id ?? '')}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function Report({ courseId }: { courseId: string }) {
+  const { data, error, loading, reload } = useAsync(() => api<{ learners: Row[] }>(`/admin/reports/${courseId}`), [courseId]);
+  return (
+    <div className="stack">
+      <h2>Laporan kelas</h2>
+      <p className="muted">Data minimal sesuai kebutuhan pemantauan. Jangan diekspor ke pihak yang tidak berwenang.</p>
+      {loading && <Loading />}
+      {Boolean(error) && <ErrorAlert error={error} onRetry={reload} />}
+      <div className="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Peserta</th>
+              <th scope="col">Materi selesai</th>
+              <th scope="col">Percobaan</th>
+              <th scope="col">Nilai terbaik</th>
+              <th scope="col">Lulus</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data?.learners.map((l, i) => (
+              <tr key={i}>
+                <td>{String(l.display_name)}</td>
+                <td>
+                  {String(l.lessons_completed)}/{String(l.lessons_total)}
+                </td>
+                <td>{String(l.attempts)}</td>
+                <td>{l.best_score === null ? '–' : `${String(l.best_score)}%`}</td>
+                <td>{Number(l.passed_attempts) > 0 ? 'Ya' : 'Belum'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+export default function AdminApp({ path }: { path: string }) {
+  const { me, loading } = useSession();
+  if (loading) return <Loading />;
+  if (!me || !hasRole(me, 'admin', 'content_editor', 'mentor')) {
+    return (
+      <>
+        <h1>Akses ditolak</h1>
+        <p>Halaman ini hanya untuk admin, editor konten, atau mentor.</p>
+      </>
+    );
+  }
+  let body: ReactNode;
+  let m: Record<string, string> | null;
+  if ((m = match('/admin/kelas/:id', path))) body = <CourseEditor id={m.id!} />;
+  else if ((m = match('/admin/laporan/:id', path))) body = <Report courseId={m.id!} />;
+  else if (path === '/admin/review') body = <Reviews />;
+  else if (path === '/admin/banding') body = <Appeals />;
+  else if (path === '/admin/pengguna') body = <Users />;
+  else if (path === '/admin/audit') body = <Audit />;
+  else body = hasRole(me, 'admin', 'content_editor') ? <CourseList /> : <Reviews />;
+  return (
+    <div className="stack">
+      <PageTitle>Admin</PageTitle>
+      <Tabs />
+      {body}
+    </div>
+  );
+}

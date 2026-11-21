@@ -1,0 +1,13 @@
+{
+  "name": "@patradesa/api",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/index.ts",
+  "dependencies": {
+    "@patradesa/shared": "*",
+    "hono": "4.13.19",
+    "jose": "6.2.18",
+    "zod": "4.6.7"
+  }
+}

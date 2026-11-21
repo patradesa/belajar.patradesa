@@ -1,0 +1,105 @@
+{
+  "_note": "DATA FIKTIF untuk pengembangan & pengujian. Desa, nama, dan angka tidak nyata. Bukan rujukan peraturan.",
+  "course": {
+    "slug": "dasar-transparansi-desa",
+    "title": "Dasar Transparansi Informasi Desa (Simulasi)",
+    "description": "Kelas contoh: prinsip keterbukaan informasi, dokumentasi kegiatan, dan komunikasi dengan warga di Desa Contoh Sukamaju (fiktif).",
+    "visibility": "public",
+    "recommendedFor": ["perbekel", "sekdes", "operator_sid", "bpd"]
+  },
+  "lessons": [
+    {
+      "title": "Mengapa Keterbukaan Penting",
+      "summary": "Pengantar singkat tentang manfaat keterbukaan informasi bagi pemerintah desa dan warga.",
+      "contentType": "html",
+      "requiredActiveSeconds": 60,
+      "isRequired": true,
+      "contentSource": "## Keterbukaan membangun kepercayaan\n\nDi Desa Contoh Sukamaju (fiktif), perangkat desa mulai menempelkan ringkasan kegiatan di papan informasi balai desa. Warga jadi lebih mudah **memahami rencana** dan **memberi masukan**.\n\n### Tiga manfaat utama\n\n- Warga mengetahui program dan jadwalnya.\n- Perangkat desa mendapat masukan lebih awal.\n- Dokumentasi rapi memudahkan pertanggungjawaban.\n\n> Catatan: materi ini contoh pelatihan dan bukan rujukan peraturan. Selalu cek ketentuan resmi yang berlaku.\n\n## Langkah sederhana\n\n1. Tentukan informasi apa yang perlu diumumkan.\n2. Tulis dengan bahasa yang mudah dipahami.\n3. Pilih saluran yang dijangkau warga: papan informasi, pertemuan, atau grup pesan.\n4. Catat pertanyaan warga dan tindak lanjutnya."
+    },
+    {
+      "title": "Dokumentasi Kegiatan yang Rapi",
+      "summary": "Slide singkat: cara mencatat kegiatan agar mudah ditelusuri.",
+      "contentType": "slides",
+      "requiredActiveSeconds": 0,
+      "isRequired": true,
+      "contentSource": "## Apa itu dokumentasi kegiatan?\n\nCatatan tertulis tentang **apa, kapan, siapa, dan hasil** sebuah kegiatan desa.\n\n---\n\n## Isi minimal catatan\n\n- Tanggal dan tempat\n- Peserta (jumlah, bukan data pribadi sensitif)\n- Keputusan dan tindak lanjut\n- Penanggung jawab\n\n---\n\n## Simpan dengan aman\n\n- Beri nama berkas yang konsisten.\n- Jangan menyimpan NIK atau data pribadi warga di catatan umum.\n- Buat salinan cadangan secara berkala.\n\n> Ingat: data pribadi warga dilindungi. Bagikan hanya yang perlu.",
+      "assessment": {
+        "title": "Kuis Dokumentasi & Keterbukaan",
+        "instructions": "Jawab semua soal. Waktu dihitung oleh server. Pendamping AI tidak tersedia selama kuis.",
+        "timeLimitSeconds": 600,
+        "passingScorePct": 60,
+        "maxAttempts": 3,
+        "cooldownSeconds": 0,
+        "mcqCount": 5,
+        "essayCount": 1,
+        "graceSeconds": 20,
+        "isRequired": true,
+        "examCopyDeterrenceEnabled": true,
+        "accessibilityExemptionPolicy": "per_user",
+        "hideLessonLinksDuringExam": true,
+        "questions": [
+          { "type": "mcq", "topic": "dokumentasi", "difficulty": 1, "stem": "Apa isi minimal sebuah catatan kegiatan desa?", "options": [
+            { "body": "Tanggal, tempat, peserta, keputusan, dan penanggung jawab", "isCorrect": true },
+            { "body": "Hanya foto kegiatan", "isCorrect": false },
+            { "body": "Daftar NIK seluruh peserta", "isCorrect": false },
+            { "body": "Tidak perlu dicatat jika kegiatan kecil", "isCorrect": false } ] },
+          { "type": "mcq", "topic": "dokumentasi", "difficulty": 2, "stem": "Mengapa nama berkas dokumentasi sebaiknya konsisten?", "options": [
+            { "body": "Agar mudah dicari dan ditelusuri kembali", "isCorrect": true },
+            { "body": "Agar ukuran berkas lebih kecil", "isCorrect": false },
+            { "body": "Agar tidak bisa dibuka orang lain", "isCorrect": false },
+            { "body": "Karena diwajibkan oleh aplikasi", "isCorrect": false } ] },
+          { "type": "mcq", "topic": "privasi", "difficulty": 1, "stem": "Data apa yang TIDAK boleh dicantumkan pada catatan kegiatan yang dibagikan ke umum?", "options": [
+            { "body": "NIK dan nomor KK warga", "isCorrect": true },
+            { "body": "Tanggal kegiatan", "isCorrect": false },
+            { "body": "Jumlah peserta", "isCorrect": false },
+            { "body": "Keputusan rapat", "isCorrect": false } ] },
+          { "type": "mcq", "topic": "privasi", "difficulty": 2, "stem": "Seorang warga meminta salinan daftar hadir lengkap berisi alamat warga lain. Sikap yang tepat adalah…", "options": [
+            { "body": "Memberikan ringkasan tanpa data pribadi warga lain", "isCorrect": true },
+            { "body": "Langsung memberikan semua data", "isCorrect": false },
+            { "body": "Mengunggah daftar ke media sosial", "isCorrect": false },
+            { "body": "Menolak tanpa penjelasan", "isCorrect": false } ] },
+          { "type": "mcq", "topic": "keterbukaan", "difficulty": 1, "stem": "Manfaat utama keterbukaan informasi desa adalah…", "options": [
+            { "body": "Membangun kepercayaan dan partisipasi warga", "isCorrect": true },
+            { "body": "Mengurangi jumlah rapat", "isCorrect": false },
+            { "body": "Menghindari pertanyaan warga", "isCorrect": false },
+            { "body": "Menggantikan semua laporan resmi", "isCorrect": false } ] },
+          { "type": "mcq", "topic": "keterbukaan", "difficulty": 2, "stem": "Saluran informasi yang baik dipilih berdasarkan…", "options": [
+            { "body": "Saluran yang benar-benar dijangkau warga", "isCorrect": true },
+            { "body": "Saluran yang paling mahal", "isCorrect": false },
+            { "body": "Saluran yang hanya dipakai perangkat desa", "isCorrect": false },
+            { "body": "Saluran yang paling baru", "isCorrect": false } ] },
+          { "type": "mcq", "topic": "keterbukaan", "difficulty": 3, "stem": "Warga memberi masukan saat pengumuman rencana kegiatan. Langkah berikutnya yang paling tepat adalah…", "options": [
+            { "body": "Mencatat masukan dan menyampaikan tindak lanjutnya", "isCorrect": true },
+            { "body": "Mengabaikan karena rencana sudah dibuat", "isCorrect": false },
+            { "body": "Menghapus pengumuman", "isCorrect": false },
+            { "body": "Menunggu sampai kegiatan selesai", "isCorrect": false } ] },
+          { "type": "mcq", "topic": "dokumentasi", "difficulty": 3, "stem": "Cadangan (backup) dokumentasi sebaiknya…", "options": [
+            { "body": "Dibuat berkala dan disimpan di tempat terpisah yang aman", "isCorrect": true },
+            { "body": "Disimpan di laptop yang sama saja", "isCorrect": false },
+            { "body": "Tidak perlu jika berkas sudah dicetak", "isCorrect": false },
+            { "body": "Dibagikan ke grup publik", "isCorrect": false } ] },
+          { "type": "mcq", "topic": "komunikasi", "difficulty": 1, "stem": "Bahasa pengumuman untuk warga sebaiknya…", "options": [
+            { "body": "Sederhana, jelas, dan mudah dipahami", "isCorrect": true },
+            { "body": "Penuh istilah teknis", "isCorrect": false },
+            { "body": "Ditulis dalam huruf kapital semua", "isCorrect": false },
+            { "body": "Sangat panjang dan rinci", "isCorrect": false } ] },
+          { "type": "mcq", "topic": "komunikasi", "difficulty": 2, "stem": "Pertanyaan warga yang belum bisa dijawab saat itu sebaiknya…", "options": [
+            { "body": "Dicatat dan dijawab kemudian dengan jelas", "isCorrect": true },
+            { "body": "Dilupakan", "isCorrect": false },
+            { "body": "Dijawab dengan tebakan", "isCorrect": false },
+            { "body": "Dialihkan ke topik lain", "isCorrect": false } ] }
+        ],
+        "essays": [
+          { "type": "essay", "topic": "penerapan", "difficulty": 2, "points": 10,
+            "stem": "Jelaskan langkah Anda menyiapkan pengumuman kegiatan gotong royong di Desa Contoh Sukamaju (fiktif) agar dipahami warga tanpa membagikan data pribadi.",
+            "rubric": [ { "criterion": "Ketepatan konsep", "maxScore": 40 }, { "criterion": "Penerapan konteks", "maxScore": 30 }, { "criterion": "Keamanan/etika data", "maxScore": 20 }, { "criterion": "Kejelasan", "maxScore": 10 } ],
+            "modelAnswer": "Menentukan informasi inti (apa, kapan, di mana), menulis dengan bahasa sederhana, memilih saluran yang dijangkau warga, tidak mencantumkan data pribadi, menyediakan kontak untuk pertanyaan, mencatat masukan." },
+          { "type": "essay", "topic": "penerapan", "difficulty": 2, "points": 10,
+            "stem": "Seorang warga meminta catatan rapat yang memuat data pribadi warga lain. Uraikan cara Anda menanggapi permintaan itu.",
+            "rubric": [ { "criterion": "Ketepatan konsep", "maxScore": 40 }, { "criterion": "Penerapan konteks", "maxScore": 30 }, { "criterion": "Keamanan/etika data", "maxScore": 20 }, { "criterion": "Kejelasan", "maxScore": 10 } ],
+            "modelAnswer": "Menghargai permintaan, menjelaskan perlindungan data pribadi, memberikan ringkasan tanpa data pribadi, mencatat permintaan, merujuk pada prosedur resmi desa." }
+        ]
+      }
+    }
+  ]
+}
