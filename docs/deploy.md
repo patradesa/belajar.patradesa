@@ -20,10 +20,12 @@
 
 ## 1b. Workers Builds (Git → Cloudflare) untuk staging di workers.dev
 Worker `belajar-patradesa` (akun Patradesa.id). Settings → Build:
-- Branch: `feat/phase0-1-foundation` (atau `main` setelah PR di-merge)
+- **Production branch: `main`** (wajib). Jika diisi branch lain, merge ke `main` hanya menjadi build *preview* yang gagal seketika dan staging tidak berubah. Ini sempat terjadi pada 21–22 Nov 2026 karena branch masih `feat/phase0-1-foundation`.
 - Build command: `npm run build`
 - Deploy command: `npx wrangler deploy --env staging`
-- Variables and Secrets: `SESSION_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `TURNSTILE_SECRET_KEY`
+- Build untuk branch non-produksi: matikan, atau isi deploy command non-produksi `npx wrangler versions upload --env staging`. Tanpa `--env staging`, wrangler memakai konfigurasi pengembangan lokal dan build gagal; check "Workers Builds" merah pada PR berasal dari sini, bukan dari kode.
+- Variables and Secrets (bagian runtime, tipe **Secret**, bukan di bagian Build): `SESSION_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `TURNSTILE_SECRET_KEY`
+- Tanda gagal karena konfigurasi (bukan kode): check Workers Builds selesai dalam 0 detik. GitHub tidak mengizinkan menjalankan ulang check Cloudflare memakai token pengguna; picu build dengan push baru ke `main` atau *Retry* di dashboard.
 
 `APP_ORIGIN` di `[env.staging.vars]` harus sama persis dengan URL workers.dev Worker. Migrasi D1 dijalankan terpisah (wrangler yang login ke akun Patradesa.id): `npx wrangler d1 migrations apply DB --env staging --remote`.
 
