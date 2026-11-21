@@ -1,0 +1,89 @@
+# PatraDesa Belajar — satu Worker: Hono API (/api/v1/*) + static assets (React build).
+# ID database/bucket di bawah adalah PLACEHOLDER. Isi dengan ID nyata hanya setelah resource dibuat
+# dengan persetujuan eksplisit (lihat docs/deploy.md). Secret TIDAK disimpan di file ini.
+name = "patradesa-belajar-dev"
+main = "apps/api/src/index.ts"
+compatibility_date = "2026-11-01"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = false
+
+[assets]
+directory = "apps/web/dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+run_worker_first = ["/api/*"]
+
+[vars]
+ENVIRONMENT = "development"
+APP_ORIGIN = "http://localhost:8787"
+DEV_LOGIN_ENABLED = "true"
+TURNSTILE_SITE_KEY = "1x00000000000000000000AA"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "patradesa-belajar-dev"
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "db/migrations"
+
+[[r2_buckets]]
+binding = "FILES"
+bucket_name = "patradesa-belajar-dev-files"
+
+[triggers]
+crons = ["* * * * *"]
+
+[observability]
+enabled = true
+
+# ---------------------------------------------------------------- staging
+# Dideploy oleh Workers Builds (akun Patradesa.id) ke Worker "belajar-patradesa" di alamat workers.dev,
+# karena DNS patradesa.id belum dikelola Cloudflare. Deploy command: `npx wrangler deploy --env staging`.
+[env.staging]
+name = "belajar-patradesa"
+workers_dev = true
+preview_urls = false
+
+[env.staging.vars]
+ENVIRONMENT = "staging"
+# WAJIB sama persis dengan alamat Worker (dipakai cek CSRF Origin & redirect_uri OAuth).
+APP_ORIGIN = "https://belajar-patradesa.patradesa-id.workers.dev"
+DEV_LOGIN_ENABLED = "false"
+TURNSTILE_SITE_KEY = "0x4AAAAAAGLtl3uk3xV7UMb7"
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "belajar-patradesa-staging"
+database_id = "263f0949-0bdd-4e3d-bd0e-092614d9de7e"
+migrations_dir = "db/migrations"
+
+[[env.staging.r2_buckets]]
+binding = "FILES"
+bucket_name = "belajar-patradesa-staging-files"
+
+[env.staging.triggers]
+crons = ["* * * * *"]
+
+# ---------------------------------------------------------------- production
+[env.production]
+name = "patradesa-belajar"
+workers_dev = false
+routes = [{ pattern = "belajar.patradesa.id", custom_domain = true }]
+
+[env.production.vars]
+ENVIRONMENT = "production"
+APP_ORIGIN = "https://belajar.patradesa.id"
+DEV_LOGIN_ENABLED = "false"
+TURNSTILE_SITE_KEY = "REPLACE_WITH_PROD_SITE_KEY"
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "patradesa-belajar-prod"
+database_id = "REPLACE_WITH_PROD_D1_ID"
+migrations_dir = "db/migrations"
+
+[[env.production.r2_buckets]]
+binding = "FILES"
+bucket_name = "patradesa-belajar-prod-files"
+
+[env.production.triggers]
+crons = ["* * * * *"]

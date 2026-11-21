@@ -1,0 +1,12 @@
+# Salin ke .dev.vars untuk pengembangan lokal. JANGAN commit .dev.vars.
+# Semua nilai di bawah adalah placeholder, bukan kunci asli.
+ENVIRONMENT=development
+APP_ORIGIN=http://localhost:8787
+# Dev login hanya aktif bila ENVIRONMENT=development DAN DEV_LOGIN_ENABLED=true DAN host localhost.
+DEV_LOGIN_ENABLED=true
+SESSION_SECRET=ganti-dengan-random-64-karakter-untuk-dev
+GOOGLE_CLIENT_ID=placeholder.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=placeholder
+# Kunci uji resmi Cloudflare Turnstile (selalu lulus). Ganti di staging/prod via `wrangler secret put`.
+TURNSTILE_SITE_KEY=1x00000000000000000000AA
+TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
