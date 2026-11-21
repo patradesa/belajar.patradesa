@@ -55,6 +55,13 @@ a {
   outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }
+/*
+ * Judul halaman menerima fokus lewat skrip (tabindex="-1") agar pembaca layar mengumumkan halaman
+ * baru setelah navigasi. Judul bukan kontrol interaktif, jadi garis fokusnya tidak perlu terlihat.
+ */
+h1[tabindex='-1']:focus {
+  outline: none;
+}
 .visually-hidden {
   position: absolute !important;
   width: 1px;
