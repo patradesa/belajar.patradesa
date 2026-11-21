@@ -36,26 +36,30 @@ crons = ["* * * * *"]
 enabled = true
 
 # ---------------------------------------------------------------- staging
+# Dideploy oleh Workers Builds (akun Patradesa.id) ke Worker "belajar-patradesa" di alamat workers.dev,
+# karena DNS patradesa.id belum dikelola Cloudflare. Deploy command: `npx wrangler deploy --env staging`.
 [env.staging]
-name = "patradesa-belajar-staging"
-workers_dev = false
-routes = [{ pattern = "belajar-staging.patradesa.id", custom_domain = true }]
+name = "belajar-patradesa"
+workers_dev = true
+preview_urls = false
 
 [env.staging.vars]
 ENVIRONMENT = "staging"
-APP_ORIGIN = "https://belajar-staging.patradesa.id"
+# WAJIB sama persis dengan alamat Worker (dipakai cek CSRF Origin & redirect_uri OAuth).
+# Ganti GANTI-SUBDOMAIN dengan subdomain workers.dev akun (Workers & Pages → Overview).
+APP_ORIGIN = "https://belajar-patradesa.GANTI-SUBDOMAIN.workers.dev"
 DEV_LOGIN_ENABLED = "false"
 TURNSTILE_SITE_KEY = "REPLACE_WITH_STAGING_SITE_KEY"
 
 [[env.staging.d1_databases]]
 binding = "DB"
-database_name = "patradesa-belajar-staging"
-database_id = "REPLACE_WITH_STAGING_D1_ID"
+database_name = "belajar-patradesa-staging"
+database_id = "263f0949-0bdd-4e3d-bd0e-092614d9de7e"
 migrations_dir = "db/migrations"
 
 [[env.staging.r2_buckets]]
 binding = "FILES"
-bucket_name = "patradesa-belajar-staging-files"
+bucket_name = "belajar-patradesa-staging-files"
 
 [env.staging.triggers]
 crons = ["* * * * *"]

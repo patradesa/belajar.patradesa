@@ -18,6 +18,15 @@
 
 `DEV_LOGIN_ENABLED` sudah `"false"` untuk staging & production di `wrangler.toml` dan diuji.
 
+## 1b. Workers Builds (Git → Cloudflare) untuk staging di workers.dev
+Worker `belajar-patradesa` (akun Patradesa.id). Settings → Build:
+- Branch: `feat/phase0-1-foundation` (atau `main` setelah PR di-merge)
+- Build command: `npm run build`
+- Deploy command: `npx wrangler deploy --env staging`
+- Variables and Secrets: `SESSION_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `TURNSTILE_SECRET_KEY`
+
+`APP_ORIGIN` di `[env.staging.vars]` harus sama persis dengan URL workers.dev Worker. Migrasi D1 dijalankan terpisah (wrangler yang login ke akun Patradesa.id): `npx wrangler d1 migrations apply DB --env staging --remote`.
+
 ## 2. Deploy
 ```bash
 npm ci && npm run check && npm run test:e2e        # semua hijau dulu
