@@ -48,7 +48,7 @@ ENVIRONMENT = "staging"
 # WAJIB sama persis dengan alamat Worker (dipakai cek CSRF Origin & redirect_uri OAuth).
 APP_ORIGIN = "https://belajar-patradesa.patradesa-id.workers.dev"
 DEV_LOGIN_ENABLED = "false"
-TURNSTILE_SITE_KEY = "REPLACE_WITH_STAGING_SITE_KEY"
+TURNSTILE_SITE_KEY = "0x4AAAAAAGLtl3uk3xV7UMb7"
 
 [[env.staging.d1_databases]]
 binding = "DB"
