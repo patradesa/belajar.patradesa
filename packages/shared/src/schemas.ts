@@ -157,6 +157,20 @@ export const questionCreateSchema = z.discriminatedUnion('type', [
 ]);
 export type QuestionCreate = z.infer<typeof questionCreateSchema>;
 
+/**
+ * Impor bank soal. Klien mengirim per potongan kecil (QUESTION_IMPORT_CHUNK) agar setiap request
+ * tetap jauh di bawah batas query D1 per invocation Worker (paket Free: 50).
+ */
+export const QUESTION_IMPORT_CHUNK = 5;
+export const questionImportSchema = z
+  .object({ questions: z.array(questionCreateSchema).min(1).max(QUESTION_IMPORT_CHUNK) })
+  .strict();
+
+/** Berkas bank soal (JSON). Kunci lain (judul, sumber, catatan) diabaikan. */
+export const questionBankFileSchema = z.object({
+  questions: z.array(questionCreateSchema).min(1).max(500),
+});
+
 export const reviewDecisionSchema = z
   .object({
     rubricScores: z.array(z.object({ criterion: shortText(120), score: z.number().int().min(0).max(100) }).strict()).min(1).max(8),

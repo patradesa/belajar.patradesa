@@ -4,6 +4,7 @@ import { api } from '../lib/api';
 import { hasRole, useSession } from '../lib/session';
 import { ErrorAlert, Loading, useAsync } from '../components/common';
 import { useAction } from './useAction';
+import { ImportQuestions } from './ImportQuestions';
 
 type Row = Record<string, any>;
 
@@ -261,7 +262,8 @@ export function CourseEditor({ id }: { id: string }) {
   const { me } = useSession();
   const { data, error, loading, reload } = useAsync(() => api<Row>(`/admin/courses/${id}`), [id]);
   const { run, view } = useAction();
-  if (loading) return <Loading />;
+  // Saat memuat ulang (setelah simpan/impor) tetap tampilkan data lama agar panel yang terbuka tidak tertutup.
+  if (loading && !data) return <Loading />;
   if (error) return <ErrorAlert error={error} onRetry={reload} />;
   if (!data) return null;
   const c = data.course as Row;
@@ -423,17 +425,38 @@ export function CourseEditor({ id }: { id: string }) {
               <AssessmentForm lesson={l} onSave={async (b) => void (await act(() => api(`/admin/lessons/${String(l.id)}/assessment`, { method: 'PUT', body: b })))} />
               {l.assessment && (
                 <>
-                  <h4>Bank soal</h4>
-                  <ol>
-                    {(l.assessment.questions as Row[]).map((q) => (
-                      <li key={String(q.id)}>
-                        [{String(q.type)}] {String(q.stem)}{' '}
-                        <button type="button" className="btn btn-secondary" onClick={() => void act(() => api(`/admin/questions/${String(q.id)}`, { method: 'DELETE' }), 'Soal dinonaktifkan.')}>
-                          Nonaktifkan
-                        </button>
-                      </li>
-                    ))}
-                  </ol>
+                  {(() => {
+                    const qs = l.assessment.questions as Row[];
+                    const nMcq = qs.filter((q) => q.type === 'mcq').length;
+                    const nEssay = qs.length - nMcq;
+                    const a = l.assessment as Row;
+                    const short = nMcq < Number(a.mcq_count) || nEssay < Number(a.essay_count);
+                    return (
+                      <>
+                        <h4>
+                          Bank soal: {nMcq} pilihan ganda, {nEssay} esai
+                        </h4>
+                        <p className={short ? 'alert alert-warning' : 'help'}>
+                          Kuis menampilkan {String(a.mcq_count)} pilihan ganda + {String(a.essay_count)} esai yang diacak dari bank ini.
+                          {short ? ' Bank belum cukup — tambahkan soal sebelum terbit.' : ''}
+                        </p>
+                        <details>
+                          <summary>Lihat daftar soal ({qs.length})</summary>
+                          <ol>
+                            {qs.map((q) => (
+                              <li key={String(q.id)}>
+                                [{String(q.type)} · {String(q.topic)} · tingkat {String(q.difficulty)}] {String(q.stem)}{' '}
+                                <button type="button" className="btn btn-secondary" onClick={() => void act(() => api(`/admin/questions/${String(q.id)}`, { method: 'DELETE' }), 'Soal dinonaktifkan.')}>
+                                  Nonaktifkan
+                                </button>
+                              </li>
+                            ))}
+                          </ol>
+                        </details>
+                        <ImportQuestions assessmentId={String(a.id)} existingCount={qs.length} onDone={reload} />
+                      </>
+                    );
+                  })()}
                   <QuestionForm onSave={(b) => act(() => api(`/admin/assessments/${String(l.assessment.id)}/questions`, { method: 'POST', body: b }), 'Soal ditambahkan.')} />
                 </>
               )}

@@ -11,8 +11,10 @@ import {
   mentorAssignSchema,
   parseContent,
   questionCreateSchema,
+  questionImportSchema,
   reviewDecisionSchema,
   roleAssignSchema,
+  type QuestionCreate,
 } from '@patradesa/shared';
 import { z } from 'zod';
 import type { AppEnv, Deps } from '../env';
@@ -178,15 +180,25 @@ export function adminRoutes(deps: Deps) {
       let questions: unknown[] = [];
       if (a) {
         const { results: qs } = await db
-          .prepare('SELECT * FROM questions WHERE assessment_id = ? AND is_active = 1 ORDER BY created_at')
+          // rowid = urutan penyisipan (stabil untuk impor bertahap, walau created_at sama).
+          .prepare('SELECT * FROM questions WHERE assessment_id = ? AND is_active = 1 ORDER BY rowid')
           .bind(a.id as string)
           .all<Record<string, unknown>>();
-        questions = await Promise.all(
-          qs.map(async (q) => ({
-            ...q,
-            options: (await db.prepare('SELECT id, body, is_correct FROM question_options WHERE question_id = ?').bind(q.id as string).all()).results,
-          })),
-        );
+        // Satu query untuk semua opsi (hindari N+1: bank 65 soal = 65 query → melewati batas D1 per request).
+        const { results: opts } = await db
+          .prepare(
+            `SELECT o.id, o.question_id, o.body, o.is_correct FROM question_options o
+             JOIN questions q ON q.id = o.question_id WHERE q.assessment_id = ? AND q.is_active = 1`,
+          )
+          .bind(a.id as string)
+          .all<{ id: string; question_id: string; body: string; is_correct: number }>();
+        const byQ = new Map<string, { id: string; body: string; is_correct: number }[]>();
+        for (const o of opts) {
+          const list = byQ.get(o.question_id) ?? [];
+          list.push({ id: o.id, body: o.body, is_correct: o.is_correct });
+          byQ.set(o.question_id, list);
+        }
+        questions = qs.map((q) => ({ ...q, options: byQ.get(q.id as string) ?? [] }));
       }
       outLessons.push({ ...l, content_json: undefined, assessment: a ? { ...a, questions } : null });
     }
@@ -396,39 +408,64 @@ export function adminRoutes(deps: Deps) {
     return c.json({ id: aid });
   });
 
+  /** Statement INSERT untuk satu soal (+ opsi). `createdAt` dibedakan per soal agar urutan impor terjaga. */
+  function questionInsertStatements(db: D1Database, assessmentId: string, b: QuestionCreate, createdAt: number) {
+    const qid = newId();
+    const stmts = [
+      db
+        .prepare(
+          `INSERT INTO questions (id, assessment_id, type, stem, difficulty, topic, points, version, rubric_json, model_answer, is_active, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, 1, ?)`,
+        )
+        .bind(
+          qid,
+          assessmentId,
+          b.type,
+          b.stem,
+          b.difficulty,
+          b.topic,
+          b.points,
+          b.type === 'essay' ? JSON.stringify(b.rubric) : null,
+          b.type === 'essay' ? b.modelAnswer : null,
+          createdAt,
+        ),
+    ];
+    if (b.type === 'mcq') {
+      for (const o of b.options) {
+        stmts.push(
+          db.prepare('INSERT INTO question_options (id, question_id, body, is_correct, version) VALUES (?, ?, ?, ?, 1)').bind(newId(), qid, o.body, o.isCorrect ? 1 : 0),
+        );
+      }
+    }
+    return { qid, stmts };
+  }
+
   r.post('/assessments/:id/questions', editors, async (c) => {
     const u = currentUser(c);
     const a = await draftAssessment(c.env.DB, param(c, 'id'));
     const b = await readJson(c, questionCreateSchema);
     const now = deps.now();
-    const qid = newId();
-    const stmts = [
-      c.env.DB.prepare(
-        `INSERT INTO questions (id, assessment_id, type, stem, difficulty, topic, points, version, rubric_json, model_answer, is_active, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, 1, ?)`,
-      ).bind(
-        qid,
-        a.id,
-        b.type,
-        b.stem,
-        b.difficulty,
-        b.topic,
-        b.points,
-        b.type === 'essay' ? JSON.stringify(b.rubric) : null,
-        b.type === 'essay' ? b.modelAnswer : null,
-        now,
-      ),
-    ];
-    if (b.type === 'mcq') {
-      for (const o of b.options) {
-        stmts.push(
-          c.env.DB.prepare('INSERT INTO question_options (id, question_id, body, is_correct, version) VALUES (?, ?, ?, ?, 1)').bind(newId(), qid, o.body, o.isCorrect ? 1 : 0),
-        );
-      }
-    }
+    const { qid, stmts } = questionInsertStatements(c.env.DB, a.id, b, now);
     stmts.push(auditStmt(c.env.DB, now, u.id, 'question.create', 'question', qid, { type: b.type }));
     await c.env.DB.batch(stmts);
     return c.json({ id: qid }, 201);
+  });
+
+  // Impor bank soal per potongan kecil (lihat QUESTION_IMPORT_CHUNK). Semua soal divalidasi
+  // dulu oleh skema; satu potongan disimpan dalam satu batch (atomik: semua atau tidak sama sekali).
+  r.post('/assessments/:id/questions/import', editors, async (c) => {
+    const u = currentUser(c);
+    const a = await draftAssessment(c.env.DB, param(c, 'id'));
+    const b = await readJson(c, questionImportSchema);
+    const now = deps.now();
+    const stmts: D1PreparedStatement[] = [];
+    b.questions.forEach((q, i) => stmts.push(...questionInsertStatements(c.env.DB, a.id, q, now + i).stmts));
+    const mcq = b.questions.filter((q) => q.type === 'mcq').length;
+    stmts.push(
+      auditStmt(c.env.DB, now, u.id, 'question.import', 'assessment', a.id, { count: b.questions.length, mcq, essay: b.questions.length - mcq }),
+    );
+    await c.env.DB.batch(stmts);
+    return c.json({ imported: b.questions.length }, 201);
   });
 
   r.delete('/questions/:id', editors, async (c) => {
