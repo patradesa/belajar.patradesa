@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import type { AttemptView, CourseDetail, CourseRating } from '@patradesa/shared';
+import { parseContent, summarize, type AttemptView, type CourseDetail, type CourseRating } from '@patradesa/shared';
+import { BlockRenderer } from '../components/BlockRenderer';
 import { StarInput, StarRating } from '../components/Stars';
 import { api, errorMessage } from '../lib/api';
 import { Link, navigate } from '../lib/router';
@@ -47,6 +48,10 @@ export function CoursePage({ id }: { id: string }) {
       setRateMsg({ ok: false, text: errorMessage(e) });
     }
   };
+  // Kepala halaman: ringkasan; deskripsi lengkap berformat di bagian "Tentang kelas" (bila lebih dari ringkasan).
+  const summary = summarize(data.description, 320);
+  const descBlocks = parseContent(data.description);
+  const showFullDescription = descBlocks.length > 1 || summary.endsWith('…');
   const rating = rated?.rating ?? data.rating;
   const myRating = rated?.myRating ?? data.myRating;
 
@@ -71,7 +76,7 @@ export function CoursePage({ id }: { id: string }) {
             <Icon name="layers" /> Kelas
           </p>
           <PageTitle>{data.title}</PageTitle>
-          <p>{data.description}</p>
+          {summary && <p>{summary}</p>}
           <StarRating rating={rating} />
           {!data.enrolled &&
             (me ? (
@@ -110,6 +115,12 @@ export function CoursePage({ id }: { id: string }) {
             </>
           )}
         </div>
+      )}
+      {showFullDescription && (
+        <section aria-labelledby="tentang-judul" className="card course-about">
+          <h2 id="tentang-judul">Tentang kelas</h2>
+          <BlockRenderer blocks={descBlocks} />
+        </section>
       )}
       <section aria-labelledby="materi-judul" className="stack">
         <h2 id="materi-judul">Materi</h2>

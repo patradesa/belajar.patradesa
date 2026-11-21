@@ -88,9 +88,10 @@ export function parseContent(source: string): Block[] {
       blocks.push({ type: 'h3', text: t.slice(4).trim() });
       continue;
     }
-    if (t.startsWith('## ')) {
+    // "# Judul" diperlakukan sebagai h2 (h1 halaman sudah dipakai judul kelas/materi).
+    if (t.startsWith('## ') || t.startsWith('# ')) {
       flushAll();
-      blocks.push({ type: 'h2', text: t.slice(3).trim() });
+      blocks.push({ type: 'h2', text: t.replace(/^#{1,2}\s+/, '').trim() });
       continue;
     }
     if (t.startsWith('> ')) {
@@ -116,6 +117,43 @@ export function parseContent(source: string): Block[] {
   }
   flushAll();
   return blocks;
+}
+
+export function inlinesText(items: Inline[]): string {
+  return items.map((i) => i.v).join('');
+}
+
+/**
+ * Ringkasan teks biasa (tanpa simbol Markdown) untuk kartu katalog & kepala halaman kelas.
+ * Mengambil isi paragraf; judul, daftar, dan paragraf yang hanya berupa label tebal
+ * (mis. "**Deskripsi Kelas**") dilewati. Dipotong di batas kata lalu diberi "…".
+ */
+export function summarize(source: string, maxChars = 280): string {
+  const blocks = parseContent(source);
+  const parts: string[] = [];
+  let len = 0;
+  for (const b of blocks) {
+    if (b.type !== 'p') continue;
+    if (b.inlines.length === 1 && b.inlines[0]!.t === 'strong') continue;
+    const t = inlinesText(b.inlines).trim();
+    if (!t) continue;
+    parts.push(t);
+    len += t.length + 1;
+    if (len > maxChars) break;
+  }
+  let text = parts.join(' ');
+  if (!text) {
+    // Tanpa paragraf (mis. hanya judul/daftar): pakai teks apa pun yang ada.
+    text = blocks
+      .map((b) => ('text' in b ? b.text : 'inlines' in b ? inlinesText(b.inlines) : 'items' in b ? b.items.map(inlinesText).join('; ') : ''))
+      .filter(Boolean)
+      .join(' ');
+  }
+  text = text.replace(/\s+/g, ' ').trim();
+  if (text.length <= maxChars) return text;
+  const cut = text.slice(0, maxChars);
+  const space = cut.lastIndexOf(' ');
+  return `${cut.slice(0, space > maxChars * 0.6 ? space : maxChars).replace(/[\s,.;:–-]+$/, '')}…`;
 }
 
 /** Pecah blok menjadi slide berdasarkan penanda "---". */

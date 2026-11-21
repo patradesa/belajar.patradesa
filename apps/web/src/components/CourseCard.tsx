@@ -60,7 +60,7 @@ export function CourseCard({ course }: { course: CatalogCourse }) {
       </div>
       <div className="course-card-body">
         <h3 id={titleId}>{course.title}</h3>
-        {course.description && <p className="course-card-desc">{course.description}</p>}
+        {course.summary && <p className="course-card-desc">{course.summary}</p>}
         <ul className="check-list">
           {facts.map((f) => (
             <li key={f.icon}>

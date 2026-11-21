@@ -10,7 +10,7 @@ const base: CatalogCourse = {
   id: 'c1',
   slug: 'penyelenggaraan-pemerintahan-desa',
   title: 'Penyelenggaraan Pemerintahan Desa',
-  description: 'Dasar penyelenggaraan pemerintahan desa.',
+  summary: 'Dasar penyelenggaraan pemerintahan desa.',
   lessonCount: 3,
   studyMinutes: 75,
   quizQuestionCount: 25,
@@ -55,7 +55,7 @@ describe('CourseCard', () => {
   it('menampilkan judul, ringkasan, jumlah materi, waktu, soal kuis, jabatan, dan rating', () => {
     renderCard(base);
     expect(screen.getByRole('heading', { name: base.title })).toBeTruthy();
-    expect(screen.getByText(base.description)).toBeTruthy();
+    expect(screen.getByText(base.summary)).toBeTruthy();
     expect(screen.getByText('3 materi')).toBeTruthy();
     expect(screen.getByText('± 1 jam 15 menit belajar')).toBeTruthy();
     expect(screen.getByText('25 soal kuis')).toBeTruthy();
