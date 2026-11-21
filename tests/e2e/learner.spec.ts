@@ -45,8 +45,22 @@ test('alur peserta: profil → kelas → materi → kuis terkunci AI → submit 
   await page.getByRole('button', { name: 'Simpan profil' }).click();
   await expect(page.getByText('Disarankan untuk jabatan Anda')).toBeVisible();
 
-  await page.getByRole('link', { name: demo.course.title }).click();
-  await page.getByRole('button', { name: 'Daftar kelas ini' }).click();
+  // Kartu katalog: "Ambil Kelas" langsung mendaftarkan lalu membuka halaman kelas.
+  const card = page.getByRole('article', { name: demo.course.title });
+  await expect(card.getByText('2 materi')).toBeVisible();
+  await expect(card.getByText(/soal kuis/)).toBeVisible();
+  await expect(card.getByText('Belum ada rating')).toBeVisible();
+  await card.getByRole('button', { name: /Ambil Kelas/ }).click();
+  await expect(page.getByRole('heading', { level: 1, name: demo.course.title })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Daftar kelas ini' })).toHaveCount(0);
+  // Rating oleh peserta terdaftar; kembali ke katalog → "Lanjutkan Belajar" & rating tampil.
+  // Klik bintang ke-4 (label yang terlihat), seperti pengguna; radio-nya sendiri tersembunyi secara visual.
+  await page.locator('.star-input label').nth(3).click();
+  await expect(page.getByRole('radio', { name: '4 bintang' })).toBeChecked();
+  await expect(page.getByText('Terima kasih! Rating Anda: 4 bintang.')).toBeVisible();
+  await page.goto('/');
+  await expect(card.getByRole('img', { name: /Rating 4,0 dari 5/ })).toBeVisible();
+  await card.getByRole('link', { name: /Lanjutkan Belajar/ }).click();
   await page.getByRole('link', { name: demo.lessons[1]!.title }).click();
   await expect(page.getByText('Slide 1 dari 3')).toBeVisible();
   const lessonId = page.url().split('/').pop()!;

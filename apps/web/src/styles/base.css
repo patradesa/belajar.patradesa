@@ -287,7 +287,11 @@ main {
 .grid {
   display: grid;
   gap: var(--space-4);
-  grid-template-columns: 1fr;
+  /* minmax(0, …) agar item grid boleh menyusut di bawah lebar konten minimumnya (layar 320px, teks 200%). */
+  grid-template-columns: minmax(0, 1fr);
+}
+.grid > * {
+  min-width: 0;
 }
 @media (min-width: 768px) {
   .grid {
@@ -826,6 +830,23 @@ th {
   outline: 3px solid var(--color-focus);
   outline-offset: 2px;
   border-radius: var(--radius);
+}
+.course-cover {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: 1.25rem;
+  box-shadow: var(--shadow-soft);
+}
+@media (min-width: 768px) {
+  .course-head.has-cover {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: var(--space-6);
+    align-items: center;
+  }
 }
 .course-card-actions {
   margin-top: auto;

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import type { AttemptView, CourseDetail } from '@patradesa/shared';
+import type { AttemptView, CourseDetail, CourseRating } from '@patradesa/shared';
+import { StarInput, StarRating } from '../components/Stars';
 import { api, errorMessage } from '../lib/api';
 import { Link, navigate } from '../lib/router';
 import { useSession } from '../lib/session';
@@ -15,8 +16,11 @@ export function CoursePage({ id }: { id: string }) {
   const { data, error, loading, reload } = useAsync(() => api<CourseDetail>(`/courses/${encodeURIComponent(id)}`), [id, me?.user.id]);
   const [actionErr, setActionErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [rated, setRated] = useState<{ rating: CourseRating; myRating: number } | null>(null);
+  const [rateMsg, setRateMsg] = useState<{ ok: boolean; text: string } | null>(null);
 
-  if (loading) return <Loading />;
+  // Saat memuat ulang setelah aksi, tetap tampilkan data lama (hindari kedip & hilang fokus).
+  if (loading && !data) return <Loading />;
   if (error) return <ErrorAlert error={error} onRetry={reload} />;
   if (!data) return null;
 
@@ -33,6 +37,19 @@ export function CoursePage({ id }: { id: string }) {
     }
   };
 
+  const rate = async (stars: number) => {
+    setRateMsg(null);
+    try {
+      const r = await api<{ rating: CourseRating; myRating: number }>(`/courses/${data.id}/rating`, { method: 'POST', body: { stars } });
+      setRated(r);
+      setRateMsg({ ok: true, text: `Terima kasih! Rating Anda: ${stars} bintang.` });
+    } catch (e) {
+      setRateMsg({ ok: false, text: errorMessage(e) });
+    }
+  };
+  const rating = rated?.rating ?? data.rating;
+  const myRating = rated?.myRating ?? data.myRating;
+
   const startQuiz = async (assessmentId: string) => {
     setBusy(true);
     setActionErr(null);
@@ -48,22 +65,30 @@ export function CoursePage({ id }: { id: string }) {
 
   return (
     <div className="stack-lg">
-      <header className="page-head">
-        <p className="eyebrow">
-          <Icon name="layers" /> Kelas
-        </p>
-        <PageTitle>{data.title}</PageTitle>
-        <p>{data.description}</p>
-        {!data.enrolled &&
-          (me ? (
-            <button type="button" className="btn btn-accent" onClick={enroll} disabled={busy}>
-              Daftar kelas ini <Icon name="arrow" />
-            </button>
-          ) : (
-            <Link className="btn btn-accent" href="/masuk">
-              Masuk untuk mendaftar
-            </Link>
-          ))}
+      <header className={`page-head course-head${data.coverUrl ? ' has-cover' : ''}`}>
+        <div className="stack">
+          <p className="eyebrow">
+            <Icon name="layers" /> Kelas
+          </p>
+          <PageTitle>{data.title}</PageTitle>
+          <p>{data.description}</p>
+          <StarRating rating={rating} />
+          {!data.enrolled &&
+            (me ? (
+              <div>
+                <button type="button" className="btn btn-accent" onClick={enroll} disabled={busy}>
+                  Daftar kelas ini <Icon name="arrow" />
+                </button>
+              </div>
+            ) : (
+              <div>
+                <Link className="btn btn-accent" href="/masuk">
+                  Masuk untuk mendaftar
+                </Link>
+              </div>
+            ))}
+        </div>
+        {data.coverUrl && <img className="course-cover" src={data.coverUrl} alt="" width={640} height={400} decoding="async" fetchPriority="high" />}
       </header>
       {actionErr && (
         <div className="alert alert-error" role="alert">
@@ -170,6 +195,22 @@ export function CoursePage({ id }: { id: string }) {
           })}
         </ol>
       </section>
+      {data.enrolled && (
+        <section className="card card-soft stack" aria-labelledby="rating-judul">
+          <h2 id="rating-judul">Bagaimana kelas ini menurut Anda?</h2>
+          <p className="muted" style={{ margin: 0 }}>
+            Rating membantu peserta lain memilih kelas. Anda dapat mengubahnya kapan saja.
+          </p>
+          <StarInput value={myRating} onChange={(v) => void rate(v)} />
+          <div aria-live="polite">
+            {rateMsg && (
+              <p className={`alert ${rateMsg.ok ? 'alert-success' : 'alert-error'}`} style={{ margin: 0 }}>
+                {rateMsg.text}
+              </p>
+            )}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

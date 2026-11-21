@@ -304,6 +304,60 @@ export function CourseEditor({ id }: { id: string }) {
       </div>
       {!isDraft && <p className="alert alert-warning">Versi terbit bersifat tetap. Buat draft untuk mengubah materi atau soal.</p>}
 
+      <section className="card stack" aria-labelledby="cover-judul">
+        <h3 id="cover-judul" style={{ margin: 0 }}>
+          Foto sampul kelas
+        </h3>
+        <p className="help" style={{ margin: 0 }}>
+          Tampil di kartu katalog dan halaman kelas. JPG, PNG, atau WebP, maks 2 MB; disarankan lanskap 1200×750 px dan dikompres di bawah
+          200 KB agar cepat di jaringan lambat. Jangan memakai foto warga tanpa izin.
+        </p>
+        {data.coverUrl ? (
+          <img src={String(data.coverUrl)} alt="Pratinjau foto sampul" className="course-cover" style={{ maxWidth: '24rem' }} />
+        ) : (
+          <p className="muted" style={{ margin: 0 }}>
+            Belum ada foto sampul; katalog memakai latar hijau dengan ikon.
+          </p>
+        )}
+        <div className="field" style={{ margin: 0 }}>
+          <label htmlFor="cover-file">{data.coverUrl ? 'Ganti foto sampul' : 'Unggah foto sampul'}</label>
+          <input
+            id="cover-file"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              e.target.value = '';
+              if (!file) return;
+              await act(async () => {
+                if (file.size > 2 * 1024 * 1024) throw new Error('Gambar melebihi 2 MB.');
+                const res = await fetch(`/api/v1/admin/courses/${id}/cover`, {
+                  method: 'PUT',
+                  headers: { 'content-type': file.type, 'x-csrf-token': me?.csrfToken ?? '' },
+                  body: file,
+                  credentials: 'same-origin',
+                });
+                if (!res.ok) {
+                  const j = (await res.json().catch(() => null)) as { error?: { message?: string } } | null;
+                  throw new Error(j?.error?.message ?? 'Unggah gagal.');
+                }
+              }, 'Foto sampul tersimpan.');
+            }}
+          />
+        </div>
+        {Boolean(data.coverUrl) && (
+          <div>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => window.confirm('Hapus foto sampul?') && void act(() => api(`/admin/courses/${id}/cover`, { method: 'DELETE' }), 'Foto sampul dihapus.')}
+            >
+              Hapus foto sampul
+            </button>
+          </div>
+        )}
+      </section>
+
       {isAdmin && (
         <details className="card">
           <summary>
