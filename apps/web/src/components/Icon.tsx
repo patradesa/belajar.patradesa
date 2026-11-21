@@ -31,17 +31,6 @@ export function Icon({ name, className = 'icon' }: { name: IconName; className?:
   );
 }
 
-/** Tanda merek sederhana (bukan logo resmi): ubin hijau dengan huruf P dan titik amber. */
-export function BrandMark() {
-  return (
-    <svg className="brand-mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
-      <rect width="32" height="32" rx="9" fill="#334E0F" />
-      <path d="M10 23V9h6.5a4.5 4.5 0 0 1 0 9H13.5v5z" fill="#fff" />
-      <circle cx="23" cy="22.5" r="3" fill="#DD9933" />
-    </svg>
-  );
-}
-
 /** Logo "G" Google (warna resmi) untuk tombol "Masuk dengan Google". */
 export function GoogleG() {
   return (
