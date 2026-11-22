@@ -213,6 +213,7 @@ export async function courseDetail(db: D1Database, idOrSlug: string, userId: str
       c.slug,
       (await db.prepare('SELECT updated_at FROM course_covers WHERE course_id = ?').bind(c.id).first<{ updated_at: number }>())?.updated_at ?? null,
     ),
+    certificate: null,
   };
 }
 

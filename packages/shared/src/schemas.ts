@@ -192,3 +192,14 @@ export const mentorAssignSchema = z.object({ mentorId: idParam, assign: z.boolea
 export const appealResolveSchema = z
   .object({ status: z.enum(['resolved', 'rejected']), resolution: z.string().trim().min(3).max(2000) })
   .strict();
+
+export const certificateRevokeSchema = z.object({ reason: z.string().trim().min(5).max(300) }).strict();
+
+/** Kode verifikasi Sertifikat Studio: 16 karakter Crockford Base32 (boleh diketik dengan strip). */
+export function normalizeCertificateCode(input: string): string | null {
+  const s = input.toUpperCase().replace(/[\s-]/g, '').replace(/O/g, '0').replace(/[IL]/g, '1');
+  return /^[0-9A-HJKMNP-TV-Z]{16}$/.test(s) ? s : null;
+}
+
+/** Pilihan soal kuis: daftar LENGKAP soal bank yang dipakai (soal lain di bank tidak ikut diundi). */
+export const questionSelectionSchema = z.object({ ids: z.array(idParam).max(1000) }).strict();

@@ -7,6 +7,7 @@ import { Link, navigate } from '../lib/router';
 import { useSession } from '../lib/session';
 import { ErrorAlert, Loading, PageTitle, formatDuration, useAsync } from '../components/common';
 import { Icon } from '../components/Icon';
+import { CertificateCard } from '../components/CertificateCard';
 
 const TYPE_LABEL = { html: 'Bacaan', slides: 'Slide', pdf: 'PDF', youtube: 'Video' } as const;
 const TYPE_ICON = { html: 'book', slides: 'slides', pdf: 'file', youtube: 'play' } as const;
@@ -116,6 +117,7 @@ export function CoursePage({ id }: { id: string }) {
           )}
         </div>
       )}
+      {data.certificate && <CertificateCard cert={data.certificate} onRefresh={reload} />}
       {showFullDescription && (
         <section aria-labelledby="tentang-judul" className="card course-about">
           <h2 id="tentang-judul">Tentang kelas</h2>

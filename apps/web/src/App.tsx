@@ -18,6 +18,8 @@ import { Icon } from './components/Icon';
 // Lazy: ujian, admin — tidak membebani rute awal learner.
 const ExamPage = lazy(() => import('./exam/ExamPage'));
 const AdminApp = lazy(() => import('./admin/AdminApp'));
+// Lazy: halaman cetak sertifikat (memuat pembuat QR) hanya saat dibuka.
+const CertificatePage = lazy(() => import('./pages/CertificatePage').then((m) => ({ default: m.CertificatePage })));
 
 function routes(path: string) {
   let m: Record<string, string> | null;
@@ -29,6 +31,7 @@ function routes(path: string) {
   if ((m = match('/kelas/:id', path))) return <CoursePage id={m.id!} />;
   if ((m = match('/materi/:id', path))) return <LessonPage id={m.id!} />;
   if ((m = match('/hasil/:id', path))) return <ResultPage id={m.id!} />;
+  if ((m = match('/sertifikat/:code', path))) return <CertificatePage code={m.code!} />;
   if (path === '/admin/masuk') return <AdminLoginPage />;
   if (path === '/admin' || path.startsWith('/admin/')) return <AdminApp path={path} />;
   return (

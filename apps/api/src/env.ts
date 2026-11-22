@@ -14,6 +14,10 @@ export interface Env {
   TURNSTILE_SITE_KEY?: string;
   TURNSTILE_SECRET_KEY?: string;
   AI_DAILY_QUOTA?: string;
+  /** Alamat Sertifikat Studio, mis. https://sertifikat.patradesa.id (tanpa garis miring akhir). */
+  SERTIFIKAT_BASE_URL?: string;
+  /** Rahasia bersama HMAC dengan Studio (LMS_INTEGRATION_SECRET di Studio), minimal 32 karakter. */
+  SERTIFIKAT_INTEGRATION_SECRET?: string;
 }
 
 export interface GoogleClaims {

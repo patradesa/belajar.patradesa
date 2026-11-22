@@ -1,5 +1,6 @@
 import { request, type APIRequestContext } from '@playwright/test';
 import demo from '../../db/seed/demo-course.json' with { type: 'json' };
+import { startMockStudio } from './mock-studio';
 
 const BASE = 'http://localhost:8787';
 
@@ -12,7 +13,15 @@ export async function apiLogin(email: string, name: string, roles: string[] = []
 }
 
 /** Isi D1 lokal e2e dengan kelas demo FIKTIF lewat API admin (idempoten). */
-export default async function globalSetup(): Promise<void> {
+export default async function globalSetup(): Promise<() => Promise<void>> {
+  const studio = await startMockStudio();
+  await seed();
+  return async () => {
+    await new Promise((r) => (studio ? studio.close(r) : r(null)));
+  };
+}
+
+async function seed(): Promise<void> {
   const { ctx, csrf } = await apiLogin('admin-e2e@contoh.test', 'Admin E2E', ['admin']);
   const h = { 'x-csrf-token': csrf };
   const cat = await (await ctx.get('/api/v1/catalog')).json();

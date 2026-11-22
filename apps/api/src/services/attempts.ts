@@ -138,7 +138,7 @@ export async function startAttempt(db: D1Database, userId: string, assessmentId:
   if (!elig.eligible) throw new HttpError(403, elig.code ?? ERROR_CODES.NOT_ELIGIBLE, elig.reason ?? 'Belum memenuhi syarat.');
 
   const { results: pool } = await db
-    .prepare('SELECT id, type, stem, topic, difficulty, points, version FROM questions WHERE assessment_id = ? AND is_active = 1')
+    .prepare('SELECT id, type, stem, topic, difficulty, points, version FROM questions WHERE assessment_id = ? AND is_active = 1 AND in_quiz = 1')
     .bind(a.id)
     .all<PoolQuestion>();
   const chosen = [

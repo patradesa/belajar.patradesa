@@ -854,6 +854,10 @@ th {
     align-items: center;
   }
 }
+/* "Tentang kelas" memakai lebar penuh kartu (tidak dibatasi --measure seperti bacaan materi). */
+.course-about .content {
+  max-width: none;
+}
 /* Judul di dalam deskripsi kelas sedikit lebih kecil dari judul bagian "Tentang kelas". */
 .course-about .content h2 {
   font-size: 1.15rem;
@@ -991,4 +995,251 @@ th {
   .eyebrow {
     border: 1px solid CanvasText;
   }
+}
+
+/* ---------------------------------------------------------------- sertifikat */
+.cert-card-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.cert-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: var(--space-3) var(--space-5);
+  margin: 0;
+}
+.cert-facts dt,
+.cert-meta dt {
+  font-size: 0.875rem;
+  color: var(--color-muted);
+}
+.cert-facts dd,
+.cert-meta dd {
+  margin: 0;
+  font-weight: 700;
+}
+.mono {
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  letter-spacing: 0.04em;
+}
+.cert-sheet {
+  position: relative;
+  background: #ffffff;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-card);
+  padding: var(--space-3);
+  box-shadow: 0 10px 30px rgb(27 38 32 / 0.08);
+}
+.cert-sheet-inner {
+  position: relative;
+  border: 3px double var(--pd-green-light);
+  border-radius: 0.75rem;
+  padding: clamp(1.25rem, 4vw, 3rem);
+  text-align: center;
+  overflow: hidden;
+}
+.cert-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+.cert-brand img {
+  height: 3rem;
+  width: auto;
+}
+.cert-org {
+  margin: 0;
+  font-weight: 700;
+  color: var(--color-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+}
+.cert-title-wrap h1 {
+  margin: var(--space-5) 0 var(--space-4);
+  font-size: clamp(1.75rem, 1.3rem + 2.2vw, 2.75rem);
+}
+.cert-lead {
+  margin: 0;
+  color: var(--color-muted);
+}
+.cert-name {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(1.5rem, 1.1rem + 2vw, 2.4rem);
+  color: var(--color-heading);
+  margin: var(--space-2) 0 var(--space-4);
+  border-bottom: 2px solid var(--pd-amber);
+  display: inline-block;
+  padding: 0 var(--space-4) var(--space-2);
+}
+.cert-course {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.15rem, 1rem + 1vw, 1.5rem);
+  margin: var(--space-2) auto var(--space-3);
+  max-width: 40rem;
+}
+.cert-score {
+  margin: 0;
+  font-weight: 700;
+}
+.cert-foot {
+  margin-top: var(--space-6);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--space-5);
+  text-align: left;
+}
+.cert-meta {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+.cert-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: 14rem;
+  text-align: center;
+}
+.cert-qr p {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-muted);
+}
+.cert-stamp {
+  position: absolute;
+  inset: 40% 0 auto;
+  margin: 0;
+  transform: rotate(-12deg);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2.5rem, 2rem + 4vw, 5rem);
+  color: #b42318;
+  opacity: 0.35;
+  pointer-events: none;
+}
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+  .skip-link,
+  .site-header,
+  .site-footer,
+  .no-print,
+  .alert {
+    display: none !important;
+  }
+  body {
+    background: #ffffff;
+  }
+  main {
+    padding: 0;
+    min-height: 0;
+    max-width: none;
+  }
+  .cert-sheet {
+    box-shadow: none;
+    border: 0;
+    padding: 0;
+  }
+  .cert-sheet,
+  .cert-sheet-inner {
+    break-inside: avoid;
+  }
+}
+
+/* ---------------------------------------------------------------- admin: pilihan soal kuis */
+.question-pick {
+  margin: 0;
+  padding-left: 1.5rem;
+  display: grid;
+  gap: var(--space-2);
+}
+.question-pick li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.question-pick .check {
+  flex: 1 1 20rem;
+  align-items: flex-start;
+}
+.btn-small {
+  min-height: 2.25rem;
+  padding: 0.25rem 0.875rem;
+  font-size: 0.875rem;
+}
+
+/* ---------------------------------------------------------------- kartu katalog: dialog "Selengkapnya" */
+.link-button {
+  background: none;
+  border: 0;
+  padding: var(--space-1) 0;
+  min-height: var(--touch);
+  font: inherit;
+  font-weight: 700;
+  color: var(--color-link);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+.link-button:hover {
+  text-decoration-thickness: 2px;
+}
+.icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: var(--touch);
+  height: var(--touch);
+  flex: none;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-heading);
+  cursor: pointer;
+}
+.about-dialog {
+  width: min(48rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-card);
+  background: transparent;
+  color: var(--color-text);
+}
+.about-dialog::backdrop {
+  background: rgb(27 38 32 / 0.55);
+}
+.about-dialog-box {
+  margin: 0;
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+}
+.about-dialog-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.about-dialog-content .content {
+  max-width: none;
+}
+.about-dialog-actions {
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+/* Lencana status di tabel admin tidak terpotong ke baris baru. */
+td .badge {
+  white-space: nowrap;
 }

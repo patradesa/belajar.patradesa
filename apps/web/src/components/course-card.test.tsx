@@ -33,6 +33,9 @@ function stubFetch(loggedIn: boolean) {
           : new Response(JSON.stringify({ error: { code: 'UNAUTHENTICATED', message: 'x' } }), { status: 401 });
       }
       if (url.endsWith('/enroll')) return new Response(JSON.stringify({ enrollmentId: 'e1', created: true }), { status: 201 });
+      if (url.endsWith('/courses/penyelenggaraan-pemerintahan-desa')) {
+        return new Response(JSON.stringify({ description: '## Tujuan kelas\n\nPeserta memahami tugas pokok pemerintah desa secara utuh.' }));
+      }
       return new Response('{}');
     }),
   );
@@ -88,6 +91,21 @@ describe('CourseCard', () => {
     renderCard({ ...base, enrolled: true }, true);
     const link = screen.getByRole('link', { name: /Lanjutkan Belajar/ });
     expect(link.getAttribute('href')).toBe('/kelas/penyelenggaraan-pemerintahan-desa');
+  });
+
+  it('"Selengkapnya" membuka dialog Tentang kelas berisi deskripsi lengkap; Tutup menutupnya', async () => {
+    const calls = renderCard(base);
+    expect(screen.queryByRole('heading', { name: 'Tujuan kelas' })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: 'Selengkapnya tentang kelas Penyelenggaraan Pemerintahan Desa' }));
+    expect(await screen.findByRole('heading', { name: 'Tujuan kelas' })).toBeTruthy();
+    expect(screen.getByText('Peserta memahami tugas pokok pemerintah desa secara utuh.')).toBeTruthy();
+    expect(calls).toContain('GET /api/v1/courses/penyelenggaraan-pemerintahan-desa');
+    const dialog = document.querySelector('dialog')!;
+    expect(dialog.hasAttribute('open')).toBe(true);
+    expect(dialog.getAttribute('aria-labelledby')).toBe('kelas-c1-tentang');
+    await userEvent.click(screen.getAllByRole('button', { name: 'Tutup' })[1]!);
+    expect(dialog.hasAttribute('open')).toBe(false);
+    expect(screen.queryByRole('heading', { name: 'Tujuan kelas' })).toBeNull();
   });
 
   it('format waktu belajar', () => {

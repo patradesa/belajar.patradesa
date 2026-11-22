@@ -4,6 +4,7 @@ import {
   accommodationSchema,
   appealResolveSchema,
   assessmentUpsertSchema,
+  certificateRevokeSchema,
   courseCreateSchema,
   coursePatchSchema,
   extractYoutubeId,
@@ -12,6 +13,7 @@ import {
   parseContent,
   questionCreateSchema,
   questionImportSchema,
+  questionSelectionSchema,
   reviewDecisionSchema,
   roleAssignSchema,
   type QuestionCreate,
@@ -23,6 +25,8 @@ import { newId, randomToken } from '../lib/crypto';
 import { auditStmt } from '../lib/audit';
 import { currentUser, hasRole, requireRole } from '../middleware/auth';
 import { recomputeAfterReviewStatement, resultFromScoreStatement } from '../services/finalize';
+import { createGradingDemo } from '../services/demoGrading';
+import { integrationConfigured, issueAfterAttempt, pushToStudio, revokeCertificate, type CertificateRow } from '../services/certificates';
 
 const MAX_PDF_BYTES = 20 * 1024 * 1024;
 const MAX_COVER_BYTES = 2 * 1024 * 1024;
@@ -64,7 +68,7 @@ function lessonContentFields(b: z.infer<typeof lessonUpsertSchema>) {
   return { youtubeId, contentJson: JSON.stringify(parseContent(b.contentSource)) };
 }
 
-/** Salin versi course (lesson, kuis, kebijakan, bank soal aktif) ke versi draft baru. */
+/** Salin versi course (lesson, kuis, kebijakan, bank soal aktif + pilihan soal kuis) ke versi draft baru. */
 async function cloneVersionStatements(db: D1Database, fromVersionId: string, toVersionId: string, now: number) {
   const stmts: D1PreparedStatement[] = [];
   const { results: lessons } = await db.prepare('SELECT * FROM lessons WHERE course_version_id = ?').bind(fromVersionId).all<Record<string, unknown>>();
@@ -101,8 +105,8 @@ async function cloneVersionStatements(db: D1Database, fromVersionId: string, toV
       stmts.push(
         db
           .prepare(
-            `INSERT INTO questions (id, assessment_id, type, stem, difficulty, topic, points, version, rubric_json, model_answer, is_active, created_at)
-             SELECT ?, ?, type, stem, difficulty, topic, points, version, rubric_json, model_answer, 1, ? FROM questions WHERE id = ?`,
+            `INSERT INTO questions (id, assessment_id, type, stem, difficulty, topic, points, version, rubric_json, model_answer, is_active, in_quiz, created_at)
+             SELECT ?, ?, type, stem, difficulty, topic, points, version, rubric_json, model_answer, 1, in_quiz, ? FROM questions WHERE id = ?`,
           )
           .bind(qid, aid, now, q.id),
         db
@@ -138,7 +142,14 @@ export function adminRoutes(deps: Deps) {
               (SELECT MAX(version_no) FROM course_versions WHERE course_id = c.id) AS latest_version
        FROM courses c ORDER BY c.updated_at DESC`,
     ).all();
-    return c.json({ courses: results });
+    return c.json({ courses: results, demoAvailable: c.env.ENVIRONMENT !== 'production' });
+  });
+
+  // Kelas demo penilaian (bukan untuk produksi): peserta fiktif sudah mengumpulkan kuis, esai menunggu review admin.
+  r.post('/demo/grading', admins, async (c) => {
+    if (c.env.ENVIRONMENT === 'production') throw notFound('Fitur demo');
+    const u = currentUser(c);
+    return c.json(await createGradingDemo(c.env.DB, u.id, deps.now()), 201);
   });
 
   r.post('/courses', admins, async (c) => {
@@ -530,6 +541,27 @@ export function adminRoutes(deps: Deps) {
     return c.json({ imported: b.questions.length }, 201);
   });
 
+  // Pilih soal bank yang dipakai kuis (daftar lengkap). Hanya di draft; versi terbit tetap.
+  r.post('/assessments/:id/questions/selection', editors, async (c) => {
+    const u = currentUser(c);
+    const a = await draftAssessment(c.env.DB, param(c, 'id'));
+    const b = await readJson(c, questionSelectionSchema);
+    const now = deps.now();
+    const ids = JSON.stringify([...new Set(b.ids)]);
+    await c.env.DB.batch([
+      c.env.DB.prepare(
+        `UPDATE questions SET in_quiz = CASE WHEN id IN (SELECT value FROM json_each(?)) THEN 1 ELSE 0 END WHERE assessment_id = ? AND is_active = 1`,
+      ).bind(ids, a.id),
+      auditStmt(c.env.DB, now, u.id, 'question.select', 'assessment', a.id, { selected: b.ids.length }),
+    ]);
+    const counts = await c.env.DB.prepare(
+      `SELECT SUM(type = 'mcq' AND in_quiz = 1) AS mcq, SUM(type = 'essay' AND in_quiz = 1) AS essay FROM questions WHERE assessment_id = ? AND is_active = 1`,
+    )
+      .bind(a.id)
+      .first<{ mcq: number | null; essay: number | null }>();
+    return c.json({ mcq: counts?.mcq ?? 0, essay: counts?.essay ?? 0 });
+  });
+
   r.delete('/questions/:id', editors, async (c) => {
     const u = currentUser(c);
     const q = await c.env.DB.prepare('SELECT id, assessment_id FROM questions WHERE id = ?').bind(param(c, 'id')).first<{ id: string; assessment_id: string }>();
@@ -605,6 +637,8 @@ export function adminRoutes(deps: Deps) {
       resultFromScoreStatement(c.env.DB, row.attempt_id),
       auditStmt(c.env.DB, now, u.id, row.graded_at ? 'essay.override' : 'essay.grade', 'answer', row.id, { score, attemptId: row.attempt_id }),
     ]);
+    // Semua esai sudah dinilai dan hasil LULUS → sertifikat diterbitkan (idempoten).
+    await issueAfterAttempt(c.env, deps.fetch, row.attempt_id, now);
     return c.json({ ok: true, score });
   });
 
@@ -723,6 +757,37 @@ export function adminRoutes(deps: Deps) {
        FROM admin_audit_logs l LEFT JOIN users u ON u.id = l.actor_user_id ORDER BY l.created_at DESC LIMIT 200`,
     ).all();
     return c.json({ logs: results });
+  });
+
+  // ---------------------------------------------------------------- sertifikat (via Sertifikat Studio)
+  r.get('/certificates', admins, async (c) => {
+    const { results } = await c.env.DB.prepare(
+      `SELECT ce.id, ce.status, ce.recipient_name, ce.course_title, ce.final_score_pct, ce.completed_at, ce.certificate_no,
+              ce.verification_code, ce.verify_url, ce.issued_at, ce.sync_attempts, ce.next_retry_at, ce.last_error,
+              ce.revoked_at, ce.revoked_reason, u.email_normalized AS email
+       FROM certificates ce JOIN users u ON u.id = ce.user_id ORDER BY ce.completed_at DESC LIMIT 200`,
+    ).all();
+    return c.json({ certificates: results, integrationConfigured: integrationConfigured(c.env), studioUrl: c.env.SERTIFIKAT_BASE_URL ?? null });
+  });
+
+  r.post('/certificates/:id/retry', admins, async (c) => {
+    const u = currentUser(c);
+    const now = deps.now();
+    const row = await c.env.DB.prepare('SELECT * FROM certificates WHERE id = ?').bind(param(c, 'id')).first<CertificateRow>();
+    if (!row) throw notFound('Sertifikat');
+    if (row.status !== 'pending') throw new HttpError(409, ERROR_CODES.CONFLICT, 'Sertifikat ini tidak sedang menunggu penerbitan.');
+    const out = await pushToStudio(c.env, deps.fetch, row, now);
+    await auditStmt(c.env.DB, now, u.id, 'certificate.retry', 'certificate', row.id, { issued: out.status === 'issued' }).run();
+    return c.json({ status: out.status, lastError: out.last_error, certificateNo: out.certificate_no });
+  });
+
+  r.post('/certificates/:id/revoke', admins, async (c) => {
+    const u = currentUser(c);
+    const now = deps.now();
+    const b = await readJson(c, certificateRevokeSchema);
+    const out = await revokeCertificate(c.env, deps.fetch, param(c, 'id'), u.id, b.reason, now);
+    await auditStmt(c.env.DB, now, u.id, 'certificate.revoke', 'certificate', out.id).run();
+    return c.json({ status: out.status });
   });
 
   return r;
