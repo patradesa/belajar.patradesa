@@ -1,15 +1,24 @@
 import { useState, type FormEvent } from 'react';
-import { VILLAGE_ROLES, VILLAGE_ROLE_LABELS, type VillageRole } from '@patradesa/shared';
+import { VILLAGE_ROLES, VILLAGE_ROLE_LABELS, type CertificateView, type MyCourse, type VillageRole } from '@patradesa/shared';
 import { api, errorMessage } from '../lib/api';
 import { Link, navigate, useLocation } from '../lib/router';
 import { useSession } from '../lib/session';
-import { Loading, PageTitle } from '../components/common';
+import { ErrorAlert, Loading, PageTitle, useAsync } from '../components/common';
+import { MyCertificateList, MyCourseList } from '../components/MyLearning';
 
 export function ProfilePage() {
   const { me, loading, refresh } = useSession();
   const { search } = useLocation();
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [consentErr, setConsentErr] = useState(false);
+  // Kelas & sertifikat: dimuat setelah persetujuan privasi (akun baru belum punya data belajar).
+  const learning = useAsync(
+    () =>
+      me?.profile.privacyConsentAt
+        ? Promise.all([api<{ courses: MyCourse[] }>('/me/courses'), api<{ certificates: CertificateView[] }>('/me/certificates')])
+        : Promise.resolve(null),
+    [me?.user.id, me?.profile.privacyConsentAt],
+  );
   if (loading) return <Loading />;
   if (!me) {
     return (
@@ -119,6 +128,20 @@ export function ProfilePage() {
           Simpan profil
         </button>
       </form>
+      {!needsConsent && (
+        <>
+          <section className="stack" aria-labelledby="profil-kelas">
+            <h2 id="profil-kelas">Kelas yang diikuti</h2>
+            {learning.loading && !learning.data && <Loading />}
+            {Boolean(learning.error) && <ErrorAlert error={learning.error} onRetry={learning.reload} />}
+            {learning.data && <MyCourseList courses={learning.data[0].courses} heading="h3" />}
+          </section>
+          <section className="stack" aria-labelledby="profil-sertifikat">
+            <h2 id="profil-sertifikat">Sertifikat saya</h2>
+            {learning.data && <MyCertificateList certificates={learning.data[1].certificates} heading="h3" />}
+          </section>
+        </>
+      )}
     </div>
   );
 }

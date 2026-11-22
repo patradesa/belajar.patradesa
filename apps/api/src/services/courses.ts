@@ -7,6 +7,7 @@ import {
   type CourseDetail,
   type CourseRating,
   type LessonSummary,
+  type MyCourse,
   type VillageRole,
 } from '@patradesa/shared';
 import { HttpError, notFound } from '../lib/http';
@@ -251,21 +252,51 @@ export async function enroll(db: D1Database, userId: string, idOrSlug: string, n
 export async function myCourses(db: D1Database, userId: string) {
   const { results } = await db
     .prepare(
-      `SELECT c.id, c.slug, c.title, e.status, e.expires_at,
+      `SELECT c.id, c.slug, c.title, e.status, e.expires_at, e.started_at,
               (SELECT COUNT(*) FROM lessons l WHERE l.course_version_id = e.course_version_id AND l.is_required = 1) AS required_lessons,
               (SELECT COUNT(*) FROM lesson_progress p JOIN lessons l ON l.id = p.lesson_id
-                WHERE p.user_id = e.user_id AND l.course_version_id = e.course_version_id AND l.is_required = 1 AND p.completed_at IS NOT NULL) AS completed_lessons
+                WHERE p.user_id = e.user_id AND l.course_version_id = e.course_version_id AND l.is_required = 1 AND p.completed_at IS NOT NULL) AS completed_lessons,
+              (SELECT COUNT(*) FROM assessments a JOIN lessons l ON l.id = a.lesson_id
+                WHERE l.course_version_id = e.course_version_id AND a.is_required = 1) AS required_quizzes,
+              (SELECT COUNT(*) FROM assessments a JOIN lessons l ON l.id = a.lesson_id
+                WHERE l.course_version_id = e.course_version_id AND a.is_required = 1
+                  AND EXISTS (SELECT 1 FROM attempts t WHERE t.assessment_id = a.id AND t.user_id = e.user_id AND t.result_status = 'passed')) AS passed_quizzes,
+              (SELECT COUNT(*) FROM assessments a JOIN lessons l ON l.id = a.lesson_id
+                WHERE l.course_version_id = e.course_version_id AND a.is_required = 1
+                  AND NOT EXISTS (SELECT 1 FROM attempts t WHERE t.assessment_id = a.id AND t.user_id = e.user_id AND t.result_status = 'passed')
+                  AND EXISTS (SELECT 1 FROM attempts t WHERE t.assessment_id = a.id AND t.user_id = e.user_id AND t.result_status = 'pending_review')) AS reviewing_quizzes,
+              (SELECT status FROM certificates ce WHERE ce.user_id = e.user_id AND ce.course_id = c.id) AS certificate_status
        FROM enrollments e JOIN courses c ON c.id = e.course_id WHERE e.user_id = ? ORDER BY e.started_at DESC`,
     )
     .bind(userId)
-    .all<{ id: string; slug: string; title: string; status: string; expires_at: number | null; required_lessons: number; completed_lessons: number }>();
-  return results.map((r) => ({
-    id: r.id,
-    slug: r.slug,
-    title: r.title,
-    status: r.status,
-    expiresAt: r.expires_at,
-    requiredLessons: r.required_lessons,
-    completedLessons: r.completed_lessons,
-  }));
+    .all<{
+      id: string;
+      slug: string;
+      title: string;
+      status: string;
+      expires_at: number | null;
+      started_at: number;
+      required_lessons: number;
+      completed_lessons: number;
+      required_quizzes: number;
+      passed_quizzes: number;
+      reviewing_quizzes: number;
+      certificate_status: MyCourse['certificateStatus'];
+    }>();
+  return results.map(
+    (r): MyCourse => ({
+      id: r.id,
+      slug: r.slug,
+      title: r.title,
+      status: r.status,
+      expiresAt: r.expires_at,
+      startedAt: r.started_at,
+      requiredLessons: r.required_lessons,
+      completedLessons: r.completed_lessons,
+      requiredQuizzes: r.required_quizzes,
+      passedQuizzes: r.passed_quizzes,
+      reviewingQuizzes: r.reviewing_quizzes,
+      certificateStatus: r.certificate_status ?? null,
+    }),
+  );
 }

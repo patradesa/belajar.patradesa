@@ -113,3 +113,26 @@ test('pilihan soal kuis: centang/keluarkan soal di draft lalu simpan', async ({ 
   await page.getByRole('button', { name: 'Simpan pilihan soal kuis' }).click();
   await expect(page.getByText('Pilihan soal kuis tersimpan: 5 pilihan ganda, 2 esai.')).toBeVisible();
 });
+
+test('profil: daftar kelas + progres dan bagian Sertifikat saya (lolos axe)', async ({ page }) => {
+  await page.goto('/masuk');
+  await page.getByLabel('Email (fiktif)').fill(`profil-${Date.now()}@contoh.test`);
+  await page.getByLabel('Nama').fill('Peserta Profil');
+  await page.getByRole('button', { name: 'Masuk (dev)' }).click();
+  await page.getByLabel(/menyetujui/).check();
+  await page.getByRole('button', { name: 'Simpan profil' }).click();
+  await page.getByRole('heading', { name: 'Katalog kelas' }).waitFor();
+  await page.goto('/kelas/dasar-transparansi-desa');
+  await page.getByRole('button', { name: /Daftar kelas ini/ }).click();
+  await expect(page.getByRole('link', { name: 'Mengapa Keterbukaan Penting' })).toBeVisible();
+  await page.goto('/profil');
+  await expect(page.getByRole('heading', { level: 2, name: 'Kelas yang diikuti' })).toBeVisible();
+  const item = page.getByRole('listitem').filter({ has: page.getByRole('heading', { level: 3, name: /Dasar Transparansi/ }) });
+  await expect(item.getByText('Sedang belajar')).toBeVisible();
+  await expect(item.getByText(/0\/2 materi wajib/)).toBeVisible();
+  await expect(item.getByText(/0\/1 kuis lulus/)).toBeVisible();
+  await expect(item.getByRole('img', { name: /Progres kelas .*: 0 persen/ })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: 'Sertifikat saya' })).toBeVisible();
+  await expect(page.getByText(/^Belum ada sertifikat/)).toBeVisible();
+  await axe(page, 'profil dengan kelas');
+});

@@ -177,3 +177,22 @@ export interface PublicCertificate {
   issuedAt: number;
   revokedAt: number | null;
 }
+
+/** Kelas yang diikuti peserta + progres (materi wajib selesai dan kuis wajib lulus). */
+export interface MyCourse {
+  id: string;
+  slug: string;
+  title: string;
+  /** Status pendaftaran: active | completed | expired | withdrawn. */
+  status: string;
+  expiresAt: number | null;
+  startedAt: number;
+  requiredLessons: number;
+  completedLessons: number;
+  requiredQuizzes: number;
+  passedQuizzes: number;
+  /** Kuis wajib yang belum lulus tetapi sedang menunggu penilaian esai. */
+  reviewingQuizzes: number;
+  certificateStatus: 'pending' | 'issued' | 'revoked' | null;
+}
+
