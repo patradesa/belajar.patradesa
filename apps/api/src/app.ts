@@ -4,6 +4,7 @@ import type { AppEnv, Deps } from './env';
 import { HttpError, errorBody } from './lib/http';
 import { loadSession } from './middleware/auth';
 import { apiSecurityHeaders, csrfProtection } from './middleware/security';
+import { canonicalHost } from './middleware/canonical';
 import { examLockGuard } from './services/examLock';
 import { authRoutes } from './routes/auth';
 import { learnerRoutes } from './routes/learner';
@@ -18,6 +19,8 @@ import { adminRoutes } from './routes/admin';
 export function createApp(deps: Deps) {
   const app = new Hono<AppEnv>();
 
+  // Alamat lama *.workers.dev → APP_ORIGIN (domain resmi).
+  app.use('*', canonicalHost);
   app.use('/api/*', apiSecurityHeaders);
   app.use('/api/*', loadSession(deps));
   app.use('/api/*', csrfProtection);

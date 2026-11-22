@@ -99,6 +99,8 @@ test('pilihan soal kuis: centang/keluarkan soal di draft lalu simpan', async ({ 
   await expect(page.getByText('Versi terbit hanya-baca.', { exact: false })).toBeVisible();
   await page.getByRole('button', { name: 'Buat draft versi baru' }).click();
   await expect(page.getByText('Draft dibuat.')).toBeVisible();
+  // Tunggu data draft termuat (materi mendapat ID baru) sebelum membuka panel, agar panel tidak tertutup lagi.
+  await expect(page.getByRole('button', { name: 'Terbitkan draft' })).toBeVisible();
   await page.getByText(/^3\. Dari Kelulusan ke Sertifikat/).click();
   await expect(page.getByRole('heading', { name: 'Bank soal: 5 pilihan ganda, 2 esai' })).toBeVisible();
   // Daftar pilihan terbuka otomatis untuk bank kecil (≤ 20 soal).

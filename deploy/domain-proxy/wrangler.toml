@@ -1,0 +1,12 @@
+# Proyek Pages "belajar-patradesa-web": pintu domain https://belajar.patradesa.id.
+# Deploy (sekali, dan setiap file ini berubah) dari folder ini:
+#   npx wrangler pages deploy
+# Lihat docs/deploy.md → "Domain belajar.patradesa.id".
+name = "belajar-patradesa-web"
+pages_build_output_dir = "./public"
+compatibility_date = "2026-11-01"
+
+# Semua permintaan diteruskan ke Worker LMS (lingkungan staging = Worker "belajar-patradesa").
+[[services]]
+binding = "LMS"
+service = "belajar-patradesa"
