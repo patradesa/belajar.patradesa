@@ -35,6 +35,7 @@ Masuk di `/masuk` dengan **Login pengembangan** (hanya aktif di localhost saat `
 | `npm run test:e2e` | Playwright terhadap `wrangler dev` (lokal Windows: `PW_CHANNEL=msedge`) |
 | `npm run lighthouse` | Lighthouse mobile (server lokal harus berjalan; set `CHROME_PATH`) |
 | `npm run check` | typecheck + lint + test + build + budget |
+| `npm run guides` | Buat ulang tangkapan layar & PDF panduan A4 (`apps/web/public/panduan/`) dari `apps/web/src/guide/content.ts`; jalankan setelah isi panduan atau tampilan berubah, lalu commit hasilnya |
 
 ## Struktur
 ```

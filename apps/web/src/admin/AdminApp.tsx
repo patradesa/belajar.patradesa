@@ -21,6 +21,7 @@ function Tabs({ path }: { path: string }) {
     ['/admin/pengguna', 'Pengguna', hasRole(me, 'admin', 'mentor')],
     ['/admin/sertifikat', 'Sertifikat', hasRole(me, 'admin')],
     ['/admin/audit', 'Audit', hasRole(me, 'admin')],
+    ['/panduan/admin', 'Panduan', true],
   ];
   return (
     <nav aria-label="Menu admin" className="subnav">

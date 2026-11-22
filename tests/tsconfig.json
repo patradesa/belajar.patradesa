@@ -6,5 +6,5 @@
     "types": ["@cloudflare/workers-types", "node", "vite/client"],
     "noUncheckedIndexedAccess": false
   },
-  "include": ["**/*.ts", "**/*.tsx", "../playwright.config.ts", "../vitest.config.ts"]
+  "include": ["**/*.ts", "**/*.tsx", "../playwright.config.ts", "../vitest.config.ts", "../playwright.guide.config.ts"]
 }

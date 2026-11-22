@@ -6,6 +6,7 @@ import { useSession } from '../lib/session';
 import { BlockRenderer } from './BlockRenderer';
 import { HeroWaves, Icon } from './Icon';
 import { StarRating } from './Stars';
+import { PassedBadge } from './PassedBadge';
 
 export function formatStudyTime(minutes: number): string {
   if (minutes <= 0) return 'Tanpa batas waktu minimum';
@@ -117,8 +118,13 @@ export function CourseCard({ course }: { course: CatalogCourse }) {
             {err}
           </p>
         )}
+        {course.completed && <PassedBadge certificateIssued={course.certificateIssued} />}
         <div className="course-card-actions">
-          {course.enrolled ? (
+          {course.completed ? (
+            <Link className="btn" href={href}>
+              Belajar Ulang<span className="visually-hidden">: {course.title}</span> <Icon name="arrow" />
+            </Link>
+          ) : course.enrolled ? (
             <Link className="btn" href={href}>
               Lanjutkan Belajar<span className="visually-hidden">: {course.title}</span> <Icon name="arrow" />
             </Link>
@@ -168,7 +174,11 @@ export function CourseCard({ course }: { course: CatalogCourse }) {
             </div>
             {factList}
             <div className="btn-row about-dialog-actions">
-              {course.enrolled ? (
+              {course.completed ? (
+                <Link className="btn" href={href}>
+                  Belajar Ulang <Icon name="arrow" />
+                </Link>
+              ) : course.enrolled ? (
                 <Link className="btn" href={href}>
                   Lanjutkan Belajar <Icon name="arrow" />
                 </Link>

@@ -59,6 +59,8 @@ const PAIRS: [string, string, number, string][] = [
   ['color-success', 'color-success-bg', 4.5, 'teks di alert berhasil'],
   ['color-danger', 'color-surface', 4.5, 'teks galat'],
   ['color-eyebrow', 'color-bg', 4.5, 'label kecil (eyebrow) di latar halaman'],
+  ['color-passed-text', 'color-passed-bg', 4.5, 'teks tanda Lulus'],
+  ['color-passed-text', 'color-surface', 4.5, 'teks tanda Lulus di kartu'],
   ['color-eyebrow', 'color-surface', 4.5, 'label kecil (eyebrow) di kartu'],
   ['color-muted', 'color-header-bg', 4.5, 'menu tidak aktif di header'],
   ['color-primary-button-text', 'color-primary-dark', 4.5, 'tombol utama (hover gaya Studio)'],

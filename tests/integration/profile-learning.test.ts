@@ -23,6 +23,8 @@ async function enrolledLearner(email: string, name: string) {
 describe('profil: kelas & sertifikat', () => {
   it('progres menghitung materi wajib selesai + kuis wajib lulus', async () => {
     const { l } = await enrolledLearner('progres@contoh.test', 'Progres');
+    const item = (await l.json('GET', '/api/v1/catalog')).body.courses.find((x: { slug: string }) => x.slug === 'dasar-transparansi-desa');
+    expect(item).toMatchObject({ enrolled: true, completed: false, certificateIssued: false });
     const c = (await l.json('GET', '/api/v1/me/courses')).body.courses[0];
     expect(c).toMatchObject({
       slug: 'dasar-transparansi-desa',
@@ -52,6 +54,9 @@ describe('profil: kelas & sertifikat', () => {
     await l.json('GET', `/api/v1/courses/${seeded.courseId}`); // memicu pembuatan sertifikat
     const c = (await l.json('GET', '/api/v1/me/courses')).body.courses[0];
     expect(c).toMatchObject({ status: 'completed', completedLessons: 2, passedQuizzes: 1, certificateStatus: 'pending' });
+    // Katalog menandai kelas lulus (tanda oranye) walau sertifikat masih diproses.
+    const cat = async () => (await l.json('GET', '/api/v1/catalog')).body.courses.find((x: { slug: string }) => x.slug === 'dasar-transparansi-desa');
+    expect(await cat()).toMatchObject({ enrolled: true, completed: true, certificateIssued: false });
 
     let certs = (await l.json('GET', '/api/v1/me/certificates')).body.certificates;
     expect(certs).toHaveLength(1);
@@ -65,6 +70,7 @@ describe('profil: kelas & sertifikat', () => {
     await h.env.DB.prepare(`UPDATE certificates SET status = 'issued', certificate_no = '0009/PD/BELAJAR/2026', verification_code = 'ABCD2345EFGH6789' WHERE user_id = ?`)
       .bind(uid)
       .run();
+    expect(await cat()).toMatchObject({ completed: true, certificateIssued: true });
     await l.json('PATCH', '/api/v1/me', { certificateName: 'Nama Lain' });
     certs = (await l.json('GET', '/api/v1/me/certificates')).body.certificates;
     expect(certs[0]).toMatchObject({ status: 'issued', recipientName: 'I Wayan Lengkap, S.Sos.' });

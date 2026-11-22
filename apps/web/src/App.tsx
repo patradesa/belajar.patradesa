@@ -19,6 +19,9 @@ import { FontScaleControl } from './components/FontScaleControl';
 // Lazy: ujian, admin — tidak membebani rute awal learner.
 const ExamPage = lazy(() => import('./exam/ExamPage'));
 const AdminApp = lazy(() => import('./admin/AdminApp'));
+// Lazy: panduan penggunaan (isi panjang) hanya saat dibuka.
+const GuideIndexPage = lazy(() => import('./pages/GuidePage').then((m) => ({ default: m.GuideIndexPage })));
+const GuideDetailPage = lazy(() => import('./pages/GuidePage').then((m) => ({ default: m.GuideDetailPage })));
 // Lazy: halaman cetak sertifikat (memuat pembuat QR) hanya saat dibuka.
 const CertificatePage = lazy(() => import('./pages/CertificatePage').then((m) => ({ default: m.CertificatePage })));
 
@@ -28,6 +31,8 @@ function routes(path: string) {
   if (path === '/masuk') return <LoginPage />;
   if (path === '/profil') return <ProfilePage />;
   if (path === '/privasi') return <PrivacyPage />;
+  if (path === '/panduan') return <GuideIndexPage />;
+  if ((m = match('/panduan/:slug', path))) return <GuideDetailPage slug={m.slug!} />;
   if (path === '/kelas-saya') return <MyCoursesPage />;
   if ((m = match('/kelas/:id', path))) return <CoursePage id={m.id!} />;
   if ((m = match('/materi/:id', path))) return <LessonPage id={m.id!} />;
@@ -82,6 +87,9 @@ export function App() {
             <strong>PatraDesa Belajar</strong> — pelatihan daring untuk perangkat desa. Data latihan bersifat fiktif.
           </p>
           <ul className="footer-links">
+            <li>
+              <Link href="/panduan">Panduan</Link>
+            </li>
             <li>
               <Link href="/privasi">Privasi</Link>
             </li>

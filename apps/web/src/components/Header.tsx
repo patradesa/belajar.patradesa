@@ -33,6 +33,11 @@ export function Header() {
                 <Link href="/kelas-saya">Kelas Saya</Link>
               </li>
             )}
+            <li>
+              <Link href="/panduan" aria-current={path.startsWith('/panduan') ? 'page' : undefined}>
+                Panduan
+              </Link>
+            </li>
             {me && hasRole(me, 'admin', 'content_editor', 'mentor') && (
               <li>
                 <Link href="/admin" aria-current={path.startsWith('/admin') ? 'page' : undefined}>
