@@ -33,6 +33,25 @@ Tanpa wrangler: tempel `db/console/<migrasi>.console.sql` ke D1 → Console (dib
 
 Catatan migrasi: `0004_question_selection.console.sql` berisi `ALTER TABLE` yang tidak idempoten. Jalankan sekali; bila muncul galat "duplicate column name: in_quiz", migrasi itu sudah pernah diterapkan.
 
+## 1b-2. Domain belajar.patradesa.id (Pages + CNAME, DNS tetap di serverorange)
+DNS `patradesa.id` dikelola serverorange, sedangkan Custom Domain Worker hanya untuk zona di Cloudflare. Karena itu domain dipasang di proyek **Pages** kecil `belajar-patradesa-web` (folder `deploy/domain-proxy`) yang meneruskan setiap permintaan ke Worker `belajar-patradesa` lewat **service binding** `LMS` (jalur internal; Cron, D1, R2 tetap di Worker). Pola sama dengan `sertifikat.patradesa.id`.
+
+Urutan (agar login tidak putus):
+1. **Deploy pintu Pages** (sekali; ulangi hanya bila `deploy/domain-proxy` berubah). Di PowerShell, dari folder repo:
+   ```powershell
+   cd deploy\domain-proxy; npx wrangler login; npx wrangler pages deploy
+   ```
+   Pilih akun Patradesa.id; bila ditanya, buat proyek baru `belajar-patradesa-web`, production branch `main`. Service binding `LMS → belajar-patradesa` ikut terpasang dari `wrangler.toml`; periksa di Pages → proyek → Settings → Bindings.
+2. **Custom domain Pages**: proyek `belajar-patradesa-web` → Custom domains → Set up a custom domain → `belajar.patradesa.id`. Cloudflare menampilkan target CNAME `belajar-patradesa-web.pages.dev`.
+3. **DNS serverorange**: tambah record **CNAME** nama `belajar`, isi `belajar-patradesa-web.pages.dev` (TTL bawaan). Jangan ubah record lain. Tunggu status domain di Pages **Active** (biasanya menit–jam; sertifikat SSL dibuat otomatis).
+4. **Google Cloud Console** → APIs & Services → Credentials → OAuth client LMS: tambah *Authorized JavaScript origins* `https://belajar.patradesa.id` dan *Authorized redirect URIs* `https://belajar.patradesa.id/api/v1/auth/google/callback`. Biarkan URI workers.dev lama sampai migrasi selesai.
+5. **Turnstile** → widget LMS → Hostname Management: tambah `belajar.patradesa.id`.
+6. Uji `https://belajar.patradesa.id/api/v1/health` → `{"ok":true}` (sudah lewat Pages + binding, walau `APP_ORIGIN` masih lama).
+7. **Merge PR domain** (mengubah `APP_ORIGIN` staging ke `https://belajar.patradesa.id`). Workers Builds men-deploy; sejak itu login Google, CSRF, dan cookie hanya berlaku di domain baru, dan halaman `*.workers.dev` dialihkan 301 ke domain baru.
+8. Uji di domain baru: login Google, daftar kelas, kuis, halaman sertifikat, panel admin.
+
+Rollback: kembalikan `APP_ORIGIN` ke URL workers.dev (revert PR) — situs kembali dipakai di workers.dev; CNAME boleh dibiarkan.
+
 ## 1c. Integrasi Sertifikat Studio (sertifikat.patradesa.id)
 Sertifikat kelas diterbitkan oleh Sertifikat Studio lewat `POST /api/integrasi/terbitkan` (HMAC-SHA256, jendela 5 menit, idempoten dengan kunci `belajar-<id sertifikat>`). Nomor berformat `0001/PD/BELAJAR/2026`; verifikasi publik di `https://sertifikat.patradesa.id/v/KODE`.
 1. Buat satu rahasia acak ≥ 32 karakter. Pasang di **kedua** aplikasi dengan nilai yang sama:

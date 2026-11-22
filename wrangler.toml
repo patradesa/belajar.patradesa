@@ -11,7 +11,9 @@ workers_dev = false
 directory = "apps/web/dist"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
-run_worker_first = ["/api/*"]
+# Worker menangani API dan halaman HTML (untuk pengalihan alamat *.workers.dev ke domain resmi);
+# aset ber-hash /assets/* tetap langsung dari asset worker tanpa memanggil Worker.
+run_worker_first = ["/*", "!/assets/*"]
 
 [vars]
 ENVIRONMENT = "development"
@@ -36,8 +38,10 @@ crons = ["* * * * *"]
 enabled = true
 
 # ---------------------------------------------------------------- staging
-# Dideploy oleh Workers Builds (akun Patradesa.id) ke Worker "belajar-patradesa" di alamat workers.dev,
-# karena DNS patradesa.id belum dikelola Cloudflare. Deploy command: `npx wrangler deploy --env staging`.
+# Dideploy oleh Workers Builds (akun Patradesa.id) ke Worker "belajar-patradesa". Deploy command: `npx wrangler deploy --env staging`.
+# Domain resmi https://belajar.patradesa.id: proyek Pages "belajar-patradesa-web" (deploy/domain-proxy) meneruskan
+# semua permintaan ke Worker ini lewat service binding, karena DNS patradesa.id dikelola serverorange (CNAME).
+# Alamat *.workers.dev tetap aktif tetapi halamannya dialihkan (301) ke APP_ORIGIN.
 [env.staging]
 name = "belajar-patradesa"
 workers_dev = true
@@ -45,8 +49,8 @@ preview_urls = false
 
 [env.staging.vars]
 ENVIRONMENT = "staging"
-# WAJIB sama persis dengan alamat Worker (dipakai cek CSRF Origin & redirect_uri OAuth).
-APP_ORIGIN = "https://belajar-patradesa.patradesa-id.workers.dev"
+# WAJIB sama persis dengan alamat yang dibuka peserta (dipakai cek CSRF Origin & redirect_uri OAuth).
+APP_ORIGIN = "https://belajar.patradesa.id"
 DEV_LOGIN_ENABLED = "false"
 TURNSTILE_SITE_KEY = "0x4AAAAAAGLtl3uk3xV7UMb7"
 # Sertifikat Studio. Penerbitan aktif hanya bila secret SERTIFIKAT_INTEGRATION_SECRET juga dipasang.

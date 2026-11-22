@@ -18,16 +18,23 @@ export function QuestionBank({
   act: (fn: () => Promise<unknown>, ok?: string) => Promise<boolean>;
 }) {
   const qs = assessment.questions as Row[];
+  const keyOf = (ids: Iterable<string>) => [...ids].sort().join(',');
   const initial = () => new Set(qs.filter((q) => Number(q.in_quiz ?? 1) === 1).map((q) => String(q.id)));
+  const propKey = keyOf(initial());
   const [selected, setSelected] = useState<Set<string>>(initial);
-  const [baseline, setBaseline] = useState(() => [...initial()].sort().join(','));
-  const savedKey = [...initial()].sort().join(',');
-  // Data dimuat ulang dari server (mis. setelah impor): sinkronkan pilihan bila belum ada perubahan lokal.
-  if (savedKey !== baseline) {
-    setBaseline(savedKey);
-    setSelected(initial());
+  // `saved` = pilihan yang diketahui tersimpan di server (dari data terakhir ATAU dari simpan yang baru berhasil).
+  const [saved, setSaved] = useState(propKey);
+  const [seenProp, setSeenProp] = useState(propKey);
+  const dirty = keyOf(selected) !== saved;
+  // Data dimuat ulang (mis. setelah impor/simpan). Pilihan lokal hanya diganti bila server memang berbeda dari yang
+  // kita ketahui DAN admin tidak sedang mengubah centang — perubahan yang dibuat selama pemuatan ulang tidak hilang.
+  if (propKey !== seenProp) {
+    setSeenProp(propKey);
+    if (propKey !== saved) {
+      setSaved(propKey);
+      if (!dirty) setSelected(initial());
+    }
   }
-  const dirty = [...selected].sort().join(',') !== savedKey;
 
   const mcqs = qs.filter((q) => q.type === 'mcq');
   const essays = qs.filter((q) => q.type === 'essay');
@@ -54,8 +61,9 @@ export function QuestionBank({
       else next.delete(id);
       return next;
     });
-  const save = () =>
-    void act(
+  const save = async () => {
+    const sent = keyOf(selected);
+    const ok = await act(
       () =>
         api(`/admin/assessments/${aid}/questions/selection`, {
           method: 'POST',
@@ -63,6 +71,8 @@ export function QuestionBank({
         }),
       `Pilihan soal kuis tersimpan: ${usedMcq} pilihan ganda, ${usedEssay} esai.`,
     );
+    if (ok) setSaved(sent);
+  };
 
   const group = (title: string, list: Row[], used: number, key: string) => (
     <fieldset className="stack" style={{ margin: 0 }}>
@@ -149,7 +159,7 @@ export function QuestionBank({
       </details>
       {editable && (
         <div className="btn-row" aria-live="polite">
-          <button type="button" className="btn" onClick={save} disabled={!dirty}>
+          <button type="button" className="btn" onClick={() => void save()} disabled={!dirty}>
             Simpan pilihan soal kuis
           </button>
           {dirty && <span className="help">Ada perubahan yang belum disimpan.</span>}
