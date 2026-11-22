@@ -43,8 +43,17 @@ export interface CertificateRow {
 const MAX_BACKOFF_MS = 6 * 3600_000;
 const STUDIO_TIMEOUT_MS = 8000;
 
+/** Alasan integrasi belum siap (untuk admin), atau null bila siap. Tidak pernah memuat nilai rahasia. */
+export function integrationProblem(env: Env): string | null {
+  if (!env.SERTIFIKAT_BASE_URL) return 'Variabel SERTIFIKAT_BASE_URL belum ada di Worker.';
+  const secret = env.SERTIFIKAT_INTEGRATION_SECRET;
+  if (!secret) return 'Secret SERTIFIKAT_INTEGRATION_SECRET belum dipasang di Worker.';
+  if (secret.length < 32) return `Secret SERTIFIKAT_INTEGRATION_SECRET terlalu pendek (${secret.length} karakter; minimal 32).`;
+  return null;
+}
+
 export function integrationConfigured(env: Env): boolean {
-  return Boolean(env.SERTIFIKAT_BASE_URL && env.SERTIFIKAT_INTEGRATION_SECRET && env.SERTIFIKAT_INTEGRATION_SECRET.length >= 32);
+  return integrationProblem(env) === null;
 }
 
 function studioBase(env: Env): string {
@@ -217,7 +226,8 @@ async function markFailed(db: D1Database, row: CertificateRow, now: number, erro
 }
 
 export async function pushToStudio(env: Env, fetchFn: FetchFn, row: CertificateRow, now: number): Promise<CertificateRow> {
-  if (!integrationConfigured(env)) return markFailed(env.DB, row, now, 'Integrasi Sertifikat Studio belum dikonfigurasi.');
+  const problem = integrationProblem(env);
+  if (problem) return markFailed(env.DB, row, now, `Integrasi Sertifikat Studio belum siap: ${problem}`);
   let r: { status: number; data: StudioReply | null };
   try {
     r = await callStudio(
@@ -304,7 +314,8 @@ export async function revokeCertificate(
   if (!row) throw new HttpError(404, ERROR_CODES.NOT_FOUND, 'Sertifikat tidak ditemukan.');
   if (row.status === 'revoked') return row;
   if (row.status === 'issued') {
-    if (!integrationConfigured(env)) throw new HttpError(503, ERROR_CODES.INTERNAL, 'Integrasi Sertifikat Studio belum dikonfigurasi.');
+    const problem = integrationProblem(env);
+    if (problem) throw new HttpError(503, ERROR_CODES.INTERNAL, `Integrasi Sertifikat Studio belum siap: ${problem}`);
     let r: { status: number; data: StudioReply | null };
     try {
       r = await callStudio(env, fetchFn, '/api/integrasi/cabut', { code: row.verification_code, reason }, now);

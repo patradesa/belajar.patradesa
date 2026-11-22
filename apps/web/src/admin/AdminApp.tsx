@@ -12,7 +12,7 @@ import { Certificates } from './Certificates';
 
 type Row = Record<string, unknown>;
 
-function Tabs() {
+function Tabs({ path }: { path: string }) {
   const { me } = useSession();
   const items: [string, string, boolean][] = [
     ['/admin', 'Kelas', hasRole(me, 'admin', 'content_editor')],
@@ -23,17 +23,21 @@ function Tabs() {
     ['/admin/audit', 'Audit', hasRole(me, 'admin')],
   ];
   return (
-    <nav aria-label="Menu admin">
-      <ul className="btn-row" style={{ listStyle: 'none', padding: 0 }}>
+    <nav aria-label="Menu admin" className="subnav">
+      <ul>
         {items
           .filter((i) => i[2])
-          .map(([href, label]) => (
-            <li key={href}>
-              <Link className="btn btn-secondary" href={href}>
-                {label}
-              </Link>
-            </li>
-          ))}
+          .map(([href, label]) => {
+            // "Kelas" juga aktif di editor & laporan kelas.
+            const active = href === '/admin' ? path === '/admin' || path.startsWith('/admin/kelas/') || path.startsWith('/admin/laporan/') : path === href;
+            return (
+              <li key={href}>
+                <Link href={href} aria-current={active ? 'page' : undefined}>
+                  {label}
+                </Link>
+              </li>
+            );
+          })}
       </ul>
     </nav>
   );
@@ -56,98 +60,101 @@ function CourseList() {
     }, 'Kelas dibuat.');
     if (ok) navigate(`/admin/kelas/${id}`);
   };
+  const isAdmin = hasRole(me, 'admin');
   return (
     <div className="stack">
-      <h2>Kelas</h2>
       {view}
-      {loading && <Loading />}
-      {Boolean(error) && <ErrorAlert error={error} onRetry={reload} />}
-      <div className="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th scope="col">Judul</th>
-              <th scope="col">Status</th>
-              <th scope="col">Versi</th>
-              <th scope="col">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data?.courses.map((c) => (
-              <tr key={String(c.id)}>
-                <td>{String(c.title)}</td>
-                <td>{String(c.status)}</td>
-                <td>
-                  v{String(c.latest_version ?? 1)}
-                  {c.draft_version_id ? ' (ada draft)' : ''}
-                </td>
-                <td>
-                  <Link href={`/admin/kelas/${String(c.id)}`}>Kelola</Link>
-                  {hasRole(me, 'admin') && (
-                    <>
-                      {' · '}
-                      <Link href={`/admin/laporan/${String(c.id)}`}>Laporan</Link>
-                    </>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {hasRole(me, 'admin') && data?.demoAvailable && (
-        <section className="card card-soft stack" aria-labelledby="demo-judul">
-          <h3 id="demo-judul" style={{ margin: 0 }}>
-            Uji alur penilaian sampai sertifikat
-          </h3>
-          <p style={{ margin: 0 }}>
-            Membuat kelas <strong>privat</strong> berisi 3 materi dan kuis (5 pilihan ganda + 2 esai), plus satu peserta <strong>fiktif</strong> yang sudah
-            menyelesaikan materi dan mengumpulkan kuis (4 dari 5 PG benar). Lanjutkan di <strong>Review esai</strong>: beri skor rubrik pada 2 esai. Nilai
-            akhir ≥ 70% → lulus → sertifikat terbit (lihat tab <strong>Sertifikat</strong>). Total esai minimal 13 dari 20 poin agar lulus.
-          </p>
-          <p className="help" style={{ margin: 0 }}>
-            Tidak tersedia di produksi. Bila integrasi Sertifikat Studio aktif, sertifikat demo memakai nomor resmi berikutnya; cabut dari tab Sertifikat
-            setelah selesai menguji.
-          </p>
-          <div>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() =>
-                void run(async () => {
-                  await api('/admin/demo/grading', { method: 'POST' });
-                  reload();
-                }, 'Kelas demo dibuat. Buka tab “Review esai” untuk menilai 2 esai peserta demo.')
-              }
-            >
-              Buat kelas demo penilaian
+      <div className="two-col">
+        {isAdmin && (
+          <form className="card" onSubmit={create} aria-labelledby="buat-kelas-judul">
+            <h2 id="buat-kelas-judul">Buat kelas baru</h2>
+            <div className="field">
+              <label htmlFor="c-title">Judul</label>
+              <input id="c-title" name="title" type="text" required minLength={3} maxLength={160} />
+            </div>
+            <div className="field">
+              <label htmlFor="c-slug">Slug URL</label>
+              <input id="c-slug" name="slug" type="text" required pattern="[a-z0-9-]{3,80}" aria-describedby="c-slug-help" />
+              <span id="c-slug-help" className="help">
+                Huruf kecil, angka, tanda minus. Contoh: dasar-keterbukaan
+              </span>
+            </div>
+            <div className="field">
+              <label htmlFor="c-desc">Deskripsi</label>
+              <textarea id="c-desc" name="description" maxLength={2000} rows={3} />
+            </div>
+            <button className="btn" type="submit">
+              Buat kelas
             </button>
+          </form>
+        )}
+        {isAdmin && data?.demoAvailable && (
+          <section className="card stack" aria-labelledby="demo-judul">
+            <h2 id="demo-judul">Uji alur penilaian sampai sertifikat</h2>
+            <p style={{ margin: 0 }}>
+              Membuat kelas <strong>privat</strong> berisi 3 materi dan kuis (5 pilihan ganda + 2 esai), plus satu peserta <strong>fiktif</strong> yang sudah
+              menyelesaikan materi dan mengumpulkan kuis (4 dari 5 PG benar). Lanjutkan di <strong>Review esai</strong>: beri skor rubrik pada 2 esai. Nilai
+              akhir ≥ 70% → lulus → sertifikat terbit (lihat tab <strong>Sertifikat</strong>). Total esai minimal 13 dari 20 poin agar lulus.
+            </p>
+            <p className="help" style={{ margin: 0 }}>
+              Tidak tersedia di produksi. Bila integrasi Sertifikat Studio aktif, sertifikat demo memakai nomor resmi berikutnya; cabut dari tab Sertifikat
+              setelah selesai menguji.
+            </p>
+            <div>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() =>
+                  void run(async () => {
+                    await api('/admin/demo/grading', { method: 'POST' });
+                    reload();
+                  }, 'Kelas demo dibuat. Buka tab “Review esai” untuk menilai 2 esai peserta demo.')
+                }
+              >
+                Buat kelas demo penilaian
+              </button>
+            </div>
+          </section>
+        )}
+        <section className="card span-2" aria-labelledby="daftar-kelas-judul">
+          <h2 id="daftar-kelas-judul">Daftar kelas</h2>
+          {loading && !data && <Loading />}
+          {Boolean(error) && <ErrorAlert error={error} onRetry={reload} />}
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th scope="col">Judul</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Versi</th>
+                  <th scope="col">Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data?.courses.map((c) => (
+                  <tr key={String(c.id)}>
+                    <td>{String(c.title)}</td>
+                    <td>{String(c.status)}</td>
+                    <td>
+                      v{String(c.latest_version ?? 1)}
+                      {c.draft_version_id ? ' (ada draft)' : ''}
+                    </td>
+                    <td>
+                      <Link href={`/admin/kelas/${String(c.id)}`}>Kelola</Link>
+                      {isAdmin && (
+                        <>
+                          {' · '}
+                          <Link href={`/admin/laporan/${String(c.id)}`}>Laporan</Link>
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </section>
-      )}
-      {hasRole(me, 'admin') && (
-        <form className="card" onSubmit={create}>
-          <h3>Buat kelas baru</h3>
-          <div className="field">
-            <label htmlFor="c-title">Judul</label>
-            <input id="c-title" name="title" type="text" required minLength={3} maxLength={160} />
-          </div>
-          <div className="field">
-            <label htmlFor="c-slug">Slug URL</label>
-            <input id="c-slug" name="slug" type="text" required pattern="[a-z0-9-]{3,80}" aria-describedby="c-slug-help" />
-            <span id="c-slug-help" className="help">
-              Huruf kecil, angka, tanda minus. Contoh: dasar-keterbukaan
-            </span>
-          </div>
-          <div className="field">
-            <label htmlFor="c-desc">Deskripsi</label>
-            <textarea id="c-desc" name="description" maxLength={2000} rows={3} />
-          </div>
-          <button className="btn" type="submit">
-            Buat kelas
-          </button>
-        </form>
-      )}
+      </div>
     </div>
   );
 }
@@ -454,7 +461,7 @@ export default function AdminApp({ path }: { path: string }) {
         <p className="eyebrow">Panel pengelola</p>
         <PageTitle>Admin</PageTitle>
       </div>
-      <Tabs />
+      <Tabs path={path} />
       {body}
     </div>
   );

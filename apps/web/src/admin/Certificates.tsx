@@ -35,6 +35,7 @@ export function Certificates() {
       api<{
         certificates: AdminCert[];
         integrationConfigured: boolean;
+        integrationProblem?: string | null;
         studioUrl: string | null;
       }>('/admin/certificates'),
     [],
@@ -81,9 +82,10 @@ export function Certificates() {
       </p>
       {data && !data.integrationConfigured && (
         <div className="alert alert-warning">
-          <strong>Integrasi belum aktif.</strong> Sertifikat tersimpan sebagai “Menunggu Studio” sampai variabel{' '}
-          <span className="mono">SERTIFIKAT_BASE_URL</span> dan secret <span className="mono">SERTIFIKAT_INTEGRATION_SECRET</span> dipasang di Worker
-          (lihat docs/deploy.md). Setelah itu Cron menerbitkannya otomatis.
+          <strong>Integrasi belum aktif.</strong> {data.integrationProblem ? `${data.integrationProblem} ` : ''}Sertifikat tersimpan sebagai “Menunggu
+          Studio” sampai variabel <span className="mono">SERTIFIKAT_BASE_URL</span> dan secret <span className="mono">SERTIFIKAT_INTEGRATION_SECRET</span>{' '}
+          (minimal 32 karakter, sama dengan <span className="mono">LMS_INTEGRATION_SECRET</span> di Studio) dipasang di Worker (lihat docs/deploy.md).
+          Setelah itu Cron menerbitkannya otomatis.
         </div>
       )}
       {view}

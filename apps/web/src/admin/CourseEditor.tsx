@@ -305,140 +305,142 @@ export function CourseEditor({ id }: { id: string }) {
       </div>
       {!isDraft && <p className="alert alert-warning">Versi terbit bersifat tetap. Buat draft untuk mengubah materi atau soal.</p>}
 
-      <section className="card stack" aria-labelledby="cover-judul">
-        <h3 id="cover-judul" style={{ margin: 0 }}>
-          Foto sampul kelas
-        </h3>
-        <p className="help" style={{ margin: 0 }}>
-          Tampil di kartu katalog dan halaman kelas. JPG, PNG, atau WebP, maks 2 MB; disarankan lanskap 1200×750 px dan dikompres di bawah
-          200 KB agar cepat di jaringan lambat. Jangan memakai foto warga tanpa izin.
-        </p>
-        {data.coverUrl ? (
-          <img src={String(data.coverUrl)} alt="Pratinjau foto sampul" className="course-cover" style={{ maxWidth: '24rem' }} />
-        ) : (
-          <p className="muted" style={{ margin: 0 }}>
-            Belum ada foto sampul; katalog memakai latar hijau dengan ikon.
+      <div className="two-col">
+        <section className="card stack" aria-labelledby="cover-judul">
+          <h3 id="cover-judul" style={{ margin: 0 }}>
+            Foto sampul kelas
+          </h3>
+          <p className="help" style={{ margin: 0 }}>
+            Tampil di kartu katalog dan halaman kelas. JPG, PNG, atau WebP, maks 2 MB; disarankan lanskap 1200×750 px dan dikompres di bawah
+            200 KB agar cepat di jaringan lambat. Jangan memakai foto warga tanpa izin.
           </p>
-        )}
-        <div className="field" style={{ margin: 0 }}>
-          <label htmlFor="cover-file">{data.coverUrl ? 'Ganti foto sampul' : 'Unggah foto sampul'}</label>
-          <input
-            id="cover-file"
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            onChange={async (e) => {
-              const file = e.target.files?.[0];
-              e.target.value = '';
-              if (!file) return;
-              await act(async () => {
-                if (file.size > 2 * 1024 * 1024) throw new Error('Gambar melebihi 2 MB.');
-                const res = await fetch(`/api/v1/admin/courses/${id}/cover`, {
-                  method: 'PUT',
-                  headers: { 'content-type': file.type, 'x-csrf-token': me?.csrfToken ?? '' },
-                  body: file,
-                  credentials: 'same-origin',
-                });
-                if (!res.ok) {
-                  const j = (await res.json().catch(() => null)) as { error?: { message?: string } } | null;
-                  throw new Error(j?.error?.message ?? 'Unggah gagal.');
-                }
-              }, 'Foto sampul tersimpan.');
-            }}
-          />
-        </div>
-        {Boolean(data.coverUrl) && (
-          <div>
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => window.confirm('Hapus foto sampul?') && void act(() => api(`/admin/courses/${id}/cover`, { method: 'DELETE' }), 'Foto sampul dihapus.')}
-            >
-              Hapus foto sampul
-            </button>
+          {data.coverUrl ? (
+            <img src={String(data.coverUrl)} alt="Pratinjau foto sampul" className="course-cover" style={{ maxWidth: '24rem' }} />
+          ) : (
+            <p className="muted" style={{ margin: 0 }}>
+              Belum ada foto sampul; katalog memakai latar hijau dengan ikon.
+            </p>
+          )}
+          <div className="field" style={{ margin: 0 }}>
+            <label htmlFor="cover-file">{data.coverUrl ? 'Ganti foto sampul' : 'Unggah foto sampul'}</label>
+            <input
+              id="cover-file"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                e.target.value = '';
+                if (!file) return;
+                await act(async () => {
+                  if (file.size > 2 * 1024 * 1024) throw new Error('Gambar melebihi 2 MB.');
+                  const res = await fetch(`/api/v1/admin/courses/${id}/cover`, {
+                    method: 'PUT',
+                    headers: { 'content-type': file.type, 'x-csrf-token': me?.csrfToken ?? '' },
+                    body: file,
+                    credentials: 'same-origin',
+                  });
+                  if (!res.ok) {
+                    const j = (await res.json().catch(() => null)) as { error?: { message?: string } } | null;
+                    throw new Error(j?.error?.message ?? 'Unggah gagal.');
+                  }
+                }, 'Foto sampul tersimpan.');
+              }}
+            />
           </div>
-        )}
-      </section>
+          {Boolean(data.coverUrl) && (
+            <div>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => window.confirm('Hapus foto sampul?') && void act(() => api(`/admin/courses/${id}/cover`, { method: 'DELETE' }), 'Foto sampul dihapus.')}
+              >
+                Hapus foto sampul
+              </button>
+            </div>
+          )}
+        </section>
 
-      {isAdmin && (
-        <details className="card">
-          <summary>
-            <strong>Pengaturan kelas, jendela waktu & rekomendasi jabatan</strong>
-          </summary>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              const f = new FormData(e.currentTarget);
-              void act(() =>
-                api(`/admin/courses/${id}`, {
-                  method: 'PATCH',
-                  body: {
-                    title: String(f.get('title')),
-                    description: String(f.get('description') ?? ''),
-                    visibility: String(f.get('visibility')),
-                    enrollmentOpenAt: fromLocal(f.get('eo')),
-                    enrollmentCloseAt: fromLocal(f.get('ec')),
-                    accessStartsAt: fromLocal(f.get('as')),
-                    accessExpiresAt: fromLocal(f.get('ae')),
-                    accessDurationDays: f.get('dur') ? num(f.get('dur')) : null,
-                    learningSessionTtlSeconds: num(f.get('ttl')) * 60,
-                    recommendedFor: VILLAGE_ROLES.filter((r) => f.get(`rec-${r}`) === 'on'),
-                  },
-                }),
-              );
-            }}
-          >
-            <div className="field">
-              <label htmlFor="ce-title">Judul</label>
-              <input id="ce-title" name="title" type="text" defaultValue={String(c.title)} required />
-            </div>
-            <div className="field">
-              <label htmlFor="ce-desc">Deskripsi</label>
-              <textarea id="ce-desc" name="description" rows={3} defaultValue={String(c.description ?? '')} />
-            </div>
-            <div className="field">
-              <label htmlFor="ce-vis">Visibilitas</label>
-              <select id="ce-vis" name="visibility" defaultValue={String(c.visibility)}>
-                <option value="public">Publik (tampil di katalog)</option>
-                <option value="private">Privat</option>
-              </select>
-            </div>
-            <div className="grid">
-              {(
-                [
-                  ['eo', 'Pendaftaran dibuka', c.enrollment_open_at],
-                  ['ec', 'Pendaftaran ditutup', c.enrollment_close_at],
-                  ['as', 'Akses mulai', c.access_starts_at],
-                  ['ae', 'Akses berakhir', c.access_expires_at],
-                ] as const
-              ).map(([k, label, v]) => (
-                <div className="field" key={k}>
-                  <label htmlFor={`ce-${k}`}>{label}</label>
-                  <input id={`ce-${k}`} name={k} type="datetime-local" defaultValue={toLocal(v as number | null)} />
+        {isAdmin && (
+          <details className="card">
+            <summary>
+              <strong>Pengaturan kelas, jendela waktu & rekomendasi jabatan</strong>
+            </summary>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const f = new FormData(e.currentTarget);
+                void act(() =>
+                  api(`/admin/courses/${id}`, {
+                    method: 'PATCH',
+                    body: {
+                      title: String(f.get('title')),
+                      description: String(f.get('description') ?? ''),
+                      visibility: String(f.get('visibility')),
+                      enrollmentOpenAt: fromLocal(f.get('eo')),
+                      enrollmentCloseAt: fromLocal(f.get('ec')),
+                      accessStartsAt: fromLocal(f.get('as')),
+                      accessExpiresAt: fromLocal(f.get('ae')),
+                      accessDurationDays: f.get('dur') ? num(f.get('dur')) : null,
+                      learningSessionTtlSeconds: num(f.get('ttl')) * 60,
+                      recommendedFor: VILLAGE_ROLES.filter((r) => f.get(`rec-${r}`) === 'on'),
+                    },
+                  }),
+                );
+              }}
+            >
+              <div className="field">
+                <label htmlFor="ce-title">Judul</label>
+                <input id="ce-title" name="title" type="text" defaultValue={String(c.title)} required />
+              </div>
+              <div className="field">
+                <label htmlFor="ce-desc">Deskripsi</label>
+                <textarea id="ce-desc" name="description" rows={3} defaultValue={String(c.description ?? '')} />
+              </div>
+              <div className="field">
+                <label htmlFor="ce-vis">Visibilitas</label>
+                <select id="ce-vis" name="visibility" defaultValue={String(c.visibility)}>
+                  <option value="public">Publik (tampil di katalog)</option>
+                  <option value="private">Privat</option>
+                </select>
+              </div>
+              <div className="grid">
+                {(
+                  [
+                    ['eo', 'Pendaftaran dibuka', c.enrollment_open_at],
+                    ['ec', 'Pendaftaran ditutup', c.enrollment_close_at],
+                    ['as', 'Akses mulai', c.access_starts_at],
+                    ['ae', 'Akses berakhir', c.access_expires_at],
+                  ] as const
+                ).map(([k, label, v]) => (
+                  <div className="field" key={k}>
+                    <label htmlFor={`ce-${k}`}>{label}</label>
+                    <input id={`ce-${k}`} name={k} type="datetime-local" defaultValue={toLocal(v as number | null)} />
+                  </div>
+                ))}
+                <div className="field">
+                  <label htmlFor="ce-dur">Durasi akses per peserta (hari, opsional)</label>
+                  <input id="ce-dur" name="dur" type="number" min={1} defaultValue={c.access_duration_days ?? ''} />
                 </div>
-              ))}
-              <div className="field">
-                <label htmlFor="ce-dur">Durasi akses per peserta (hari, opsional)</label>
-                <input id="ce-dur" name="dur" type="number" min={1} defaultValue={c.access_duration_days ?? ''} />
+                <div className="field">
+                  <label htmlFor="ce-ttl">Masa aktif sesi belajar (menit)</label>
+                  <input id="ce-ttl" name="ttl" type="number" min={5} max={1440} defaultValue={Math.round(Number(c.learning_session_ttl_seconds) / 60)} />
+                </div>
               </div>
-              <div className="field">
-                <label htmlFor="ce-ttl">Masa aktif sesi belajar (menit)</label>
-                <input id="ce-ttl" name="ttl" type="number" min={5} max={1440} defaultValue={Math.round(Number(c.learning_session_ttl_seconds) / 60)} />
-              </div>
-            </div>
-            <fieldset>
-              <legend>Disarankan untuk jabatan</legend>
-              {VILLAGE_ROLES.map((r) => (
-                <label key={r} className="check">
-                  <input type="checkbox" name={`rec-${r}`} defaultChecked={(data.recommendedFor as string[]).includes(r)} /> {VILLAGE_ROLE_LABELS[r]}
-                </label>
-              ))}
-            </fieldset>
-            <button className="btn" type="submit">
-              Simpan pengaturan
-            </button>
-          </form>
-        </details>
-      )}
+              <fieldset>
+                <legend>Disarankan untuk jabatan</legend>
+                {VILLAGE_ROLES.map((r) => (
+                  <label key={r} className="check">
+                    <input type="checkbox" name={`rec-${r}`} defaultChecked={(data.recommendedFor as string[]).includes(r)} /> {VILLAGE_ROLE_LABELS[r]}
+                  </label>
+                ))}
+              </fieldset>
+              <button className="btn" type="submit">
+                Simpan pengaturan
+              </button>
+            </form>
+          </details>
+        )}
+      </div>
 
       <h3>Materi</h3>
       {(data.lessons as Row[]).map((l) => (

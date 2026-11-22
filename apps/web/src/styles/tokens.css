@@ -61,6 +61,12 @@
   --color-progress-fill: #334e0f;
   --color-progress-track: #e5e7eb;
   --color-accent-decor: #dd9933;
+  /* Label kecil (eyebrow) amber gelap seperti Studio; seleksi teks hijau muda. */
+  --color-eyebrow: #a15d00;
+  --color-selection-bg: #e1ebd2;
+  --color-primary-dark: #173200;
+  --color-control-border: #cfd8d2;
+  --color-row-hover: #fafaf5;
   /* Bintang rating: amber gelap agar kontras grafis ≥ 3:1 di latar putih (angka rating tetap tampil sebagai teks). */
   --color-star: #b7791f;
 
@@ -68,7 +74,7 @@
   --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
   --font-display: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
   --font-scale: 1;
-  --line-height: 1.65;
+  --line-height: 1.55;
   --measure: 68ch;
 
   --space-1: 0.25rem;
@@ -82,5 +88,11 @@
   --radius-card: 1rem;
   --radius-pill: 999px;
   --shadow-soft: 0 20px 50px -24px rgba(20, 40, 30, 0.25);
-  --touch: 44px;
+  /* Gaya dashboard Sertifikat Studio */
+  --shadow-card: 0 1px 2px rgba(20, 40, 30, 0.04), 0 10px 30px rgba(20, 40, 30, 0.06);
+  --radius-control: 10px;
+  --radius-input: 8px;
+  --page-max: 1200px;
+  /* Target sentuh minimum (≥ 24px WCAG 2.5.8 AA); 38px mengikuti tinggi tombol dashboard Studio. */
+  --touch: 38px;
 }

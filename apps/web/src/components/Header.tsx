@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, navigate, useLocation } from '../lib/router';
 import { hasRole, useSession } from '../lib/session';
-import { FontScaleControl } from './FontScaleControl';
 import { Icon } from './Icon';
 
 export function Header() {
@@ -36,7 +35,9 @@ export function Header() {
             )}
             {me && hasRole(me, 'admin', 'content_editor', 'mentor') && (
               <li>
-                <Link href="/admin">Admin</Link>
+                <Link href="/admin" aria-current={path.startsWith('/admin') ? 'page' : undefined}>
+                  Admin
+                </Link>
               </li>
             )}
             {!me && (
@@ -64,7 +65,6 @@ export function Header() {
           </ul>
         </nav>
         <div className="header-tools">
-          <FontScaleControl id="header-font" />
           {!me && (
             <Link href="/masuk" className="btn btn-accent header-cta">
               <Icon name="login" />
