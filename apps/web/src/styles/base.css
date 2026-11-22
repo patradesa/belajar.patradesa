@@ -11,7 +11,7 @@
 }
 html {
   /* Skala teks global (A−/A+). Berbasis rem sehingga zoom browser tetap berfungsi. */
-  font-size: calc(100% * var(--font-scale));
+  font-size: calc(87.5% * var(--font-scale));
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
@@ -48,17 +48,17 @@ h4 {
   color: var(--color-heading);
 }
 h1 {
-  font-size: clamp(1.75rem, 1.35rem + 1.8vw, 2.5rem);
+  font-size: clamp(1.5714rem, 1.3rem + 1.2vw, 2.1429rem);
 }
 h2 {
-  font-size: clamp(1.3rem, 1.15rem + 0.8vw, 1.75rem);
+  font-size: 1.1429rem;
 }
 h3 {
-  font-size: 1.125rem;
+  font-size: 1rem;
   letter-spacing: -0.01em;
 }
 h4 {
-  font-size: 1rem;
+  font-size: 0.9286rem;
   letter-spacing: 0;
 }
 p {
@@ -73,6 +73,10 @@ a {
 :focus-visible {
   outline: 3px solid var(--color-focus);
   outline-offset: 2px;
+}
+::selection {
+  background: var(--color-selection-bg);
+  color: var(--color-text);
 }
 /*
  * Judul halaman menerima fokus lewat skrip (tabindex="-1") agar pembaca layar mengumumkan halaman
@@ -112,7 +116,8 @@ h1[tabindex='-1']:focus {
 
 /* ---------------------------------------------------------------- header */
 .site-header {
-  background: var(--color-header-bg);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(6px);
   color: var(--color-header-text);
   border-bottom: 1px solid var(--color-border-subtle);
 }
@@ -129,9 +134,9 @@ h1[tabindex='-1']:focus {
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2) var(--space-3);
-  max-width: 72rem;
+  max-width: var(--page-max);
   margin: 0 auto;
-  padding: var(--space-2) var(--space-4);
+  padding: 10px 24px;
 }
 .brand {
   display: inline-flex;
@@ -157,7 +162,7 @@ h1[tabindex='-1']:focus {
 }
 @media (min-width: 960px) {
   .brand-logo {
-    height: 48px;
+    height: 40px;
   }
 }
 .brand-tag {
@@ -208,22 +213,26 @@ h1[tabindex='-1']:focus {
   min-height: var(--touch);
   padding: 0 var(--space-3);
   border: 0;
-  border-radius: var(--radius);
+  border-radius: var(--radius-pill);
   background: none;
-  color: var(--color-header-text);
+  color: var(--color-muted);
   font: inherit;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 1rem;
   text-decoration: none;
   cursor: pointer;
   width: 100%;
   text-align: left;
 }
 .nav a:hover,
-.nav button:hover,
+.nav button:hover {
+  color: var(--color-heading);
+  background: var(--color-surface-soft);
+}
 .nav a[aria-current='page'] {
-  background: var(--color-nav-active-bg);
+  background: var(--color-primary-button-bg);
+  color: var(--color-primary-button-text);
 }
 .header-tools {
   display: flex;
@@ -271,9 +280,9 @@ main {
   /* Cadangkan tinggi agar footer tidak "melompat" saat data dimuat (CLS). */
   min-height: 80vh;
   width: 100%;
-  max-width: 72rem;
+  max-width: var(--page-max);
   margin: 0 auto;
-  padding: var(--space-5) var(--space-4) var(--space-7);
+  padding: 24px 24px var(--space-7);
 }
 .prose {
   max-width: var(--measure);
@@ -328,7 +337,7 @@ main {
   outline-color: var(--color-focus-on-dark);
 }
 .footer-inner {
-  max-width: 72rem;
+  max-width: var(--page-max);
   margin: 0 auto;
   padding: var(--space-5) var(--space-4);
   display: flex;
@@ -395,6 +404,8 @@ main {
 .hero .eyebrow {
   background: rgba(255, 255, 255, 0.14);
   color: var(--color-hero-text);
+  padding: 0.3rem 0.8rem;
+  border-radius: var(--radius-pill);
 }
 
 /* ---------------------------------------------------------------- komponen */
@@ -402,22 +413,22 @@ main {
   display: inline-flex;
   align-items: center;
   gap: 0.4em;
-  padding: 0.3rem 0.8rem;
-  border-radius: var(--radius-pill);
-  background: var(--color-chip-bg);
-  color: var(--color-heading);
+  padding: 0;
+  color: var(--color-eyebrow);
   font-family: var(--font-display);
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  font-size: 0.7857rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   margin: 0 0 var(--space-3);
 }
 .card {
   background: var(--color-surface);
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-card);
-  padding: var(--space-5);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: var(--shadow-card);
+  min-width: 0;
 }
 .card-soft {
   background: var(--color-surface-soft);
@@ -460,7 +471,7 @@ main {
   flex-wrap: wrap;
   gap: var(--space-2) var(--space-4);
   color: var(--color-muted);
-  font-size: 0.9375rem;
+  font-size: 0.9286rem;
   margin: 0;
 }
 .meta > span {
@@ -475,22 +486,21 @@ main {
   gap: var(--space-2);
   min-height: var(--touch);
   min-width: var(--touch);
-  padding: 0.65rem 1.4rem;
-  border-radius: var(--radius-pill);
-  border: 1.5px solid var(--color-primary-button-bg);
+  padding: 0.6429rem 0.9286rem;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-primary-button-bg);
   background: var(--color-primary-button-bg);
   color: var(--color-primary-button-text);
   font: inherit;
-  font-family: var(--font-display);
-  font-weight: 700;
-  line-height: 1.3;
+  font-weight: 600;
+  line-height: 1.35;
   text-align: center;
   text-decoration: none;
   cursor: pointer;
 }
 .btn:hover {
-  background: var(--color-primary-button-hover-bg);
-  border-color: var(--color-primary-button-hover-bg);
+  background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
 }
 .btn-accent {
   background: var(--color-accent-button-bg);
@@ -504,10 +514,11 @@ main {
 .btn-secondary {
   background: var(--color-surface);
   color: var(--color-secondary-button-text);
-  border-color: var(--color-secondary-button-text);
+  border-color: var(--color-control-border);
 }
 .btn-secondary:hover {
   background: var(--color-surface-soft);
+  border-color: var(--color-secondary-button-text);
 }
 .btn-light {
   background: var(--color-surface);
@@ -518,9 +529,13 @@ main {
   background: var(--color-surface-soft);
 }
 .btn-danger {
-  background: var(--color-danger);
+  background: var(--color-surface);
+  border-color: var(--color-control-border);
+  color: var(--color-danger);
+}
+.btn-danger:hover {
+  background: var(--color-danger-bg);
   border-color: var(--color-danger);
-  color: #ffffff;
 }
 .btn-block {
   width: 100%;
@@ -535,19 +550,20 @@ main {
 .btn-row {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-3);
+  gap: var(--space-2);
   align-items: center;
 }
 label,
 .label {
   display: block;
+  font-size: 0.9286rem;
   font-weight: 600;
   margin-bottom: var(--space-1);
 }
 .help {
   display: block;
   color: var(--color-muted);
-  font-size: 0.9375rem;
+  font-size: 0.8571rem;
   margin-top: var(--space-1);
 }
 input[type='text'],
@@ -559,9 +575,9 @@ select,
 textarea {
   width: 100%;
   min-height: var(--touch);
-  padding: var(--space-2) var(--space-3);
-  border: 1.5px solid var(--color-border-strong);
-  border-radius: var(--radius);
+  padding: 0.6429rem 0.7143rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-input);
   background: var(--color-surface);
   color: var(--color-text);
   font: inherit;
@@ -619,12 +635,11 @@ textarea {
   display: inline-flex;
   align-items: center;
   gap: 0.3em;
-  padding: 0.15rem 0.65rem;
+  padding: 0.1429rem 0.6429rem;
   border-radius: var(--radius-pill);
   background: var(--color-chip-bg);
   color: var(--color-heading);
-  font-family: var(--font-display);
-  font-size: 0.85rem;
+  font-size: 0.8571rem;
   font-weight: 700;
 }
 .badge-success {
@@ -652,24 +667,29 @@ textarea {
   overflow-x: auto;
   max-width: 100%;
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-card);
+  border-radius: 10px;
 }
 table {
   border-collapse: collapse;
   width: 100%;
   background: var(--color-surface);
+  font-size: 0.9286rem;
+}
+tbody tr:hover > td {
+  background: var(--color-row-hover);
 }
 th,
 td {
   text-align: left;
-  padding: var(--space-3);
+  padding: 10px 12px;
   border-bottom: 1px solid var(--color-border-subtle);
   vertical-align: top;
 }
 th {
-  font-family: var(--font-display);
   color: var(--color-heading);
   background: var(--color-surface-soft);
+  font-weight: 700;
+  white-space: nowrap;
 }
 .lesson-list {
   list-style: none;
@@ -1254,4 +1274,139 @@ td .badge {
 }
 .my-course-head > :first-child {
   flex: 1 1 14rem;
+}
+
+/* ---------------------------------------------------------------- gaya dashboard Studio: tata letak & kontrol */
+/* Teks bacaan materi sedikit lebih besar dari teks antarmuka (15px pada skala 100%). */
+.content {
+  font-size: 1.0714rem;
+  line-height: 1.7;
+}
+.page-title-block h1 {
+  margin-bottom: var(--space-1);
+}
+.page-title-block p {
+  color: var(--color-muted);
+  margin: 0;
+}
+/* Dua kolom seperti halaman Pengaturan Studio; satu kolom di layar sempit. */
+.two-col {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+.two-col > * {
+  min-width: 0;
+  margin: 0;
+}
+.two-col > .col-stack > * + * {
+  margin-top: 18px;
+}
+@media (min-width: 960px) {
+  .two-col {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .two-col > .span-2 {
+    grid-column: 1 / -1;
+  }
+}
+.card > h2:first-child,
+.card > h3:first-child {
+  margin-bottom: 14px;
+}
+/* Sub-menu admin: pil seperti navigasi Studio; halaman aktif hijau tua. */
+.subnav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.subnav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--touch);
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  color: var(--color-muted);
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.subnav a:hover {
+  color: var(--color-heading);
+  background: var(--color-surface-soft);
+}
+.subnav a[aria-current='page'] {
+  background: var(--color-primary-button-bg);
+  color: var(--color-primary-button-text);
+}
+
+/* ---------------------------------------------------------------- kontrol ukuran teks mengambang (tengah bawah) */
+/* Ukuran px tetap agar kontrol tetap ringkas walau teks halaman diperbesar 200%. */
+.font-float {
+  position: fixed;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px 4px 10px;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
+  background: #ffffff;
+  box-shadow: 0 6px 24px rgba(20, 40, 30, 0.18);
+  font-size: 13px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  max-width: calc(100vw - 16px);
+}
+.font-float-label {
+  color: var(--color-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.font-float .font-controls {
+  gap: 2px;
+  flex-wrap: nowrap;
+}
+.font-float .font-controls button {
+  min-width: 32px;
+  min-height: 28px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  font-size: 13px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.font-float .font-controls button:hover:not(:disabled) {
+  background: var(--color-surface-soft);
+  border-color: var(--color-secondary-button-text);
+}
+.font-float .font-controls output {
+  min-width: 40px;
+  font-size: 13px;
+}
+@media (max-width: 380px) {
+  .font-float-label {
+    display: none;
+  }
+}
+/* Ruang di bawah footer agar kontrol mengambang tidak menutupi tautan/fokus terakhir (WCAG 2.4.11). */
+.site-footer {
+  padding-bottom: 56px;
+}
+.font-controls button {
+  border-radius: var(--radius-pill);
+}
+/* Daftar di dalam kartu (profil): item lebih ringan, tanpa bayangan ganda. */
+.card .lesson-list > li.card {
+  box-shadow: none;
+  padding: 12px 14px;
 }

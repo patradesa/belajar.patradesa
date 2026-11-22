@@ -63,85 +63,90 @@ export function ProfilePage() {
   };
 
   return (
-    <div className="stack prose">
-      <PageTitle>Profil</PageTitle>
-      <p className="muted">
-        Kami hanya meminta data minimal. Jangan isi NIK, nomor KK, alamat lengkap, atau tanggal lahir. Pilihan jabatan hanya untuk
-        saran materi, <strong>bukan</strong> hak akses.
-      </p>
+    <div className="stack">
+      <div className="page-title-block">
+        <PageTitle>Profil</PageTitle>
+        <p className="muted">
+          Kami hanya meminta data minimal. Jangan isi NIK, nomor KK, alamat lengkap, atau tanggal lahir. Pilihan jabatan hanya untuk
+          saran materi, <strong>bukan</strong> hak akses.
+        </p>
+      </div>
       {msg && (
         <div className={`alert ${msg.ok ? 'alert-success' : 'alert-error'}`} role={msg.ok ? 'status' : 'alert'}>
           {msg.text}
         </div>
       )}
-      <form onSubmit={submit} className="card" noValidate>
-        <div className="field">
-          <label htmlFor="displayName">Nama panggilan</label>
-          <input id="displayName" name="displayName" type="text" maxLength={120} defaultValue={me.user.displayName} autoComplete="nickname" />
-        </div>
-        <div className="field">
-          <label htmlFor="certificateName">Nama untuk sertifikat (opsional)</label>
-          <input id="certificateName" name="certificateName" type="text" maxLength={120} defaultValue={me.profile.certificateName ?? ''} autoComplete="name" />
-        </div>
-        <div className="field">
-          <label htmlFor="villageRole">Jabatan di desa</label>
-          <select id="villageRole" name="villageRole" defaultValue={me.profile.villageRole ?? ''} aria-describedby="villageRole-help">
-            <option value="">— Pilih —</option>
-            {VILLAGE_ROLES.map((r) => (
-              <option key={r} value={r}>
-                {VILLAGE_ROLE_LABELS[r]}
-              </option>
-            ))}
-          </select>
-          <span id="villageRole-help" className="help">
-            Digunakan untuk menyarankan materi yang relevan.
-          </span>
-        </div>
-        <div className="field">
-          <label htmlFor="villageName">Nama desa (opsional)</label>
-          <input id="villageName" name="villageName" type="text" maxLength={80} defaultValue={me.profile.villageName ?? ''} />
-        </div>
-        <div className="field">
-          <label htmlFor="district">Kecamatan (opsional)</label>
-          <input id="district" name="district" type="text" maxLength={80} defaultValue={me.profile.district ?? ''} />
-        </div>
-        <div className="field">
-          <label htmlFor="regency">Kabupaten (opsional)</label>
-          <input id="regency" name="regency" type="text" maxLength={80} defaultValue={me.profile.regency ?? ''} />
-        </div>
-        {needsConsent && (
+      <div className="two-col">
+        <form onSubmit={submit} className="card" noValidate aria-labelledby="profil-data">
+          <h2 id="profil-data">Data profil</h2>
           <div className="field">
-            <label className="check" htmlFor="consent">
-              <input id="consent" name="consent" type="checkbox" aria-describedby={consentErr ? 'consent-err' : undefined} aria-invalid={consentErr || undefined} />
-              <span>
-                Saya telah membaca dan menyetujui <Link href="/privasi">kebijakan privasi</Link>. (wajib)
-              </span>
-            </label>
-            {consentErr && (
-              <p id="consent-err" className="field-error" role="alert">
-                Persetujuan kebijakan privasi wajib dicentang.
-              </p>
-            )}
+            <label htmlFor="displayName">Nama panggilan</label>
+            <input id="displayName" name="displayName" type="text" maxLength={120} defaultValue={me.user.displayName} autoComplete="nickname" />
+          </div>
+          <div className="field">
+            <label htmlFor="certificateName">Nama untuk sertifikat (opsional)</label>
+            <input id="certificateName" name="certificateName" type="text" maxLength={120} defaultValue={me.profile.certificateName ?? ''} autoComplete="name" />
+          </div>
+          <div className="field">
+            <label htmlFor="villageRole">Jabatan di desa</label>
+            <select id="villageRole" name="villageRole" defaultValue={me.profile.villageRole ?? ''} aria-describedby="villageRole-help">
+              <option value="">— Pilih —</option>
+              {VILLAGE_ROLES.map((r) => (
+                <option key={r} value={r}>
+                  {VILLAGE_ROLE_LABELS[r]}
+                </option>
+              ))}
+            </select>
+            <span id="villageRole-help" className="help">
+              Digunakan untuk menyarankan materi yang relevan.
+            </span>
+          </div>
+          <div className="field">
+            <label htmlFor="villageName">Nama desa (opsional)</label>
+            <input id="villageName" name="villageName" type="text" maxLength={80} defaultValue={me.profile.villageName ?? ''} />
+          </div>
+          <div className="field">
+            <label htmlFor="district">Kecamatan (opsional)</label>
+            <input id="district" name="district" type="text" maxLength={80} defaultValue={me.profile.district ?? ''} />
+          </div>
+          <div className="field">
+            <label htmlFor="regency">Kabupaten (opsional)</label>
+            <input id="regency" name="regency" type="text" maxLength={80} defaultValue={me.profile.regency ?? ''} />
+          </div>
+          {needsConsent && (
+            <div className="field">
+              <label className="check" htmlFor="consent">
+                <input id="consent" name="consent" type="checkbox" aria-describedby={consentErr ? 'consent-err' : undefined} aria-invalid={consentErr || undefined} />
+                <span>
+                  Saya telah membaca dan menyetujui <Link href="/privasi">kebijakan privasi</Link>. (wajib)
+                </span>
+              </label>
+              {consentErr && (
+                <p id="consent-err" className="field-error" role="alert">
+                  Persetujuan kebijakan privasi wajib dicentang.
+                </p>
+              )}
+            </div>
+          )}
+          <button type="submit" className="btn">
+            Simpan profil
+          </button>
+        </form>
+        {!needsConsent && (
+          <div className="col-stack">
+            <section className="card stack" aria-labelledby="profil-kelas">
+              <h2 id="profil-kelas">Kelas yang diikuti</h2>
+              {learning.loading && !learning.data && <Loading />}
+              {Boolean(learning.error) && <ErrorAlert error={learning.error} onRetry={learning.reload} />}
+              {learning.data && <MyCourseList courses={learning.data[0].courses} heading="h3" />}
+            </section>
+            <section className="card stack" aria-labelledby="profil-sertifikat">
+              <h2 id="profil-sertifikat">Sertifikat saya</h2>
+              {learning.data && <MyCertificateList certificates={learning.data[1].certificates} heading="h3" />}
+            </section>
           </div>
         )}
-        <button type="submit" className="btn">
-          Simpan profil
-        </button>
-      </form>
-      {!needsConsent && (
-        <>
-          <section className="stack" aria-labelledby="profil-kelas">
-            <h2 id="profil-kelas">Kelas yang diikuti</h2>
-            {learning.loading && !learning.data && <Loading />}
-            {Boolean(learning.error) && <ErrorAlert error={learning.error} onRetry={learning.reload} />}
-            {learning.data && <MyCourseList courses={learning.data[0].courses} heading="h3" />}
-          </section>
-          <section className="stack" aria-labelledby="profil-sertifikat">
-            <h2 id="profil-sertifikat">Sertifikat saya</h2>
-            {learning.data && <MyCertificateList certificates={learning.data[1].certificates} heading="h3" />}
-          </section>
-        </>
-      )}
+      </div>
     </div>
   );
 }

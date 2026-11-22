@@ -157,15 +157,19 @@ test('tanpa scroll horizontal pada 320px dan teks 200% (katalog, kelas, materi)'
   await expect(page.getByRole('group', { name: 'Ukuran teks' }).locator('output')).toHaveText('200%');
   await noHorizontalScroll(page);
   await page.goto(`/kelas/${SLUG}`);
+  const enrollBox = await page.getByRole('button', { name: 'Daftar kelas ini' }).boundingBox();
+  expect(enrollBox!.height).toBeGreaterThanOrEqual(38);
   await page.getByRole('button', { name: 'Daftar kelas ini' }).click();
   await noHorizontalScroll(page);
   await page.getByRole('link', { name: demo.lessons[0]!.title }).click();
   await expect(page.getByRole('heading', { level: 2, name: 'Progres belajar' })).toBeVisible();
   await noHorizontalScroll(page);
-  // Target sentuh minimal 44×44 CSS px pada tombol utama
+  // Target sentuh (ADR-0007): kontrol A−/A+ mengambang ≥ 24×24 CSS px (WCAG 2.2 AA 2.5.8), tidak membesar
+  // bersama teks 200%; tombol utama mengikuti tinggi tombol Studio (≥ 38px).
   const box = await page.getByRole('button', { name: /perbesar teks/i }).boundingBox();
-  expect(box!.height).toBeGreaterThanOrEqual(44);
-  expect(box!.width).toBeGreaterThanOrEqual(44);
+  expect(box!.height).toBeGreaterThanOrEqual(24);
+  expect(box!.width).toBeGreaterThanOrEqual(24);
+  expect(box!.height).toBeLessThanOrEqual(40);
 });
 
 test('dev-login & admin: peserta tidak dapat membuka admin', async ({ page }) => {

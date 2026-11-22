@@ -14,6 +14,7 @@ import { ResultPage } from './pages/ResultPage';
 import { PrivacyPage } from './pages/PrivacyPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
 import { Icon } from './components/Icon';
+import { FontScaleControl } from './components/FontScaleControl';
 
 // Lazy: ujian, admin — tidak membebani rute awal learner.
 const ExamPage = lazy(() => import('./exam/ExamPage'));
@@ -97,6 +98,13 @@ export function App() {
           </ul>
         </div>
       </footer>
+      {/* Kontrol A−/A+ mengambang di tengah bawah (bukan di header) agar selalu terjangkau tanpa memakan ruang. */}
+      <div className="font-float">
+        <span className="font-float-label" aria-hidden="true">
+          Ukuran teks
+        </span>
+        <FontScaleControl id="float-font" />
+      </div>
     </>
   );
 }
