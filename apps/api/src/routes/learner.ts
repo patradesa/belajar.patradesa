@@ -169,6 +169,15 @@ export function learnerRoutes(deps: Deps) {
         b.regency !== undefined ? 1 : 0,
       ),
     );
+    // Sertifikat yang belum terbit (masih menunggu Studio) ikut memakai nama terbaru. Yang sudah terbit tetap.
+    stmts.push(
+      c.env.DB.prepare(
+        `UPDATE certificates SET recipient_name = (
+           SELECT substr(COALESCE(NULLIF(TRIM(p.certificate_name), ''), u.display_name), 1, 120)
+           FROM users u LEFT JOIN user_profiles p ON p.user_id = u.id WHERE u.id = certificates.user_id)
+         WHERE user_id = ? AND status = 'pending'`,
+      ).bind(u.id),
+    );
     await c.env.DB.batch(stmts);
     return c.json({ ok: true });
   });

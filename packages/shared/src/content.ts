@@ -178,3 +178,10 @@ export function extractYoutubeId(input: string): string | null {
     /^https:\/\/(?:www\.|m\.)?(?:youtube\.com|youtube-nocookie\.com)\/(?:watch\?(?:[^\s#]*&)?v=|embed\/|shorts\/)([A-Za-z0-9_-]{11})(?:[&?#][^\s]*)?$/.exec(s);
   return long ? long[1]! : null;
 }
+
+/** Persentase progres kelas: langkah wajib (materi + kuis) yang sudah tuntas. */
+export function courseProgressPct(c: { requiredLessons: number; completedLessons: number; requiredQuizzes: number; passedQuizzes: number }): number {
+  const total = c.requiredLessons + c.requiredQuizzes;
+  if (total === 0) return 0;
+  return Math.round(((c.completedLessons + c.passedQuizzes) / total) * 100);
+}

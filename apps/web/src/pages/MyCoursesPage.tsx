@@ -1,17 +1,9 @@
+import type { MyCourse } from '@patradesa/shared';
 import { api } from '../lib/api';
 import { Link } from '../lib/router';
 import { useSession } from '../lib/session';
 import { ErrorAlert, Loading, PageTitle, useAsync } from '../components/common';
-
-interface MyCourse {
-  id: string;
-  slug: string;
-  title: string;
-  status: string;
-  expiresAt: number | null;
-  requiredLessons: number;
-  completedLessons: number;
-}
+import { MyCourseList } from '../components/MyLearning';
 
 export function MyCoursesPage() {
   const { me, loading: sLoading } = useSession();
@@ -26,32 +18,9 @@ export function MyCoursesPage() {
   return (
     <div className="stack">
       <PageTitle>Kelas Saya</PageTitle>
-      {loading && <Loading />}
+      {loading && !data && <Loading />}
       {Boolean(error) && <ErrorAlert error={error} onRetry={reload} />}
-      {data && data.courses.length === 0 && (
-        <p>
-          Anda belum mendaftar kelas. <Link href="/">Lihat katalog</Link>.
-        </p>
-      )}
-      <ul className="lesson-list">
-        {data?.courses.map((c) => {
-          const pct = c.requiredLessons ? Math.round((c.completedLessons / c.requiredLessons) * 100) : 0;
-          return (
-            <li key={c.id} className="card">
-              <h2>
-                <Link href={`/kelas/${c.slug}`}>{c.title}</Link>
-              </h2>
-              <p>
-                {c.completedLessons} dari {c.requiredLessons} materi wajib selesai ({pct}%)
-              </p>
-              <div className="progress" role="img" aria-label={`Progres ${pct} persen`}>
-                <span style={{ width: `${pct}%` }} />
-              </div>
-              {c.expiresAt && <p className="muted">Akses berakhir {new Date(c.expiresAt).toLocaleDateString('id-ID')}</p>}
-            </li>
-          );
-        })}
-      </ul>
+      {data && <MyCourseList courses={data.courses} />}
     </div>
   );
 }
