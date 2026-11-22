@@ -44,6 +44,10 @@ export interface CatalogCourse {
   coverUrl: string | null;
   /** Peserta yang sedang login sudah terdaftar di kelas ini. */
   enrolled: boolean;
+  /** Peserta yang login sudah LULUS kelas ini (semua syarat terpenuhi). */
+  completed: boolean;
+  /** Sertifikat kelas ini sudah terbit untuk peserta yang login. */
+  certificateIssued: boolean;
   /** Jabatan peserta yang login termasuk sasaran kelas. */
   recommended?: boolean;
 }

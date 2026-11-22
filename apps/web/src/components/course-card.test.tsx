@@ -18,6 +18,8 @@ const base: CatalogCourse = {
   rating: { average: 4.5, count: 12 },
   coverUrl: null,
   enrolled: false,
+  completed: false,
+  certificateIssued: false,
   recommended: true,
 };
 
@@ -106,6 +108,19 @@ describe('CourseCard', () => {
     await userEvent.click(screen.getAllByRole('button', { name: 'Tutup' })[1]!);
     expect(dialog.hasAttribute('open')).toBe(false);
     expect(screen.queryByRole('heading', { name: 'Tujuan kelas' })).toBeNull();
+  });
+
+  it('sudah lulus: tanda "Lulus - Sertifikat Terbit" dan tombol "Belajar Ulang"', () => {
+    renderCard({ ...base, enrolled: true, completed: true, certificateIssued: true }, true);
+    expect(screen.getByText('Lulus - Sertifikat Terbit')).toBeTruthy();
+    const link = screen.getByRole('link', { name: /Belajar Ulang/ });
+    expect(link.getAttribute('href')).toBe('/kelas/penyelenggaraan-pemerintahan-desa');
+    expect(screen.queryByRole('link', { name: /Lanjutkan Belajar/ })).toBeNull();
+  });
+
+  it('lulus tetapi sertifikat masih diproses', () => {
+    renderCard({ ...base, enrolled: true, completed: true, certificateIssued: false }, true);
+    expect(screen.getByText('Lulus - Sertifikat diproses')).toBeTruthy();
   });
 
   it('format waktu belajar', () => {

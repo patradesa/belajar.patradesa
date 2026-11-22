@@ -63,6 +63,10 @@
   --color-accent-decor: #dd9933;
   /* Label kecil (eyebrow) amber gelap seperti Studio; seleksi teks hijau muda. */
   --color-eyebrow: #a15d00;
+  /* Tanda "Lulus": ikon segel amber, teks amber gelap (kontras ≥ 4,5:1), latar krem hangat. */
+  --color-passed-icon: #dd9933;
+  --color-passed-text: #9a5800;
+  --color-passed-bg: #faf6ec;
   --color-selection-bg: #e1ebd2;
   --color-primary-dark: #173200;
   --color-control-border: #cfd8d2;

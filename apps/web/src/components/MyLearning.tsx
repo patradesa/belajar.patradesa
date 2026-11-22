@@ -2,6 +2,7 @@ import { courseProgressPct, type CertificateView, type MyCourse } from '@patrade
 import { Link } from '../lib/router';
 import { formatCertCode, formatDateId } from './CertificateCard';
 import { Icon } from './Icon';
+import { PassedBadge } from './PassedBadge';
 
 type Heading = 'h2' | 'h3';
 
@@ -27,6 +28,7 @@ export function MyCourseList({ courses, heading: H = 'h2' }: { courses: MyCourse
       {courses.map((c) => {
         const pct = courseProgressPct(c);
         const state = courseState(c);
+        const passed = c.certificateStatus !== 'revoked' && (c.status === 'completed' || c.certificateStatus === 'pending' || c.certificateStatus === 'issued');
         const titleId = `kelas-saya-${c.id}`;
         return (
           <li key={c.id} className="card stack" aria-labelledby={titleId}>
@@ -34,7 +36,11 @@ export function MyCourseList({ courses, heading: H = 'h2' }: { courses: MyCourse
               <H id={titleId} style={{ margin: 0 }}>
                 <Link href={`/kelas/${c.slug}`}>{c.title}</Link>
               </H>
-              <span className={`badge${state.tone === 'success' ? ' badge-success' : ''}`}>{state.label}</span>
+              {passed ? (
+                <PassedBadge certificateIssued={c.certificateStatus === 'issued'} />
+              ) : (
+                <span className="badge">{state.label}</span>
+              )}
             </div>
             <div>
               <p className="meta" style={{ margin: 0 }}>

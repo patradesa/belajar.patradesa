@@ -55,12 +55,14 @@ export async function catalog(db: D1Database, villageRole: string | null, userId
               (SELECT ROUND(AVG(stars), 1) FROM course_ratings cr WHERE cr.course_id = c.id) AS rating_avg,
               (SELECT COUNT(*) FROM course_ratings cr WHERE cr.course_id = c.id) AS rating_count,
               cc.updated_at AS cover_v,
-              EXISTS (SELECT 1 FROM enrollments e WHERE e.course_id = c.id AND e.user_id = ?) AS enrolled
+              EXISTS (SELECT 1 FROM enrollments e WHERE e.course_id = c.id AND e.user_id = ?) AS enrolled,
+              (SELECT e.status FROM enrollments e WHERE e.course_id = c.id AND e.user_id = ?) AS enrollment_status,
+              (SELECT ce.status FROM certificates ce WHERE ce.course_id = c.id AND ce.user_id = ?) AS certificate_status
        FROM courses c LEFT JOIN course_covers cc ON cc.course_id = c.id
        WHERE c.status = 'published' AND c.visibility = 'public' AND c.current_version_id IS NOT NULL
        ORDER BY (rec IS NULL), rec, c.title`,
     )
-    .bind(villageRole, userId)
+    .bind(villageRole, userId, userId, userId)
     .all<{
       id: string;
       slug: string;
@@ -75,6 +77,8 @@ export async function catalog(db: D1Database, villageRole: string | null, userId
       rating_count: number;
       cover_v: number | null;
       enrolled: number;
+      enrollment_status: string | null;
+      certificate_status: string | null;
     }>();
   return results.map((r) => ({
     id: r.id,
@@ -88,6 +92,8 @@ export async function catalog(db: D1Database, villageRole: string | null, userId
     rating: { average: r.rating_count ? r.rating_avg : null, count: r.rating_count },
     coverUrl: coverUrl(r.slug, r.cover_v),
     enrolled: r.enrolled === 1,
+    completed: r.enrollment_status === 'completed' || r.certificate_status === 'pending' || r.certificate_status === 'issued',
+    certificateIssued: r.certificate_status === 'issued',
     recommended: r.rec !== null,
   }));
 }

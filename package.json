@@ -22,6 +22,7 @@
     "test:unit": "vitest run --project unit --project web",
     "test:integration": "vitest run --project integration",
     "test:e2e": "playwright test",
+    "guides": "playwright test -c playwright.guide.config.ts",
     "budget": "node scripts/check-budget.mjs",
     "lighthouse": "node scripts/lighthouse.mjs",
     "db:migrate:local": "wrangler d1 migrations apply DB --local",
