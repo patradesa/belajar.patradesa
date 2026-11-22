@@ -1,7 +1,7 @@
 /** Sertifikat: terbit otomatis setelah lulus (via Sertifikat Studio, HMAC), coba ulang, verifikasi publik, pencabutan. */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { Client, createHarness, readyLearner, seedDemoCourse, type Harness } from '../helpers/harness';
-import { hmacHex, retryPendingCertificates } from '../../apps/api/src/services/certificates';
+import { hmacHex, integrationProblem, retryPendingCertificates } from '../../apps/api/src/services/certificates';
 
 const STUDIO = 'https://sertifikat.test';
 const SECRET = 's'.repeat(48);
@@ -223,9 +223,22 @@ describe('sertifikat', () => {
       expect(h2.fetchLog).toHaveLength(0);
       const list = (await adm.json('GET', '/api/v1/admin/certificates')).body;
       expect(list.integrationConfigured).toBe(false);
-      expect(list.certificates[0].last_error).toMatch(/belum dikonfigurasi/);
+      expect(list.certificates[0].last_error).toMatch(/belum siap: Variabel SERTIFIKAT_BASE_URL belum ada/);
+      expect(list.integrationProblem).toMatch(/SERTIFIKAT_BASE_URL/);
     } finally {
       await h2.dispose();
     }
+  });
+});
+
+describe('konfigurasi integrasi', () => {
+  it('alasan spesifik: URL, secret kosong, secret terlalu pendek (tanpa membocorkan nilainya)', () => {
+    const base = { ...h.env, SERTIFIKAT_BASE_URL: STUDIO };
+    expect(integrationProblem({ ...base, SERTIFIKAT_BASE_URL: undefined })).toMatch(/SERTIFIKAT_BASE_URL belum ada/);
+    expect(integrationProblem({ ...base, SERTIFIKAT_INTEGRATION_SECRET: undefined })).toMatch(/belum dipasang/);
+    const short = integrationProblem({ ...base, SERTIFIKAT_INTEGRATION_SECRET: 'a1b2c3d4e5f60718' })!;
+    expect(short).toContain('terlalu pendek (16 karakter; minimal 32)');
+    expect(short).not.toContain('a1b2c3d4');
+    expect(integrationProblem({ ...base, SERTIFIKAT_INTEGRATION_SECRET: SECRET })).toBeNull();
   });
 });

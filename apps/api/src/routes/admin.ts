@@ -26,7 +26,7 @@ import { auditStmt } from '../lib/audit';
 import { currentUser, hasRole, requireRole } from '../middleware/auth';
 import { recomputeAfterReviewStatement, resultFromScoreStatement } from '../services/finalize';
 import { createGradingDemo } from '../services/demoGrading';
-import { integrationConfigured, issueAfterAttempt, pushToStudio, revokeCertificate, type CertificateRow } from '../services/certificates';
+import { integrationConfigured, integrationProblem, issueAfterAttempt, pushToStudio, revokeCertificate, type CertificateRow } from '../services/certificates';
 
 const MAX_PDF_BYTES = 20 * 1024 * 1024;
 const MAX_COVER_BYTES = 2 * 1024 * 1024;
@@ -767,7 +767,7 @@ export function adminRoutes(deps: Deps) {
               ce.revoked_at, ce.revoked_reason, u.email_normalized AS email
        FROM certificates ce JOIN users u ON u.id = ce.user_id ORDER BY ce.completed_at DESC LIMIT 200`,
     ).all();
-    return c.json({ certificates: results, integrationConfigured: integrationConfigured(c.env), studioUrl: c.env.SERTIFIKAT_BASE_URL ?? null });
+    return c.json({ certificates: results, integrationConfigured: integrationConfigured(c.env), integrationProblem: integrationProblem(c.env), studioUrl: c.env.SERTIFIKAT_BASE_URL ?? null });
   });
 
   r.post('/certificates/:id/retry', admins, async (c) => {
