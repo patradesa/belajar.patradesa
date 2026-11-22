@@ -85,6 +85,8 @@ export interface CourseDetail {
   /** Rating dari peserta yang login (1–5) atau null. */
   myRating: number | null;
   coverUrl: string | null;
+  /** Sertifikat peserta untuk kelas ini (null bila belum memenuhi syarat). */
+  certificate: CertificateView | null;
 }
 
 export interface LessonContent {
@@ -145,4 +147,33 @@ export interface AttemptResult {
   passingScorePct: number;
   essays: { questionId: string; stem: string; score: number | null; maxScore: number; feedback: string | null }[];
   canAppeal: boolean;
+}
+
+/** Sertifikat kelulusan. Nomor & kode berasal dari Sertifikat Studio (sertifikat.patradesa.id). */
+export interface CertificateView {
+  id: string;
+  status: 'pending' | 'issued' | 'revoked';
+  recipientName: string;
+  courseTitle: string;
+  courseSlug: string;
+  finalScorePct: number | null;
+  completedAt: number;
+  certificateNo: string | null;
+  code: string | null;
+  verifyUrl: string | null;
+  issuedAt: number | null;
+  revokedAt: number | null;
+}
+
+/** Data publik untuk halaman cetak sertifikat (diakses dengan kode verifikasi). */
+export interface PublicCertificate {
+  status: 'issued' | 'revoked';
+  recipientName: string;
+  courseTitle: string;
+  finalScorePct: number | null;
+  certificateNo: string;
+  code: string;
+  verifyUrl: string;
+  issuedAt: number;
+  revokedAt: number | null;
 }

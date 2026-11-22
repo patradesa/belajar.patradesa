@@ -6,6 +6,7 @@ import { hasRole, useSession } from '../lib/session';
 import { ErrorAlert, Loading, PageTitle, useAsync } from '../components/common';
 import { CourseEditor } from './CourseEditor';
 import { AdminLoginPage } from '../pages/AdminLoginPage';
+import { Certificates } from './Certificates';
 
 /** Area admin/mentor/editor — dimuat lazy, tidak termasuk bundle awal learner. */
 
@@ -18,6 +19,7 @@ function Tabs() {
     ['/admin/review', 'Review esai', hasRole(me, 'admin', 'mentor')],
     ['/admin/banding', 'Banding', hasRole(me, 'admin', 'mentor')],
     ['/admin/pengguna', 'Pengguna', hasRole(me, 'admin', 'mentor')],
+    ['/admin/sertifikat', 'Sertifikat', hasRole(me, 'admin')],
     ['/admin/audit', 'Audit', hasRole(me, 'admin')],
   ];
   return (
@@ -39,7 +41,7 @@ function Tabs() {
 
 function CourseList() {
   const { me } = useSession();
-  const { data, error, loading, reload } = useAsync(() => api<{ courses: Row[] }>('/admin/courses'), []);
+  const { data, error, loading, reload } = useAsync(() => api<{ courses: Row[]; demoAvailable?: boolean }>('/admin/courses'), []);
   const { run, view } = useAction();
   const create = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -93,6 +95,36 @@ function CourseList() {
           </tbody>
         </table>
       </div>
+      {hasRole(me, 'admin') && data?.demoAvailable && (
+        <section className="card card-soft stack" aria-labelledby="demo-judul">
+          <h3 id="demo-judul" style={{ margin: 0 }}>
+            Uji alur penilaian sampai sertifikat
+          </h3>
+          <p style={{ margin: 0 }}>
+            Membuat kelas <strong>privat</strong> berisi 3 materi dan kuis (5 pilihan ganda + 2 esai), plus satu peserta <strong>fiktif</strong> yang sudah
+            menyelesaikan materi dan mengumpulkan kuis (4 dari 5 PG benar). Lanjutkan di <strong>Review esai</strong>: beri skor rubrik pada 2 esai. Nilai
+            akhir ≥ 70% → lulus → sertifikat terbit (lihat tab <strong>Sertifikat</strong>). Total esai minimal 13 dari 20 poin agar lulus.
+          </p>
+          <p className="help" style={{ margin: 0 }}>
+            Tidak tersedia di produksi. Bila integrasi Sertifikat Studio aktif, sertifikat demo memakai nomor resmi berikutnya; cabut dari tab Sertifikat
+            setelah selesai menguji.
+          </p>
+          <div>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() =>
+                void run(async () => {
+                  await api('/admin/demo/grading', { method: 'POST' });
+                  reload();
+                }, 'Kelas demo dibuat. Buka tab “Review esai” untuk menilai 2 esai peserta demo.')
+              }
+            >
+              Buat kelas demo penilaian
+            </button>
+          </div>
+        </section>
+      )}
       {hasRole(me, 'admin') && (
         <form className="card" onSubmit={create}>
           <h3>Buat kelas baru</h3>
@@ -413,6 +445,7 @@ export default function AdminApp({ path }: { path: string }) {
   else if (path === '/admin/review') body = <Reviews />;
   else if (path === '/admin/banding') body = <Appeals />;
   else if (path === '/admin/pengguna') body = <Users />;
+  else if (path === '/admin/sertifikat') body = <Certificates />;
   else if (path === '/admin/audit') body = <Audit />;
   else body = hasRole(me, 'admin', 'content_editor') ? <CourseList /> : <Reviews />;
   return (

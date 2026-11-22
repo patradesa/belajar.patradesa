@@ -32,6 +32,11 @@ const child = spawn(
     'DEV_LOGIN_ENABLED:true',
     '--var',
     'ENVIRONMENT:development',
+    // Sertifikat Studio tiruan (tests/e2e/mock-studio.ts, dijalankan global-setup).
+    '--var',
+    'SERTIFIKAT_BASE_URL:http://127.0.0.1:8799',
+    '--var',
+    'SERTIFIKAT_INTEGRATION_SECRET:e2e-sertifikat-secret-not-for-production-0123456789',
   ],
   { cwd: root, stdio: 'inherit', env, shell: process.platform === 'win32' },
 );

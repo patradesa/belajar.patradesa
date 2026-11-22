@@ -49,6 +49,8 @@ ENVIRONMENT = "staging"
 APP_ORIGIN = "https://belajar-patradesa.patradesa-id.workers.dev"
 DEV_LOGIN_ENABLED = "false"
 TURNSTILE_SITE_KEY = "0x4AAAAAAGLtl3uk3xV7UMb7"
+# Sertifikat Studio. Penerbitan aktif hanya bila secret SERTIFIKAT_INTEGRATION_SECRET juga dipasang.
+SERTIFIKAT_BASE_URL = "https://sertifikat.patradesa.id"
 
 [[env.staging.d1_databases]]
 binding = "DB"
@@ -74,6 +76,7 @@ ENVIRONMENT = "production"
 APP_ORIGIN = "https://belajar.patradesa.id"
 DEV_LOGIN_ENABLED = "false"
 TURNSTILE_SITE_KEY = "REPLACE_WITH_PROD_SITE_KEY"
+SERTIFIKAT_BASE_URL = "https://sertifikat.patradesa.id"
 
 [[env.production.d1_databases]]
 binding = "DB"

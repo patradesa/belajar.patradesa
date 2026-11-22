@@ -4,6 +4,7 @@ import {
   answersPatchSchema,
   appealSchema,
   heartbeatSchema,
+  normalizeCertificateCode,
   profilePatchSchema,
   ratingSchema,
   type Block,
@@ -20,6 +21,7 @@ import { catalog, courseDetail, enroll, myCourses, rateCourse } from '../service
 import { requireLessonAccess } from '../services/access';
 import { heartbeat, startLearningSession, touchProgressStatement } from '../services/learning';
 import { attemptResult, attemptView, loadOwnedAttempt, saveAnswers, startAttempt, submitAttempt } from '../services/attempts';
+import { ensureCertificate, issueAfterAttempt, myCertificates, publicCertificate, toView } from '../services/certificates';
 
 export function learnerRoutes(deps: Deps) {
   const r = new Hono<AppEnv>();
@@ -39,7 +41,29 @@ export function learnerRoutes(deps: Deps) {
 
   r.get('/courses/:id', async (c) => {
     const u = c.get('user');
-    return c.json(await courseDetail(c.env.DB, param(c, 'id'), u?.id ?? null, deps.now()));
+    const now = deps.now();
+    const detail = await courseDetail(c.env.DB, param(c, 'id'), u?.id ?? null, now);
+    if (u && detail.enrolled) {
+      // Penerbitan "malas": peserta yang sudah lulus selalu mendapat sertifikat saat membuka halaman kelas.
+      try {
+        const row = await ensureCertificate(c.env, deps.fetch, u.id, detail.id, now);
+        detail.certificate = row ? toView({ ...row, slug: detail.slug }) : null;
+      } catch (err) {
+        console.error('certificate', err instanceof Error ? err.message : 'unknown');
+      }
+    }
+    return c.json(detail);
+  });
+
+  /** Data sertifikat untuk halaman cetak. Publik: kode verifikasi 80-bit acak berfungsi sebagai kunci akses. */
+  r.get('/certificates/:code', async (c) => {
+    const code = normalizeCertificateCode(c.req.param('code'));
+    if (!code) throw notFound('Sertifikat');
+    await enforceRateLimit(c.env.DB, `cert:${c.req.header('cf-connecting-ip') ?? 'local'}`, 60, 60_000, deps.now());
+    const cert = await publicCertificate(c.env.DB, code);
+    if (!cert) throw notFound('Sertifikat');
+    c.header('X-Robots-Tag', 'noindex');
+    return c.json(cert);
   });
 
   /**
@@ -150,6 +174,7 @@ export function learnerRoutes(deps: Deps) {
   });
 
   r.get('/me/courses', requireAuth, async (c) => c.json({ courses: await myCourses(c.env.DB, currentUser(c).id) }));
+  r.get('/me/certificates', requireAuth, async (c) => c.json({ certificates: await myCertificates(c.env.DB, currentUser(c).id) }));
 
   r.post('/courses/:id/enroll', requireAuth, async (c) => {
     const res = await enroll(c.env.DB, currentUser(c).id, param(c, 'id'), deps.now());
@@ -239,7 +264,9 @@ export function learnerRoutes(deps: Deps) {
     const now = deps.now();
     const id = param(c, 'id');
     await submitAttempt(c.env.DB, id, u.id, now);
-    return c.json(await attemptResult(c.env.DB, id, u.id, now));
+    const result = await attemptResult(c.env.DB, id, u.id, now);
+    if (result.resultStatus === 'passed') await issueAfterAttempt(c.env, deps.fetch, id, now);
+    return c.json(result);
   });
 
   r.get('/attempts/:id/result', requireAuth, async (c) => {

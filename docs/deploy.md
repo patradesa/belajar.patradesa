@@ -31,6 +31,19 @@ Worker `belajar-patradesa` (akun Patradesa.id). Settings → Build:
 
 Tanpa wrangler: tempel `db/console/<migrasi>.console.sql` ke D1 → Console (dibuat dengan `node scripts/make-console-sql.mjs <file>`). Console menggabungkan baris, sehingga file migrasi asli yang berisi komentar `--` tidak bisa dipakai langsung. Versi console idempoten dan mencatat dirinya di `d1_migrations`.
 
+Catatan migrasi: `0004_question_selection.console.sql` berisi `ALTER TABLE` yang tidak idempoten. Jalankan sekali; bila muncul galat "duplicate column name: in_quiz", migrasi itu sudah pernah diterapkan.
+
+## 1c. Integrasi Sertifikat Studio (sertifikat.patradesa.id)
+Sertifikat kelas diterbitkan oleh Sertifikat Studio lewat `POST /api/integrasi/terbitkan` (HMAC-SHA256, jendela 5 menit, idempoten dengan kunci `belajar-<id sertifikat>`). Nomor berformat `0001/PD/BELAJAR/2026`; verifikasi publik di `https://sertifikat.patradesa.id/v/KODE`.
+1. Buat satu rahasia acak ≥ 32 karakter. Pasang di **kedua** aplikasi dengan nilai yang sama:
+   - LMS (Worker `belajar-patradesa`) → Variables and Secrets → Secret `SERTIFIKAT_INTEGRATION_SECRET`.
+   - Studio → Secret `LMS_INTEGRATION_SECRET` (lihat DEPLOY.md di repo certificate-studio).
+2. `SERTIFIKAT_BASE_URL` sudah ada di `wrangler.toml` (staging & produksi). Tanpa secret, penerbitan tidak berjalan: sertifikat tersimpan "Menunggu Studio" dan admin melihat peringatan di tab **Sertifikat**.
+3. Jalankan migrasi `0003_certificates` (LMS) dan `0003_integrasi_belajar` (Studio) sebelum deploy kode.
+4. Uji: Admin → Kelas → **Buat kelas demo penilaian** → Review esai (nilai 2 esai) → tab Sertifikat menampilkan nomor PD/BELAJAR → cabut sertifikat demo setelah selesai (nomor tetap terpakai di Studio; staging memakai Studio produksi).
+
+Bila Studio tidak bisa dihubungi, LMS mencoba ulang otomatis lewat Cron (backoff 1 menit → maks. 6 jam) dan admin bisa menekan **Terbitkan sekarang**. Bila rahasia bocor, ganti di kedua aplikasi sekaligus.
+
 ## 2. Deploy
 ```bash
 npm ci && npm run check && npm run test:e2e        # semua hijau dulu

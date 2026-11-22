@@ -5,6 +5,7 @@ import { hasRole, useSession } from '../lib/session';
 import { ErrorAlert, Loading, useAsync } from '../components/common';
 import { useAction } from './useAction';
 import { ImportQuestions } from './ImportQuestions';
+import { QuestionBank } from './QuestionBank';
 
 type Row = Record<string, any>;
 
@@ -446,7 +447,9 @@ export function CourseEditor({ id }: { id: string }) {
             <strong>
               {String(l.seq)}. {String(l.title)}
             </strong>{' '}
-            ({String(l.content_type)}){l.assessment ? ` — kuis, ${String((l.assessment.questions as Row[]).length)} soal di bank` : ''}
+            ({String(l.content_type)}){l.assessment
+              ? ` — kuis, ${String((l.assessment.questions as Row[]).length)} soal di bank, ${String((l.assessment.questions as Row[]).filter((q) => Number(q.in_quiz ?? 1) === 1).length)} dipakai`
+              : ''}
           </summary>
           {isDraft ? (
             <div className="stack">
@@ -479,38 +482,8 @@ export function CourseEditor({ id }: { id: string }) {
               <AssessmentForm lesson={l} onSave={async (b) => void (await act(() => api(`/admin/lessons/${String(l.id)}/assessment`, { method: 'PUT', body: b })))} />
               {l.assessment && (
                 <>
-                  {(() => {
-                    const qs = l.assessment.questions as Row[];
-                    const nMcq = qs.filter((q) => q.type === 'mcq').length;
-                    const nEssay = qs.length - nMcq;
-                    const a = l.assessment as Row;
-                    const short = nMcq < Number(a.mcq_count) || nEssay < Number(a.essay_count);
-                    return (
-                      <>
-                        <h4>
-                          Bank soal: {nMcq} pilihan ganda, {nEssay} esai
-                        </h4>
-                        <p className={short ? 'alert alert-warning' : 'help'}>
-                          Kuis menampilkan {String(a.mcq_count)} pilihan ganda + {String(a.essay_count)} esai yang diacak dari bank ini.
-                          {short ? ' Bank belum cukup — tambahkan soal sebelum terbit.' : ''}
-                        </p>
-                        <details>
-                          <summary>Lihat daftar soal ({qs.length})</summary>
-                          <ol>
-                            {qs.map((q) => (
-                              <li key={String(q.id)}>
-                                [{String(q.type)} · {String(q.topic)} · tingkat {String(q.difficulty)}] {String(q.stem)}{' '}
-                                <button type="button" className="btn btn-secondary" onClick={() => void act(() => api(`/admin/questions/${String(q.id)}`, { method: 'DELETE' }), 'Soal dinonaktifkan.')}>
-                                  Nonaktifkan
-                                </button>
-                              </li>
-                            ))}
-                          </ol>
-                        </details>
-                        <ImportQuestions assessmentId={String(a.id)} existingCount={qs.length} onDone={reload} />
-                      </>
-                    );
-                  })()}
+                  <QuestionBank assessment={l.assessment as Row} editable act={act} />
+                  <ImportQuestions assessmentId={String(l.assessment.id)} existingCount={(l.assessment.questions as Row[]).length} onDone={reload} />
                   <QuestionForm onSave={(b) => act(() => api(`/admin/assessments/${String(l.assessment.id)}/questions`, { method: 'POST', body: b }), 'Soal ditambahkan.')} />
                 </>
               )}
@@ -519,7 +492,10 @@ export function CourseEditor({ id }: { id: string }) {
               </button>
             </div>
           ) : (
-            <p className="muted">Hanya-baca (versi terbit).</p>
+            <div className="stack">
+              <p className="muted">Hanya-baca (versi terbit).</p>
+              {l.assessment && <QuestionBank assessment={l.assessment as Row} editable={false} act={act} />}
+            </div>
           )}
         </details>
       ))}
