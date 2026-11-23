@@ -58,6 +58,24 @@ describe('autentikasi & otorisasi', () => {
     await a.json('POST', `/api/v1/attempts/${att.id}/submit`);
   });
 
+  it('IDOR: pengguna yang tidak terdaftar di kelas tidak bisa membaca materi, mencatat waktu belajar, atau memulai kuis', async () => {
+    const outsider = await new Client(h).login('luar@contoh.test', 'Orang Luar');
+    const results = {
+      content: (await outsider.json('GET', `/api/v1/lessons/${lessonIds[0]}/content`)).status,
+      file: (await outsider.json('GET', `/api/v1/lessons/${lessonIds[0]}/file`)).status,
+      session: (await outsider.json('POST', `/api/v1/lessons/${lessonIds[0]}/session`)).status,
+      heartbeat: (await outsider.json('POST', `/api/v1/lessons/${lessonIds[0]}/heartbeat`, { sessionId: 'sesi-milik-orang-lain', visible: true, interacted: true })).status,
+      attempt: (await outsider.json('POST', `/api/v1/assessments/${assessmentId}/attempts`)).status,
+    };
+    expect(results).toEqual({ content: 404, file: 404, session: 404, heartbeat: 404, attempt: 404 });
+    // Tidak ada attempt/progres yang tercipta untuk pengguna tanpa enrollment.
+    const orphan = await h.env.DB.prepare(
+      `SELECT (SELECT COUNT(*) FROM attempts WHERE user_id NOT IN (SELECT user_id FROM enrollments)) +
+              (SELECT COUNT(*) FROM lesson_progress WHERE user_id NOT IN (SELECT user_id FROM enrollments)) AS n`,
+    ).first<{ n: number }>();
+    expect(orphan!.n).toBe(0);
+  });
+
   it('sesi: logout mencabut token; login merotasi sesi (anti session fixation)', async () => {
     const c = await new Client(h).login('sess@contoh.test', 'Sess');
     const oldCookie = c.cookie;

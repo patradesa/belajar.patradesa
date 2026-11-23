@@ -10,6 +10,8 @@ import { authRoutes } from './routes/auth';
 import { learnerRoutes } from './routes/learner';
 import { aiRoutes } from './routes/ai';
 import { adminRoutes } from './routes/admin';
+import { seoRoutes } from './routes/seo';
+import { scenarioAdminRoutes } from './routes/adminScenarios';
 
 /**
  * Urutan middleware penting (lihat ADR-0004):
@@ -28,9 +30,12 @@ export function createApp(deps: Deps) {
 
   app.get('/api/v1/health', (c) => c.json({ ok: true }));
   app.route('/api/v1/auth', authRoutes(deps));
+  app.route('/api/v1/admin/scenarios', scenarioAdminRoutes(deps));
   app.route('/api/v1/admin', adminRoutes(deps));
   app.route('/api/v1', aiRoutes(deps));
   app.route('/api/v1', learnerRoutes(deps));
+  // robots.txt & sitemap.xml harus ditangani sebelum SPA fallback (notFound → ASSETS).
+  app.route('/', seoRoutes());
 
   app.notFound((c) => {
     if (c.req.path.startsWith('/api/')) return c.json(errorBody(ERROR_CODES.NOT_FOUND, 'Tidak ditemukan.'), 404);

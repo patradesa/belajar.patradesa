@@ -7,6 +7,7 @@
  * Sintaks: "## Judul", "### Subjudul", "- butir", "1. butir", "> catatan",
  * "---" (pemisah slide), baris kosong = paragraf baru,
  * inline: **tebal**, [teks](https://tautan) (hanya https).
+ * Blok interaktif: satu baris `[[skenario:kunci-blok]]` (docs/scenario-block/README.md §7).
  */
 export type Inline =
   | { t: 'text'; v: string }
@@ -20,7 +21,16 @@ export type Block =
   | { type: 'ul'; items: Inline[][] }
   | { type: 'ol'; items: Inline[][] }
   | { type: 'callout'; inlines: Inline[] }
-  | { type: 'slide' };
+  | { type: 'slide' }
+  | { type: 'scenario'; key: string };
+
+/** Penyisipan blok skenario di konten pelajaran: baris `[[skenario:kunci]]`. */
+export const SCENARIO_EMBED = /^\[\[skenario:([a-z0-9][a-z0-9-]{2,63})\]\]$/;
+
+/** Kunci blok skenario yang disisipkan (urut, tanpa duplikat). */
+export function scenarioKeys(blocks: Block[]): string[] {
+  return [...new Set(blocks.flatMap((b) => (b.type === 'scenario' ? [b.key] : [])))];
+}
 
 export const MAX_CONTENT_CHARS = 60_000;
 
@@ -76,6 +86,12 @@ export function parseContent(source: string): Block[] {
     const t = raw.trim();
     if (t === '') {
       flushAll();
+      continue;
+    }
+    const embed = SCENARIO_EMBED.exec(t);
+    if (embed) {
+      flushAll();
+      blocks.push({ type: 'scenario', key: embed[1]! });
       continue;
     }
     if (t === '---') {

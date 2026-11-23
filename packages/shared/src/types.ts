@@ -1,4 +1,5 @@
 import type { Block } from './content';
+import type { LessonScenarioSummary } from './scenario';
 import type { SystemRole, VillageRole } from './constants';
 
 export interface ApiError {
@@ -104,6 +105,8 @@ export interface LessonContent {
   requiredActiveSeconds: number;
   activeSeconds: number;
   completed: boolean;
+  /** Blok skenario yang dipin ke materi ini (urutan sesuai kemunculan di konten). */
+  scenarios: LessonScenarioSummary[];
 }
 
 export interface LearningSessionResponse {

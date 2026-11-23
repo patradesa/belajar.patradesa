@@ -1,0 +1,185 @@
+{
+  "schemaVersion": "1.0",
+  "id": "adm01-beda-nama-bali",
+  "version": 1,
+  "title": "Nama Anak Beda di KK dan Akta: Melayani Tanpa Menolak",
+  "summary": "Latihan memverifikasi data warga yang namanya berbeda antardokumen (penanda nama Bali), memberi solusi sesuai SOP, dan menjaga privasi dokumen kependudukan.",
+  "audience": ["sekdes", "kasi", "kaur", "operator_sid", "kawil"],
+  "estimatedMinutes": 8,
+  "mode": "graded",
+  "maxAttempts": 3,
+  "shuffleOptions": true,
+  "status": "draft",
+  "validFrom": "2026-11-01",
+  "needsLocalValidation": true,
+  "regulations": [
+    { "ref": "UU No. 6 Tahun 2014 tentang Desa", "note": "Asas pelayanan, transparansi, akuntabilitas pemerintahan desa." },
+    { "ref": "UU No. 27 Tahun 2022 tentang Pelindungan Data Pribadi", "note": "Data kependudukan adalah data pribadi; batasi kanal dan penyimpanan." },
+    { "ref": "SOP pelayanan surat keterangan desa setempat", "note": "Jenis surat dan syarat berbeda antardesa; cek SOP sebelum menerbitkan." }
+  ],
+  "startNodeId": "intro",
+  "nodes": [
+    {
+      "id": "intro",
+      "type": "info",
+      "title": "Pagi di meja pelayanan",
+      "body": "Anda staf pelayanan di Kantor Perbekel **Desa Tegal Asri** (fiktif). Pukul 08.15, **Ni Kadek Sri** (fiktif) datang membawa map berisi fotokopi KK, akta kelahiran anaknya, dan formulir pendaftaran SMP.\n\nIa tampak terburu-buru: pendaftaran ditutup lusa.",
+      "nextNodeId": "d1"
+    },
+    {
+      "id": "d1",
+      "type": "decision",
+      "title": "Nama yang tidak sama",
+      "body": "Di KK, nama anak tertulis **I Putu Agus Wiranata**. Di akta kelahiran dan formulir sekolah tertulis **Putu Agus Wiranata**. Pihak sekolah meminta surat keterangan dari desa karena namanya tidak sama.",
+      "prompt": "Apa langkah pertama Anda?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Langsung mencetak surat keterangan domisili supaya Ibu Kadek tidak menunggu lama.",
+          "verdict": "wrong",
+          "score": 0,
+          "feedback": "Surat yang tidak menjawab masalah (beda nama) akan ditolak sekolah, dan data belum diverifikasi. Cepat tetapi tidak tepat justru membuat warga bolak-balik.",
+          "nextNodeId": "d1-akibat"
+        },
+        {
+          "id": "b",
+          "text": "Menjelaskan bahwa ada perbedaan nama, memeriksa dokumen asli (KK dan akta), lalu mencatat klarifikasi Ibu Kadek di register.",
+          "verdict": "best",
+          "score": 10,
+          "feedback": "Tepat. Verifikasi dokumen asli dan pencatatan adalah dasar setiap surat keterangan. Warga juga paham apa masalahnya.",
+          "nextNodeId": "d2"
+        },
+        {
+          "id": "c",
+          "text": "Menyarankan Ibu Kadek langsung ke Disdukcapil karena urusan nama bukan wewenang desa.",
+          "verdict": "risky",
+          "score": 3,
+          "feedback": "Pembetulan data memang ranah Disdukcapil, tetapi desa tetap bisa membantu verifikasi dan memberi surat keterangan sesuai SOP. Mengalihkan tanpa membantu membuat warga kehilangan waktu.",
+          "nextNodeId": "d1-akibat"
+        },
+        {
+          "id": "d",
+          "text": "Membantu mengubah tulisan nama di formulir sekolah supaya sama dengan KK.",
+          "verdict": "wrong",
+          "score": 0,
+          "feedback": "Mengubah dokumen pihak lain bukan tugas petugas desa dan bisa dianggap memalsukan data. Masalah sumbernya (beda nama antardokumen resmi) tetap ada.",
+          "nextNodeId": "d1-akibat"
+        }
+      ]
+    },
+    {
+      "id": "d1-akibat",
+      "type": "info",
+      "title": "Akibatnya",
+      "body": "Dua hari kemudian Ibu Kadek kembali: sekolah tetap menolak berkas karena perbedaan nama belum dijelaskan secara resmi. Pendaftaran tinggal hari ini.\n\nAnda memutuskan memeriksa ulang dokumen asli bersama Ibu Kadek dan mencatatnya di register.",
+      "nextNodeId": "d2"
+    },
+    {
+      "id": "d2",
+      "type": "decision",
+      "title": "Setelah dicek",
+      "body": "Dokumen asli cocok: tanggal lahir, nama orang tua, dan alamat sama. Perbedaannya hanya penanda **\"I\"** di depan nama, yang lazim dalam nama Bali dan kadang tidak ditulis di dokumen lain.",
+      "prompt": "Langkah berikutnya yang paling tepat?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Berkonsultasi dengan Kasi Pemerintahan/Sekdes, menerbitkan surat keterangan bahwa kedua nama adalah orang yang sama sesuai SOP, dan menyarankan pembetulan data di Disdukcapil untuk jangka panjang.",
+          "verdict": "best",
+          "score": 10,
+          "feedback": "Tepat. Kebutuhan mendesak warga terjawab, keputusan tidak diambil sendirian, dan sumber masalah diarahkan ke instansi yang berwenang.",
+          "nextNodeId": "d3"
+        },
+        {
+          "id": "b",
+          "text": "Menerbitkan surat keterangan beda nama sesuai SOP, tanpa membahas pembetulan data.",
+          "verdict": "acceptable",
+          "score": 6,
+          "feedback": "Bisa diterima untuk kebutuhan sekolah, tetapi masalah yang sama akan muncul lagi (ijazah, BPJS, bank). Sampaikan juga jalur pembetulan data.",
+          "nextNodeId": "d3"
+        },
+        {
+          "id": "c",
+          "text": "Meminta Ibu Kadek membuat surat pernyataan bermaterai saja, tanpa surat dari desa.",
+          "verdict": "risky",
+          "score": 3,
+          "feedback": "Pernyataan sepihak warga sering tidak diterima instansi lain dan memindahkan beban ke warga. Desa sudah punya cukup bukti untuk membantu.",
+          "nextNodeId": "d3"
+        },
+        {
+          "id": "d",
+          "text": "Meminta Ibu Kadek kembali besok karena perbekel sedang rapat.",
+          "verdict": "wrong",
+          "score": 0,
+          "feedback": "Tanpa estimasi dan solusi, warga bisa kehilangan kesempatan mendaftar. Tanyakan pejabat yang berwenang menandatangani saat perbekel berhalangan sesuai SOP.",
+          "nextNodeId": "d3"
+        }
+      ]
+    },
+    {
+      "id": "d3",
+      "type": "decision",
+      "title": "Permintaan lewat WhatsApp",
+      "body": "Sore harinya, **Kelian Banjar Dinas** (fiktif) mengirim pesan ke WhatsApp pribadi Anda: *\"Tolong kirim foto KK Bu Kadek ke grup banjar, biar warga lain bisa lihat contoh berkas yang benar.\"*",
+      "prompt": "Bagaimana Anda menanggapi?",
+      "options": [
+        {
+          "id": "a",
+          "text": "Mengirim foto KK ke grup banjar, toh untuk contoh warga lain.",
+          "verdict": "wrong",
+          "score": 0,
+          "feedback": "KK memuat NIK dan data seluruh anggota keluarga. Menyebarkannya ke grup melanggar pelindungan data pribadi dan bisa disalahgunakan.",
+          "nextNodeId": "selesai"
+        },
+        {
+          "id": "b",
+          "text": "Menolak dengan sopan, menjelaskan bahwa KK adalah data pribadi, dan menawarkan contoh checklist berkas tanpa data warga.",
+          "verdict": "best",
+          "score": 10,
+          "feedback": "Tepat. Kebutuhan kelian (contoh berkas) tetap terjawab tanpa membuka data pribadi warga.",
+          "nextNodeId": "selesai"
+        },
+        {
+          "id": "c",
+          "text": "Mengirim ke WhatsApp pribadi kelian saja, lalu memintanya menghapus setelah dilihat.",
+          "verdict": "risky",
+          "score": 3,
+          "feedback": "Tetap berisiko: Anda tidak bisa memastikan foto dihapus, dan berkas warga kini tersimpan di dua ponsel pribadi.",
+          "nextNodeId": "selesai"
+        },
+        {
+          "id": "d",
+          "text": "Menyarankan kelian datang ke kantor untuk melihat berkas asli bersama Ibu Kadek.",
+          "verdict": "acceptable",
+          "score": 6,
+          "feedback": "Lebih aman daripada mengirim foto, tetapi tetap membuka data warga tanpa keperluan yang jelas. Checklist tanpa data warga sudah cukup.",
+          "nextNodeId": "selesai"
+        }
+      ]
+    },
+    {
+      "id": "selesai",
+      "type": "end",
+      "title": "Layanan selesai",
+      "body": "Ibu Kadek berhasil mendaftarkan anaknya. Register pelayanan mencatat klarifikasi beda nama dan saran pembetulan data ke Disdukcapil."
+    }
+  ],
+  "scoring": {
+    "passPercent": 70,
+    "bands": [
+      { "key": "ulang", "minPercent": 0, "label": "Perlu mengulang", "message": "Beberapa keputusan berisiko bagi warga. Pelajari lagi **5 langkah layanan** lalu coba kembali." },
+      { "key": "cukup", "minPercent": 60, "label": "Cukup", "message": "Arah Anda sudah benar. Perhatikan lagi verifikasi dan privasi data." },
+      { "key": "baik", "minPercent": 85, "label": "Sangat baik", "message": "Anda melayani dengan cepat, tepat, dan menjaga data warga." }
+    ]
+  },
+  "takeaways": [
+    "Periksa dokumen asli dan catat klarifikasi sebelum menerbitkan surat apa pun.",
+    "Beda penanda nama Bali (I/Ni, Putu/Wayan) lazim; tangani dengan surat keterangan sesuai SOP, bukan penolakan.",
+    "Arahkan pembetulan data ke Disdukcapil agar masalah tidak berulang.",
+    "KK dan KTP tidak dikirim lewat WhatsApp pribadi atau grup."
+  ],
+  "remedial": { "label": "Ulangi materi: 5 langkah layanan di meja desa", "lessonKey": "adm01-5-langkah" },
+  "authors": ["Tim Konten PatraDesa"],
+  "review": {
+    "notes": "Draf contoh. Cek istilah dan jenis surat dengan SOP desa dampingan di Bali sebelum terbit."
+  }
+}

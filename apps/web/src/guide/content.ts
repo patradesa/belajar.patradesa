@@ -35,6 +35,10 @@ export interface Guide {
 export const GUIDE_VERSION = 'Versi 1.0 · November 2026';
 export const APP_URL = 'https://belajar.patradesa.id';
 
+/**
+ * Kontak resmi: SATU-SATUNYA tempat alamat email/WA ditulis (halaman Panduan, PDF, tes e2e membaca dari sini).
+ * Saat alamat @patradesa.id siap, ganti `email` di sini lalu jalankan `npm run guides` untuk memperbarui PDF.
+ */
 export const CONTACT = {
   org: 'Patra Desa',
   tagline: 'Daya Bersama, Sama Berdaya',

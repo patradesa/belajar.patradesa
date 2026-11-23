@@ -1,6 +1,7 @@
 /** Menu Panduan: daftar panduan, halaman baca (lolos axe), dan berkas PDF A4 yang dapat diunduh. */
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
+import { CONTACT } from '../../apps/web/src/guide/content';
 
 async function axe(page: Page, label: string) {
   const res = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
@@ -17,7 +18,7 @@ test('menu Panduan → panduan peserta & pengelola, unduh PDF', async ({ page })
   await expect(page.getByRole('heading', { level: 1, name: 'Panduan penggunaan' })).toBeVisible();
   await expect(page.getByRole('heading', { level: 2, name: 'Panduan Peserta' })).toBeVisible();
   await expect(page.getByRole('heading', { level: 2, name: 'Panduan Pengelola' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'patradesa.id@gmail.com' })).toBeVisible();
+  await expect(page.getByRole('link', { name: CONTACT.email })).toBeVisible();
   await axe(page, 'daftar panduan');
 
   for (const [slug, name] of [

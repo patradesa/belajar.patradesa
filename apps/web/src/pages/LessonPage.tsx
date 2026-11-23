@@ -1,5 +1,5 @@
-import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
-import { AI_LOCKED_MESSAGE, HEARTBEAT, splitSlides, type Block, type LearningSessionResponse, type LessonContent } from '@patradesa/shared';
+import { Suspense, lazy, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { AI_LOCKED_MESSAGE, HEARTBEAT, splitSlides, type Block, type LearningSessionResponse, type LessonContent, type LessonScenarioSummary } from '@patradesa/shared';
 import { ApiError, api } from '../lib/api';
 import { Link } from '../lib/router';
 import { useSession } from '../lib/session';
@@ -10,6 +10,30 @@ import { ErrorAlert, Loading, PageTitle, formatDuration, useAsync } from '../com
 const YoutubeEmbed = lazy(() => import('../components/YoutubeEmbed'));
 const PdfViewer = lazy(() => import('../components/PdfViewer'));
 const AiPanel = lazy(() => import('../components/AiPanel'));
+const ScenarioBlock = lazy(() => import('../components/ScenarioBlock'));
+
+/** Muat chunk skenario hanya saat blok mendekati layar (hemat kuota). */
+function ScenarioSlot({ summary, lessonId }: { summary: LessonScenarioSummary; lessonId: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [near, setNear] = useState(typeof IntersectionObserver === 'undefined');
+  useEffect(() => {
+    if (near || !ref.current) return;
+    const io = new IntersectionObserver((es) => es.some((e) => e.isIntersecting) && setNear(true), { rootMargin: '400px' });
+    io.observe(ref.current);
+    return () => io.disconnect();
+  }, [near]);
+  return (
+    <div ref={ref} className="scn-slot">
+      {near ? (
+        <Suspense fallback={<Loading label="Memuat skenario…" />}>
+          <ScenarioBlock summary={summary} lessonId={lessonId} />
+        </Suspense>
+      ) : (
+        <p className="muted">Skenario: {summary.title}</p>
+      )}
+    </div>
+  );
+}
 
 /**
  * Heartbeat: dikirim tiap ~25 dtk HANYA bila tab tampak dan ada interaksi dalam 60 dtk terakhir.
@@ -65,7 +89,7 @@ function useLearningSession(lessonId: string) {
   return { state, expired, error, restart: start };
 }
 
-function SlideDeck({ blocks }: { blocks: Block[] }) {
+function SlideDeck({ blocks, renderScenario }: { blocks: Block[]; renderScenario?: (key: string) => ReactNode }) {
   const slides = splitSlides(blocks);
   const [i, setI] = useState(0);
   const cur = slides[i] ?? [];
@@ -75,7 +99,7 @@ function SlideDeck({ blocks }: { blocks: Block[] }) {
         <p className="muted">
           Slide {i + 1} dari {slides.length}
         </p>
-        <BlockRenderer blocks={cur} />
+        <BlockRenderer blocks={cur} renderScenario={renderScenario} />
       </div>
       <div className="btn-row">
         <button type="button" className="btn btn-secondary" onClick={() => setI((x) => Math.max(0, x - 1))} disabled={i === 0}>
@@ -101,6 +125,10 @@ export function LessonPage({ id }: { id: string }) {
   const s = session.state;
   const pct = s && s.requiredActiveSeconds ? Math.min(100, Math.round((s.activeSeconds / s.requiredActiveSeconds) * 100)) : 100;
   const examActive = !!me?.activeAttempt;
+  const renderScenario = (key: string) => {
+    const summary = (data.scenarios ?? []).find((x) => x.key === key);
+    return summary ? <ScenarioSlot summary={summary} lessonId={data.id} /> : null;
+  };
 
   return (
     <div className="stack">
@@ -111,9 +139,9 @@ export function LessonPage({ id }: { id: string }) {
       <div className="reader-layout">
         <article className="stack">
           {data.contentType === 'slides' ? (
-            <SlideDeck blocks={data.blocks} />
+            <SlideDeck blocks={data.blocks} renderScenario={renderScenario} />
           ) : (
-            <BlockRenderer blocks={data.blocks} />
+            <BlockRenderer blocks={data.blocks} renderScenario={renderScenario} />
           )}
           {data.contentType === 'youtube' && data.youtubeId && (
             <Suspense fallback={<Loading />}>

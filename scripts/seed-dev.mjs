@@ -28,6 +28,13 @@ async function call(method, path, body) {
 
 await call('POST', '/api/v1/auth/dev-login', { email: 'admin@contoh.test', name: 'Admin Contoh', roles: ['admin', 'mentor'] });
 csrf = (await call('GET', '/api/v1/me')).csrfToken;
+// Blok skenario contoh (fiktif) sebagai DRAF — terbitkan lewat Admin → Skenario bila ingin diuji di kelas.
+const scenario = JSON.parse(readFileSync(join(import.meta.dirname, '..', 'docs', 'scenario-block', 'contoh-adm01-beda-nama-bali.json'), 'utf8'));
+const existing = (await call('GET', '/api/v1/admin/scenarios')).scenarios;
+if (!existing.some((s) => s.key === scenario.id)) {
+  const s = await call('POST', '/api/v1/admin/scenarios', { definition: scenario });
+  console.log(`Skenario contoh dibuat (draf): ${BASE}/admin/skenario/${s.id}`);
+}
 const cat = await call('GET', '/api/v1/catalog');
 if (cat.courses.some((c) => c.slug === demo.course.slug)) {
   console.log('Kelas demo sudah ada.');
