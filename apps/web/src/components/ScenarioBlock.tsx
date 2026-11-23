@@ -42,6 +42,8 @@ export function RichText({ text }: { text: string | null }) {
   );
 }
 
+export const DEFAULT_LOCAL_NOTE = 'Cek SOP dan aturan daerah setempat sebelum menerapkannya di desa Anda.';
+
 const VERDICT_CLASS: Record<ScenarioVerdict, string> = {
   best: 'badge badge-success',
   acceptable: 'badge',
@@ -244,7 +246,7 @@ export default function ScenarioBlock({ summary, lessonId }: { summary: LessonSc
       <h3 id={titleId} ref={headRef} tabIndex={-1}>
         {heading}
       </h3>
-      {s.needsLocalValidation && <p className="alert alert-warning">Cek SOP desa/Disdukcapil setempat. Prosedur bisa berbeda antardaerah.</p>}
+      {s.needsLocalValidation && <p className="alert alert-warning">{s.localValidationNote ?? DEFAULT_LOCAL_NOTE}</p>}
       <div aria-live="polite">{body}</div>
       {error && (
         <div className="alert alert-error" role="alert">

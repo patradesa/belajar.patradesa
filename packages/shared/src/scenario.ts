@@ -69,6 +69,7 @@ export const scenarioDefinitionSchema = z
     status: z.enum(SCENARIO_STATUSES),
     validFrom: isoDate,
     needsLocalValidation: z.boolean(),
+    localValidationNote: z.string().min(5).max(200).optional(),
     regulations: z
       .array(z.object({ ref: z.string().min(3).max(160), note: z.string().max(300).optional() }).strict())
       .max(8)
@@ -337,6 +338,7 @@ export interface ScenarioDelivery {
     mode: 'formative' | 'graded';
     validFrom: string;
     needsLocalValidation: boolean;
+    localValidationNote: string | null;
     regulations: { ref: string; note?: string }[];
     estimatedMinutes: number;
     decisionCount: { done: number; maxOnPath: number };
@@ -362,6 +364,8 @@ export interface LessonScenarioSummary {
   maxAttempts: number;
   validFrom: string;
   needsLocalValidation: boolean;
+  /** Teks banner cek lokal dari penulis; null → teks bawaan umum. */
+  localValidationNote: string | null;
   attemptsUsed: number;
   activeAttemptId: string | null;
   bestPercent: number | null;

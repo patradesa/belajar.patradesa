@@ -55,6 +55,146 @@ function ValidationErrors({ error }: { error: unknown }) {
   );
 }
 
+type BatchRow = { name: string; ok: boolean; text: string; error?: unknown };
+
+function BatchResults({ rows }: { rows: BatchRow[] }) {
+  if (!rows.length) return null;
+  const ok = rows.filter((r) => r.ok).length;
+  return (
+    <div role="status" className="stack">
+      <p>
+        <strong>
+          {ok} dari {rows.length} berhasil.
+        </strong>
+      </p>
+      <ul>
+        {rows.map((r, i) => (
+          <li key={i}>
+            {r.ok ? '✓' : '✕'} <code>{r.name}</code> — {r.text}
+            {!r.ok && <ValidationErrors error={r.error} />}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/** Unggah banyak berkas sekaligus: diproses berurutan; satu berkas gagal tidak menghentikan yang lain. */
+function BulkUpload({ onDone }: { onDone: () => void }) {
+  const [rows, setRows] = useState<BatchRow[]>([]);
+  const [busy, setBusy] = useState(false);
+  const run = async (files: FileList | null) => {
+    if (!files?.length) return;
+    setBusy(true);
+    const out: BatchRow[] = [];
+    const sorted = [...files].sort((a, b) => a.name.localeCompare(b.name));
+    for (const f of sorted) {
+      try {
+        const definition: unknown = JSON.parse(await f.text());
+        const r = await api<ScenarioRow>('/admin/scenarios', { method: 'POST', body: { definition } });
+        out.push({ name: f.name, ok: true, text: `${r.key} v${r.version} · ${STATUS_LABEL[r.status]} · skor maks ${r.maxScore}` });
+      } catch (err) {
+        out.push({ name: f.name, ok: false, text: err instanceof SyntaxError ? 'bukan JSON yang valid' : 'ditolak', error: err instanceof SyntaxError ? null : err });
+      }
+      setRows([...out]);
+    }
+    setBusy(false);
+    onDone();
+  };
+  return (
+    <section className="card stack">
+      <h2>Unggah banyak skenario sekaligus</h2>
+      <p className="help">Pilih beberapa berkas .json (mis. seluruh isi folder <code>_siap-impor\skenario</code>). Diproses berurutan sesuai nama berkas.</p>
+      <label>
+        Berkas JSON{' '}
+        <input type="file" accept="application/json,.json" multiple disabled={busy} onChange={(e) => void run(e.target.files)} />
+      </label>
+      {busy && <Loading label={`Mengunggah… (${rows.length} selesai)`} />}
+      <BatchResults rows={rows} />
+    </section>
+  );
+}
+
+/** Terbitkan banyak skenario dengan satu data penelaah (hanya admin; server tetap memvalidasi tiap skenario). */
+function BulkPublish({ rows, onDone }: { rows: ScenarioRow[]; onDone: () => void }) {
+  const candidates = rows.filter((r) => r.status === 'draft' || r.status === 'in_review');
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [result, setResult] = useState<BatchRow[]>([]);
+  const [busy, setBusy] = useState(false);
+  if (!candidates.length) return null;
+  const toggle = (id: string, on: boolean) =>
+    setPicked((p) => {
+      const n = new Set(p);
+      if (on) n.add(id);
+      else n.delete(id);
+      return n;
+    });
+  const submit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const f = new FormData(e.currentTarget);
+    const review: Record<string, string> = {
+      reviewedBy: String(f.get('reviewedBy') ?? ''),
+      reviewedAt: String(f.get('reviewedAt') ?? ''),
+      nextReviewDue: String(f.get('nextReviewDue') ?? ''),
+    };
+    const notes = String(f.get('notes') ?? '').trim();
+    if (notes) review.notes = notes;
+    setBusy(true);
+    const out: BatchRow[] = [];
+    for (const r of candidates.filter((c) => picked.has(c.id))) {
+      try {
+        await api(`/admin/scenarios/${r.id}/status`, { method: 'POST', body: { status: 'published', review } });
+        out.push({ name: r.key, ok: true, text: `v${r.version} terbit` });
+      } catch (err) {
+        out.push({ name: r.key, ok: false, text: 'gagal', error: err });
+      }
+      setResult([...out]);
+    }
+    setBusy(false);
+    setPicked(new Set());
+    onDone();
+  };
+  return (
+    <form className="card stack" onSubmit={(e) => void submit(e)}>
+      <h2>Terbitkan beberapa skenario</h2>
+      <fieldset>
+        <legend>Pilih skenario draf/ditelaah</legend>
+        <label className="check">
+          <input
+            type="checkbox"
+            checked={picked.size === candidates.length}
+            onChange={(e) => setPicked(e.target.checked ? new Set(candidates.map((c) => c.id)) : new Set())}
+          />{' '}
+          Pilih semua ({candidates.length})
+        </label>
+        {candidates.map((c) => (
+          <label key={c.id} className="check">
+            <input type="checkbox" checked={picked.has(c.id)} onChange={(e) => toggle(c.id, e.target.checked)} /> <code>{c.key}</code> v{c.version} — {c.title}
+          </label>
+        ))}
+      </fieldset>
+      <label>
+        Nama penelaah <input name="reviewedBy" required minLength={2} maxLength={80} />
+      </label>
+      <label>
+        Tanggal telaah <input type="date" name="reviewedAt" required defaultValue={today()} />
+      </label>
+      <label>
+        Telaah ulang paling lambat <input type="date" name="nextReviewDue" required defaultValue={plusYear()} />
+      </label>
+      <label>
+        Catatan penelaah (internal) <textarea name="notes" maxLength={1000} rows={2} />
+      </label>
+      <div className="btn-row">
+        <button type="submit" className="btn" disabled={busy || picked.size === 0}>
+          {busy ? 'Menerbitkan…' : `Terbitkan terpilih (${picked.size})`}
+        </button>
+      </div>
+      <BatchResults rows={result} />
+    </form>
+  );
+}
+
 function Upload({ onSaved }: { onSaved: (id: string) => void }) {
   const [text, setText] = useState('');
   const [error, setError] = useState<unknown>(null);
@@ -82,7 +222,7 @@ function Upload({ onSaved }: { onSaved: (id: string) => void }) {
   };
   return (
     <form className="card stack" onSubmit={(e) => void submit(e)}>
-      <h2>Unggah skenario (JSON)</h2>
+      <h2>Unggah satu skenario (JSON)</h2>
       <p className="help">
         Periksa dulu dengan <code>python validate_scenario.py berkas.json</code>. Menyimpan blok yang sudah terbit membuat versi baru berstatus draf.
       </p>
@@ -110,7 +250,9 @@ export function ScenarioList() {
   const canEdit = hasRole(me, 'admin', 'content_editor');
   return (
     <div className="stack">
+      {canEdit && <BulkUpload onDone={reload} />}
       {canEdit && <Upload onSaved={(id) => navigate(`/admin/skenario/${id}`)} />}
+      {hasRole(me, 'admin') && data && <BulkPublish rows={data.scenarios} onDone={reload} />}
       <section className="card">
         <h2>Daftar skenario</h2>
         {loading ? (

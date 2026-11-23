@@ -78,7 +78,41 @@ export function ResultPage({ id }: { id: string }) {
           )}
         </section>
       ))}
-      <p className="muted">Kunci jawaban tidak ditampilkan karena percobaan ulang mungkin diizinkan.</p>
+      {data.mcqReview ? (
+        <section className="card" aria-labelledby="pembahasan-judul">
+          <h2 id="pembahasan-judul">Pembahasan soal</h2>
+          <ol className="stack">
+            {data.mcqReview.map((q) => {
+              const chosen = q.options.find((o) => o.chosen);
+              const right = !!chosen?.correct;
+              return (
+                <li key={q.sequence}>
+                  <p>{q.stem}</p>
+                  <ul>
+                    {q.options.map((o, i) => (
+                      <li key={i}>
+                        {o.body}
+                        {o.correct && <strong> — jawaban benar</strong>}
+                        {o.chosen && <span className="muted"> (pilihan Anda)</span>}
+                      </li>
+                    ))}
+                  </ul>
+                  <p>
+                    <span className={right ? 'badge badge-success' : 'badge badge-danger'}>{right ? '✓ Benar' : chosen ? '✕ Kurang tepat' : '– Tidak dijawab'}</span>
+                  </p>
+                  {q.explanation && (
+                    <p>
+                      <strong>Penjelasan:</strong> {q.explanation}
+                    </p>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        </section>
+      ) : (
+        <p className="muted">{data.reviewNote ?? 'Kunci jawaban tidak ditampilkan karena percobaan ulang mungkin diizinkan.'}</p>
+      )}
       {appealMsg && (
         <div className={`alert ${appealMsg.ok ? 'alert-success' : 'alert-error'}`} role="status">
           {appealMsg.text}

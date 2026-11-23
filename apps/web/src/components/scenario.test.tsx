@@ -16,6 +16,7 @@ const summary: LessonScenarioSummary = {
   maxAttempts: 3,
   validFrom: '2026-11-01',
   needsLocalValidation: true,
+  localValidationNote: null,
   attemptsUsed: 0,
   activeAttemptId: null,
   bestPercent: null,
@@ -29,6 +30,7 @@ const block: ScenarioDelivery['block'] = {
   mode: 'graded',
   validFrom: '2026-11-01',
   needsLocalValidation: true,
+  localValidationNote: null,
   regulations: [],
   estimatedMinutes: 8,
   decisionCount: { done: 0, maxOnPath: 1 },
@@ -86,7 +88,8 @@ describe('ScenarioBlock', () => {
       }),
     );
     render(<ScenarioBlock summary={summary} lessonId="l1" />);
-    expect(screen.getByText(/Cek SOP desa\/Disdukcapil setempat/)).toBeTruthy();
+    // Tanpa localValidationNote → teks umum (bukan khusus Disdukcapil).
+    expect(screen.getByText('Cek SOP dan aturan daerah setempat sebelum menerapkannya di desa Anda.')).toBeTruthy();
     expect(screen.getByText(/Berlaku per 2026-11-01/)).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Mulai skenario' }));
 
@@ -142,6 +145,12 @@ describe('ScenarioBlock', () => {
       { nodeId: 'd1', optionKey: 'p1' },
       { nodeId: 'd1', optionKey: 'p1' },
     ]);
+  });
+
+  it('banner cek lokal memakai teks dari penulis bila ada', () => {
+    render(<ScenarioBlock summary={{ ...summary, localValidationNote: 'Cek peraturan bupati dan petunjuk DPMD setempat.' }} lessonId="l1" />);
+    expect(screen.getByText('Cek peraturan bupati dan petunjuk DPMD setempat.')).toBeTruthy();
+    expect(screen.queryByText(/Disdukcapil/)).toBeNull();
   });
 
   it('kesempatan habis → tidak ada tombol mulai', () => {

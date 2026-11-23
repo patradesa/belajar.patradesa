@@ -54,6 +54,14 @@ async function draftLesson(db: D1Database, lessonId: string) {
   return l;
 }
 
+/** lesson_key unik per versi kelas (UNIQUE(course_version_id, lesson_key)). */
+function lessonKeyConflict(err: unknown): unknown {
+  if (err instanceof Error && /UNIQUE constraint failed: lessons\.course_version_id, lessons\.lesson_key/.test(err.message)) {
+    return new HttpError(409, ERROR_CODES.CONFLICT, 'Kode materi sudah dipakai materi lain di versi kelas ini.');
+  }
+  return err;
+}
+
 async function draftAssessment(db: D1Database, assessmentId: string) {
   const a = await db.prepare('SELECT id, lesson_id FROM assessments WHERE id = ?').bind(assessmentId).first<{ id: string; lesson_id: string }>();
   if (!a) throw notFound('Kuis');
@@ -91,8 +99,8 @@ async function cloneVersionStatements(db: D1Database, fromVersionId: string, toV
     stmts.push(
       db
         .prepare(
-          `INSERT INTO assessments (id, lesson_id, title, instructions, time_limit_seconds, passing_score_pct, max_attempts, cooldown_seconds, mcq_count, essay_count, grace_seconds, is_required, version, created_at)
-           SELECT ?, ?, title, instructions, time_limit_seconds, passing_score_pct, max_attempts, cooldown_seconds, mcq_count, essay_count, grace_seconds, is_required, version + 1, ? FROM assessments WHERE id = ?`,
+          `INSERT INTO assessments (id, lesson_id, title, instructions, time_limit_seconds, passing_score_pct, max_attempts, cooldown_seconds, mcq_count, essay_count, grace_seconds, is_required, review_policy, version, created_at)
+           SELECT ?, ?, title, instructions, time_limit_seconds, passing_score_pct, max_attempts, cooldown_seconds, mcq_count, essay_count, grace_seconds, is_required, review_policy, version + 1, ? FROM assessments WHERE id = ?`,
         )
         .bind(aid, lid, now, a.id),
       db
@@ -108,8 +116,8 @@ async function cloneVersionStatements(db: D1Database, fromVersionId: string, toV
       stmts.push(
         db
           .prepare(
-            `INSERT INTO questions (id, assessment_id, type, stem, difficulty, topic, points, version, rubric_json, model_answer, is_active, in_quiz, created_at)
-             SELECT ?, ?, type, stem, difficulty, topic, points, version, rubric_json, model_answer, 1, in_quiz, ? FROM questions WHERE id = ?`,
+            `INSERT INTO questions (id, assessment_id, type, stem, difficulty, topic, points, version, rubric_json, model_answer, explanation, is_active, in_quiz, created_at)
+             SELECT ?, ?, type, stem, difficulty, topic, points, version, rubric_json, model_answer, explanation, 1, in_quiz, ? FROM questions WHERE id = ?`,
           )
           .bind(qid, aid, now, q.id),
         db
@@ -405,13 +413,17 @@ export function adminRoutes(deps: Deps) {
     const { youtubeId, contentJson } = await lessonContentFields(c.env.DB, b);
     const seq = await c.env.DB.prepare('SELECT COALESCE(MAX(seq), 0) + 1 AS s FROM lessons WHERE course_version_id = ?').bind(draft.id).first<{ s: number }>();
     const lid = newId();
-    await c.env.DB.batch([
-      c.env.DB.prepare(
-        `INSERT INTO lessons (id, course_version_id, lesson_key, seq, title, summary, content_type, content_source, content_json, youtube_id, required_active_seconds, is_required)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      ).bind(lid, draft.id, randomToken(8), seq?.s ?? 1, b.title, b.summary, b.contentType, b.contentSource, contentJson, youtubeId, b.requiredActiveSeconds, b.isRequired ? 1 : 0),
-      auditStmt(c.env.DB, now, u.id, 'lesson.create', 'lesson', lid),
-    ]);
+    try {
+      await c.env.DB.batch([
+        c.env.DB.prepare(
+          `INSERT INTO lessons (id, course_version_id, lesson_key, seq, title, summary, content_type, content_source, content_json, youtube_id, required_active_seconds, is_required)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ).bind(lid, draft.id, b.lessonKey ?? randomToken(8), seq?.s ?? 1, b.title, b.summary, b.contentType, b.contentSource, contentJson, youtubeId, b.requiredActiveSeconds, b.isRequired ? 1 : 0),
+        auditStmt(c.env.DB, now, u.id, 'lesson.create', 'lesson', lid),
+      ]);
+    } catch (err) {
+      throw lessonKeyConflict(err);
+    }
     return c.json({ id: lid }, 201);
   });
 
@@ -421,12 +433,17 @@ export function adminRoutes(deps: Deps) {
     const b = await readJson(c, lessonUpsertSchema);
     const { youtubeId, contentJson } = await lessonContentFields(c.env.DB, b);
     const now = deps.now();
-    await c.env.DB.batch([
-      c.env.DB.prepare(
-        `UPDATE lessons SET title = ?, summary = ?, content_type = ?, content_source = ?, content_json = ?, youtube_id = ?, required_active_seconds = ?, is_required = ? WHERE id = ?`,
-      ).bind(b.title, b.summary, b.contentType, b.contentSource, contentJson, youtubeId, b.requiredActiveSeconds, b.isRequired ? 1 : 0, l.id),
-      auditStmt(c.env.DB, now, u.id, 'lesson.update', 'lesson', l.id),
-    ]);
+    try {
+      await c.env.DB.batch([
+        c.env.DB.prepare(
+          `UPDATE lessons SET title = ?, summary = ?, content_type = ?, content_source = ?, content_json = ?, youtube_id = ?, required_active_seconds = ?, is_required = ?,
+             lesson_key = COALESCE(?, lesson_key) WHERE id = ?`,
+        ).bind(b.title, b.summary, b.contentType, b.contentSource, contentJson, youtubeId, b.requiredActiveSeconds, b.isRequired ? 1 : 0, b.lessonKey ?? null, l.id),
+        auditStmt(c.env.DB, now, u.id, 'lesson.update', 'lesson', l.id),
+      ]);
+    } catch (err) {
+      throw lessonKeyConflict(err);
+    }
     return c.json({ ok: true });
   });
 
@@ -468,13 +485,13 @@ export function adminRoutes(deps: Deps) {
     const aid = existing?.id ?? newId();
     await c.env.DB.batch([
       c.env.DB.prepare(
-        `INSERT INTO assessments (id, lesson_id, title, instructions, time_limit_seconds, passing_score_pct, max_attempts, cooldown_seconds, mcq_count, essay_count, grace_seconds, is_required, version, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
+        `INSERT INTO assessments (id, lesson_id, title, instructions, time_limit_seconds, passing_score_pct, max_attempts, cooldown_seconds, mcq_count, essay_count, grace_seconds, is_required, review_policy, version, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
          ON CONFLICT (lesson_id) DO UPDATE SET title = excluded.title, instructions = excluded.instructions,
            time_limit_seconds = excluded.time_limit_seconds, passing_score_pct = excluded.passing_score_pct, max_attempts = excluded.max_attempts,
            cooldown_seconds = excluded.cooldown_seconds, mcq_count = excluded.mcq_count, essay_count = excluded.essay_count,
-           grace_seconds = excluded.grace_seconds, is_required = excluded.is_required, version = assessments.version + 1`,
-      ).bind(aid, l.id, b.title, b.instructions, b.timeLimitSeconds, b.passingScorePct, b.maxAttempts, b.cooldownSeconds, b.mcqCount, b.essayCount, b.graceSeconds, b.isRequired ? 1 : 0, now),
+           grace_seconds = excluded.grace_seconds, is_required = excluded.is_required, review_policy = excluded.review_policy, version = assessments.version + 1`,
+      ).bind(aid, l.id, b.title, b.instructions, b.timeLimitSeconds, b.passingScorePct, b.maxAttempts, b.cooldownSeconds, b.mcqCount, b.essayCount, b.graceSeconds, b.isRequired ? 1 : 0, b.reviewPolicy, now),
       c.env.DB.prepare(
         `INSERT INTO assessment_policies (assessment_id, version, exam_copy_deterrence_enabled, ai_lock_enabled, accessibility_exemption_policy, hide_lesson_links_during_exam, updated_at)
          VALUES (?, 1, ?, 1, ?, ?, ?)
@@ -493,8 +510,8 @@ export function adminRoutes(deps: Deps) {
     const stmts = [
       db
         .prepare(
-          `INSERT INTO questions (id, assessment_id, type, stem, difficulty, topic, points, version, rubric_json, model_answer, is_active, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, 1, ?)`,
+          `INSERT INTO questions (id, assessment_id, type, stem, difficulty, topic, points, version, rubric_json, model_answer, explanation, is_active, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, 1, ?)`,
         )
         .bind(
           qid,
@@ -506,6 +523,7 @@ export function adminRoutes(deps: Deps) {
           b.points,
           b.type === 'essay' ? JSON.stringify(b.rubric) : null,
           b.type === 'essay' ? b.modelAnswer : null,
+          b.type === 'mcq' ? (b.explanation ?? null) : null,
           createdAt,
         ),
     ];

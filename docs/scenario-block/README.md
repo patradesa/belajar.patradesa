@@ -25,6 +25,7 @@ Blok skenario melatih **pengambilan keputusan** di situasi nyata desa: peserta m
 | Node `end` | Penutup cerita; memicu layar hasil. Tanpa opsi, tanpa `nextNodeId`. |
 | Mode | `formative` = latihan, tidak memengaruhi kelulusan. `graded` = syarat sertifikat (lihat §7). |
 | Band | Rentang persen → label + pesan di layar akhir. Wajib ada band `minPercent: 0`. |
+| Cek lokal | `needsLocalValidation: true` menampilkan banner. Teksnya dari `localValidationNote` (opsional, 5–200 karakter); tanpa itu dipakai teks umum "Cek SOP dan aturan daerah setempat sebelum menerapkannya di desa Anda." |
 
 Label verdict di UI: `best` → **Tepat**, `acceptable` → **Bisa diterima**, `risky` → **Berisiko**, `wrong` → **Kurang tepat**.
 
