@@ -190,6 +190,18 @@ export async function courseDetail(db: D1Database, idOrSlug: string, userId: str
       };
     }
     if (enr && l.is_required === 1 && !l.completed_at) reasons.push(`Materi "${l.title}" belum selesai.`);
+    if (enr && userId && l.is_required === 1) {
+      const { results: pending } = await db
+        .prepare(
+          `SELECT sb.title FROM lesson_scenarios ls JOIN scenario_blocks sb ON sb.id = ls.scenario_block_id
+           WHERE ls.lesson_id = ? AND sb.mode = 'graded'
+             AND NOT EXISTS (SELECT 1 FROM scenario_attempts sa WHERE sa.scenario_block_id = sb.id AND sa.user_id = ? AND sa.passed = 1)
+           ORDER BY ls.position`,
+        )
+        .bind(l.id, userId)
+        .all<{ title: string }>();
+      for (const s of pending) reasons.push(`Skenario "${s.title}" belum lulus.`);
+    }
     out.push({
       id: l.id,
       seq: l.seq,
@@ -263,10 +275,15 @@ export async function myCourses(db: D1Database, userId: string) {
               (SELECT COUNT(*) FROM lesson_progress p JOIN lessons l ON l.id = p.lesson_id
                 WHERE p.user_id = e.user_id AND l.course_version_id = e.course_version_id AND l.is_required = 1 AND p.completed_at IS NOT NULL) AS completed_lessons,
               (SELECT COUNT(*) FROM assessments a JOIN lessons l ON l.id = a.lesson_id
-                WHERE l.course_version_id = e.course_version_id AND a.is_required = 1) AS required_quizzes,
+                WHERE l.course_version_id = e.course_version_id AND a.is_required = 1)
+              + (SELECT COUNT(*) FROM lesson_scenarios ls JOIN lessons l ON l.id = ls.lesson_id JOIN scenario_blocks sb ON sb.id = ls.scenario_block_id
+                WHERE l.course_version_id = e.course_version_id AND l.is_required = 1 AND sb.mode = 'graded') AS required_quizzes,
               (SELECT COUNT(*) FROM assessments a JOIN lessons l ON l.id = a.lesson_id
                 WHERE l.course_version_id = e.course_version_id AND a.is_required = 1
-                  AND EXISTS (SELECT 1 FROM attempts t WHERE t.assessment_id = a.id AND t.user_id = e.user_id AND t.result_status = 'passed')) AS passed_quizzes,
+                  AND EXISTS (SELECT 1 FROM attempts t WHERE t.assessment_id = a.id AND t.user_id = e.user_id AND t.result_status = 'passed'))
+              + (SELECT COUNT(*) FROM lesson_scenarios ls JOIN lessons l ON l.id = ls.lesson_id JOIN scenario_blocks sb ON sb.id = ls.scenario_block_id
+                WHERE l.course_version_id = e.course_version_id AND l.is_required = 1 AND sb.mode = 'graded'
+                  AND EXISTS (SELECT 1 FROM scenario_attempts sa WHERE sa.scenario_block_id = sb.id AND sa.user_id = e.user_id AND sa.passed = 1)) AS passed_quizzes,
               (SELECT COUNT(*) FROM assessments a JOIN lessons l ON l.id = a.lesson_id
                 WHERE l.course_version_id = e.course_version_id AND a.is_required = 1
                   AND NOT EXISTS (SELECT 1 FROM attempts t WHERE t.assessment_id = a.id AND t.user_id = e.user_id AND t.result_status = 'passed')
@@ -289,6 +306,7 @@ export async function myCourses(db: D1Database, userId: string) {
       reviewing_quizzes: number;
       certificate_status: MyCourse['certificateStatus'];
     }>();
+  // Catatan: skenario 'graded' pada materi wajib dihitung sebagai "kuis" untuk progres (syarat lulus yang sama).
   return results.map(
     (r): MyCourse => ({
       id: r.id,

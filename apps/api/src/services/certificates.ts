@@ -97,6 +97,9 @@ export async function completionState(
          (SELECT COUNT(*) FROM assessments a JOIN lessons l ON l.id = a.lesson_id
             WHERE l.course_version_id = e.course_version_id AND a.is_required = 1
               AND NOT EXISTS (SELECT 1 FROM attempts t WHERE t.assessment_id = a.id AND t.user_id = e.user_id AND t.result_status = 'passed')) AS quizzes_left,
+         (SELECT COUNT(*) FROM lesson_scenarios ls JOIN lessons l ON l.id = ls.lesson_id JOIN scenario_blocks sb ON sb.id = ls.scenario_block_id
+            WHERE l.course_version_id = e.course_version_id AND l.is_required = 1 AND sb.mode = 'graded'
+              AND NOT EXISTS (SELECT 1 FROM scenario_attempts sa WHERE sa.scenario_block_id = sb.id AND sa.user_id = e.user_id AND sa.passed = 1)) AS scenarios_left,
          (SELECT ROUND(AVG(best), 1) FROM (SELECT MAX(t.final_score_pct) AS best FROM attempts t
             JOIN assessments a ON a.id = t.assessment_id JOIN lessons l ON l.id = a.lesson_id
             WHERE l.course_version_id = e.course_version_id AND t.user_id = e.user_id AND t.result_status = 'passed'
@@ -110,11 +113,12 @@ export async function completionState(
       lesson_count: number;
       lessons_left: number;
       quizzes_left: number;
+      scenarios_left: number;
       score: number | null;
     }>();
   if (!r) return null;
   return {
-    complete: r.lesson_count > 0 && r.lessons_left === 0 && r.quizzes_left === 0,
+    complete: r.lesson_count > 0 && r.lessons_left === 0 && r.quizzes_left === 0 && r.scenarios_left === 0,
     versionId: r.version_id,
     enrollmentId: r.enrollment_id,
     scorePct: r.score,

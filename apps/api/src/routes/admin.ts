@@ -26,6 +26,7 @@ import { auditStmt } from '../lib/audit';
 import { currentUser, hasRole, requireRole } from '../middleware/auth';
 import { recomputeAfterReviewStatement, resultFromScoreStatement } from '../services/finalize';
 import { createGradingDemo } from '../services/demoGrading';
+import { assertScenarioKeysExist, pinScenarioStatements } from '../services/scenarios';
 import { integrationConfigured, integrationProblem, issueAfterAttempt, pushToStudio, revokeCertificate, type CertificateRow } from '../services/certificates';
 
 const MAX_PDF_BYTES = 20 * 1024 * 1024;
@@ -59,13 +60,15 @@ async function draftAssessment(db: D1Database, assessmentId: string) {
   return { ...a, lesson: await draftLesson(db, a.lesson_id) };
 }
 
-function lessonContentFields(b: z.infer<typeof lessonUpsertSchema>) {
+async function lessonContentFields(db: D1Database, b: z.infer<typeof lessonUpsertSchema>) {
   let youtubeId: string | null = null;
   if (b.contentType === 'youtube') {
     youtubeId = b.youtube ? extractYoutubeId(b.youtube) : null;
     if (!youtubeId) throw new HttpError(400, ERROR_CODES.VALIDATION, 'Tautan/ID YouTube tidak valid.');
   }
-  return { youtubeId, contentJson: JSON.stringify(parseContent(b.contentSource)) };
+  const blocks = parseContent(b.contentSource);
+  await assertScenarioKeysExist(db, blocks);
+  return { youtubeId, contentJson: JSON.stringify(blocks) };
 }
 
 /** Salin versi course (lesson, kuis, kebijakan, bank soal aktif + pilihan soal kuis) ke versi draft baru. */
@@ -362,7 +365,10 @@ export function adminRoutes(deps: Deps) {
     if (!draft) throw new HttpError(409, ERROR_CODES.CONFLICT, 'Tidak ada draft untuk diterbitkan.');
     const n = await c.env.DB.prepare('SELECT COUNT(*) AS n FROM lessons WHERE course_version_id = ?').bind(draft.id).first<{ n: number }>();
     if (!n?.n) throw new HttpError(409, ERROR_CODES.CONFLICT, 'Draft belum memiliki materi.');
+    // Blok skenario dipin ke versi published terbarunya (ADR-0008); gagal bila ada yang belum terbit.
+    const pins = await pinScenarioStatements(c.env.DB, draft.id);
     await c.env.DB.batch([
+      ...pins,
       c.env.DB.prepare(`UPDATE course_versions SET status = 'superseded' WHERE course_id = ? AND status = 'published'`).bind(id),
       c.env.DB.prepare(`UPDATE course_versions SET status = 'published', published_at = ?, published_by = ? WHERE id = ?`).bind(now, u.id, draft.id),
       c.env.DB.prepare(`UPDATE courses SET current_version_id = ?, status = 'published', updated_at = ? WHERE id = ?`).bind(draft.id, now, id),
@@ -396,7 +402,7 @@ export function adminRoutes(deps: Deps) {
     const now = deps.now();
     const draft = await c.env.DB.prepare(`SELECT id FROM course_versions WHERE course_id = ? AND status = 'draft'`).bind(id).first<{ id: string }>();
     if (!draft) throw new HttpError(409, ERROR_CODES.CONFLICT, 'Buat draft terlebih dahulu.');
-    const { youtubeId, contentJson } = lessonContentFields(b);
+    const { youtubeId, contentJson } = await lessonContentFields(c.env.DB, b);
     const seq = await c.env.DB.prepare('SELECT COALESCE(MAX(seq), 0) + 1 AS s FROM lessons WHERE course_version_id = ?').bind(draft.id).first<{ s: number }>();
     const lid = newId();
     await c.env.DB.batch([
@@ -413,7 +419,7 @@ export function adminRoutes(deps: Deps) {
     const u = currentUser(c);
     const l = await draftLesson(c.env.DB, param(c, 'id'));
     const b = await readJson(c, lessonUpsertSchema);
-    const { youtubeId, contentJson } = lessonContentFields(b);
+    const { youtubeId, contentJson } = await lessonContentFields(c.env.DB, b);
     const now = deps.now();
     await c.env.DB.batch([
       c.env.DB.prepare(

@@ -7,6 +7,8 @@ import {
   normalizeCertificateCode,
   profilePatchSchema,
   ratingSchema,
+  scenarioChoiceSchema,
+  scenarioStartSchema,
   type Block,
   type LessonContent,
   type MeResponse,
@@ -22,6 +24,7 @@ import { requireLessonAccess } from '../services/access';
 import { heartbeat, startLearningSession, touchProgressStatement } from '../services/learning';
 import { attemptResult, attemptView, loadOwnedAttempt, saveAnswers, startAttempt, submitAttempt } from '../services/attempts';
 import { ensureCertificate, issueAfterAttempt, myCertificates, publicCertificate, toView } from '../services/certificates';
+import { lessonScenarioSummaries, scenarioDelivery, startScenarioAttempt, submitScenarioChoice } from '../services/scenarios';
 
 export function learnerRoutes(deps: Deps) {
   const r = new Hono<AppEnv>();
@@ -210,8 +213,32 @@ export function learnerRoutes(deps: Deps) {
       requiredActiveSeconds: acc.required_active_seconds,
       activeSeconds: p?.active_seconds ?? 0,
       completed: !!p?.completed_at,
+      scenarios: await lessonScenarioSummaries(c.env.DB, u.id, acc.lesson_id),
     };
     return c.json(body);
+  });
+
+  // ---------------------------------------------------------------- blok skenario (docs/scenario-block/README.md §4)
+  r.post('/scenarios/:id/attempts', requireAuth, async (c) => {
+    const u = currentUser(c);
+    const now = deps.now();
+    await enforceRateLimit(c.env.DB, `scn-start:${u.id}`, 10, 60_000, now);
+    const b = await readJson(c, scenarioStartSchema);
+    const { attemptId, created } = await startScenarioAttempt(c.env.DB, u.id, param(c, 'id'), b.lessonId, now);
+    return c.json(await scenarioDelivery(c.env.DB, attemptId, u.id), created ? 201 : 200);
+  });
+
+  r.get('/scenario-attempts/:id', requireAuth, async (c) => {
+    const u = currentUser(c);
+    return c.json(await scenarioDelivery(c.env.DB, param(c, 'id'), u.id));
+  });
+
+  r.post('/scenario-attempts/:id/choices', requireAuth, async (c) => {
+    const u = currentUser(c);
+    const now = deps.now();
+    await enforceRateLimit(c.env.DB, `scn-choice:${u.id}`, 60, 60_000, now);
+    const b = await readJson(c, scenarioChoiceSchema);
+    return c.json(await submitScenarioChoice(c.env.DB, u.id, param(c, 'id'), b, now));
   });
 
   // PDF privat: R2 bucket tidak publik; hanya lewat Worker setelah cek enrollment.
