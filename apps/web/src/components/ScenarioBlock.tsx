@@ -85,7 +85,7 @@ function Intro({ s, onStart, busy }: { s: LessonScenarioSummary; onStart: () => 
   );
 }
 
-export default function ScenarioBlock({ summary, lessonId }: { summary: LessonScenarioSummary; lessonId: string }) {
+export default function ScenarioBlock({ summary, lessonId, onFinish }: { summary: LessonScenarioSummary; lessonId: string; onFinish?: () => void }) {
   const [s, setS] = useState(summary);
   const [d, setD] = useState<ScenarioDelivery | null>(null);
   const [result, setResult] = useState<ScenarioChoiceResponse | null>(null);
@@ -130,6 +130,7 @@ export default function ScenarioBlock({ summary, lessonId }: { summary: LessonSc
       if (r.result) setResult(r);
       else setD(r.delivery);
       if (r.delivery.final) {
+        onFinish?.();
         const f = r.delivery.final;
         setS((x) => ({
           ...x,

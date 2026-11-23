@@ -20,6 +20,10 @@ const PATHS = {
   back: 'M19 12H5M11 6l-6 6 6 6',
   leaf: 'M5 21c0-9 6-15 15-16-1 9-7 15-15 16zM9 17c2-4 5-7 9-9',
   layers: 'M12 3l9 5-9 5-9-5zM3 13l9 5 9-5',
+  chevron: 'M6 9l6 6 6-6',
+  circle: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z',
+  pencil: 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4',
+  history: 'M3 12a9 9 0 1 0 3-6.7M3 4v4h4M12 7v5l3 2',
   spark: 'M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M6 18l2.5-2.5M15.5 8.5L18 6',
 } as const;
 

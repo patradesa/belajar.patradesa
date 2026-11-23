@@ -102,7 +102,8 @@ export const lessonUpsertSchema = z
     title: shortText(160),
     summary: z.string().trim().max(500).default(''),
     contentType: z.enum(['html', 'slides', 'pdf', 'youtube']),
-    contentSource: z.string().max(60_000).default(''),
+    // Akhir baris dinormalkan (CRLF ke LF) agar berkas dari Windows dan isian browser setara.
+    contentSource: z.string().max(60_000).default('').transform((s) => s.replace(/\r\n?/g, '\n')),
     youtube: z.string().trim().max(200).nullable().optional(),
     requiredActiveSeconds: z.number().int().min(0).max(36_000).default(300),
     isRequired: z.boolean().default(true),

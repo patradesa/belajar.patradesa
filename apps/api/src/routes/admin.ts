@@ -28,6 +28,7 @@ import { recomputeAfterReviewStatement, resultFromScoreStatement } from '../serv
 import { createGradingDemo } from '../services/demoGrading';
 import { assertScenarioKeysExist, pinScenarioStatements } from '../services/scenarios';
 import { upgradeEnrollment } from '../services/enrollmentUpgrade';
+import { LESSON_FIELDS, QUIZ_FIELDS, courseLog, diffFields, draftChanges, publishProblems } from '../services/courseChanges';
 import { integrationConfigured, integrationProblem, issueAfterAttempt, pushToStudio, revokeCertificate, type CertificateRow } from '../services/certificates';
 
 const MAX_PDF_BYTES = 20 * 1024 * 1024;
@@ -360,7 +361,7 @@ export function adminRoutes(deps: Deps) {
       ),
     ];
     if (course.current_version_id) stmts.push(...(await cloneVersionStatements(c.env.DB, course.current_version_id, vid, now)));
-    stmts.push(auditStmt(c.env.DB, now, u.id, 'course.draft', 'course', id, { versionId: vid }));
+    stmts.push(auditStmt(c.env.DB, now, u.id, 'course.draft', 'course', id, { versionId: vid, versionNo: (max?.v ?? 0) + 1 }));
     await c.env.DB.batch(stmts);
     return c.json({ draftVersionId: vid }, 201);
   });
@@ -374,6 +375,9 @@ export function adminRoutes(deps: Deps) {
     if (!draft) throw new HttpError(409, ERROR_CODES.CONFLICT, 'Tidak ada draft untuk diterbitkan.');
     const n = await c.env.DB.prepare('SELECT COUNT(*) AS n FROM lessons WHERE course_version_id = ?').bind(draft.id).first<{ n: number }>();
     if (!n?.n) throw new HttpError(409, ERROR_CODES.CONFLICT, 'Draft belum memiliki materi.');
+    const problems = await publishProblems(c.env.DB, draft.id);
+    if (problems.length) throw new HttpError(409, ERROR_CODES.CONFLICT, problems[0]!, problems);
+    const vno = await c.env.DB.prepare('SELECT version_no FROM course_versions WHERE id = ?').bind(draft.id).first<{ version_no: number }>();
     // Blok skenario dipin ke versi published terbarunya (ADR-0008); gagal bila ada yang belum terbit.
     const pins = await pinScenarioStatements(c.env.DB, draft.id);
     await c.env.DB.batch([
@@ -381,7 +385,7 @@ export function adminRoutes(deps: Deps) {
       c.env.DB.prepare(`UPDATE course_versions SET status = 'superseded' WHERE course_id = ? AND status = 'published'`).bind(id),
       c.env.DB.prepare(`UPDATE course_versions SET status = 'published', published_at = ?, published_by = ? WHERE id = ?`).bind(now, u.id, draft.id),
       c.env.DB.prepare(`UPDATE courses SET current_version_id = ?, status = 'published', updated_at = ? WHERE id = ?`).bind(draft.id, now, id),
-      auditStmt(c.env.DB, now, u.id, 'course.publish', 'course', id, { versionId: draft.id }),
+      auditStmt(c.env.DB, now, u.id, 'course.publish', 'course', id, { versionId: draft.id, versionNo: vno?.version_no ?? null }),
     ]);
     return c.json({ ok: true, versionId: draft.id });
   });
@@ -420,7 +424,7 @@ export function adminRoutes(deps: Deps) {
           `INSERT INTO lessons (id, course_version_id, lesson_key, seq, title, summary, content_type, content_source, content_json, youtube_id, required_active_seconds, is_required)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         ).bind(lid, draft.id, b.lessonKey ?? randomToken(8), seq?.s ?? 1, b.title, b.summary, b.contentType, b.contentSource, contentJson, youtubeId, b.requiredActiveSeconds, b.isRequired ? 1 : 0),
-        auditStmt(c.env.DB, now, u.id, 'lesson.create', 'lesson', lid),
+        auditStmt(c.env.DB, now, u.id, 'lesson.create', 'lesson', lid, { courseId: id, lessonTitle: b.title }),
       ]);
     } catch (err) {
       throw lessonKeyConflict(err);
@@ -434,13 +438,24 @@ export function adminRoutes(deps: Deps) {
     const b = await readJson(c, lessonUpsertSchema);
     const { youtubeId, contentJson } = await lessonContentFields(c.env.DB, b);
     const now = deps.now();
+    const before = await c.env.DB.prepare('SELECT * FROM lessons WHERE id = ?').bind(l.id).first<Record<string, unknown>>();
+    const changed = diffFields(before ?? {}, {
+      title: b.title,
+      summary: b.summary,
+      content_type: b.contentType,
+      content_source: b.contentSource,
+      youtube_id: youtubeId,
+      file_key: before?.file_key ?? null,
+      required_active_seconds: b.requiredActiveSeconds,
+      is_required: b.isRequired ? 1 : 0,
+    }, LESSON_FIELDS).join('; ');
     try {
       await c.env.DB.batch([
         c.env.DB.prepare(
           `UPDATE lessons SET title = ?, summary = ?, content_type = ?, content_source = ?, content_json = ?, youtube_id = ?, required_active_seconds = ?, is_required = ?,
              lesson_key = COALESCE(?, lesson_key) WHERE id = ?`,
         ).bind(b.title, b.summary, b.contentType, b.contentSource, contentJson, youtubeId, b.requiredActiveSeconds, b.isRequired ? 1 : 0, b.lessonKey ?? null, l.id),
-        auditStmt(c.env.DB, now, u.id, 'lesson.update', 'lesson', l.id),
+        auditStmt(c.env.DB, now, u.id, 'lesson.update', 'lesson', l.id, { courseId: l.course_id, lessonTitle: b.title, changed: changed || 'tanpa perubahan' }),
       ]);
     } catch (err) {
       throw lessonKeyConflict(err);
@@ -451,7 +466,11 @@ export function adminRoutes(deps: Deps) {
   r.delete('/lessons/:id', editors, async (c) => {
     const u = currentUser(c);
     const l = await draftLesson(c.env.DB, param(c, 'id'));
-    await c.env.DB.batch([c.env.DB.prepare('DELETE FROM lessons WHERE id = ?').bind(l.id), auditStmt(c.env.DB, deps.now(), u.id, 'lesson.delete', 'lesson', l.id)]);
+    const gone = await c.env.DB.prepare('SELECT title FROM lessons WHERE id = ?').bind(l.id).first<{ title: string }>();
+    await c.env.DB.batch([
+      c.env.DB.prepare('DELETE FROM lessons WHERE id = ?').bind(l.id),
+      auditStmt(c.env.DB, deps.now(), u.id, 'lesson.delete', 'lesson', l.id, { courseId: l.course_id, lessonTitle: gone?.title ?? null }),
+    ]);
     return c.json({ ok: true });
   });
 
@@ -482,8 +501,22 @@ export function adminRoutes(deps: Deps) {
     const l = await draftLesson(c.env.DB, param(c, 'id'));
     const b = await readJson(c, assessmentUpsertSchema);
     const now = deps.now();
-    const existing = await c.env.DB.prepare('SELECT id FROM assessments WHERE lesson_id = ?').bind(l.id).first<{ id: string }>();
+    const existing = await c.env.DB.prepare('SELECT * FROM assessments WHERE lesson_id = ?').bind(l.id).first<Record<string, unknown> & { id: string }>();
     const aid = existing?.id ?? newId();
+    const lessonRow = await c.env.DB.prepare('SELECT title FROM lessons WHERE id = ?').bind(l.id).first<{ title: string }>();
+    const quizChanged = existing
+      ? diffFields(existing, {
+          title: b.title,
+          passing_score_pct: b.passingScorePct,
+          max_attempts: b.maxAttempts,
+          cooldown_seconds: b.cooldownSeconds,
+          time_limit_seconds: b.timeLimitSeconds,
+          mcq_count: b.mcqCount,
+          essay_count: b.essayCount,
+          is_required: b.isRequired ? 1 : 0,
+          review_policy: b.reviewPolicy,
+        }, QUIZ_FIELDS).join('; ')
+      : 'kuis baru';
     await c.env.DB.batch([
       c.env.DB.prepare(
         `INSERT INTO assessments (id, lesson_id, title, instructions, time_limit_seconds, passing_score_pct, max_attempts, cooldown_seconds, mcq_count, essay_count, grace_seconds, is_required, review_policy, version, created_at)
@@ -500,7 +533,7 @@ export function adminRoutes(deps: Deps) {
            exam_copy_deterrence_enabled = excluded.exam_copy_deterrence_enabled, accessibility_exemption_policy = excluded.accessibility_exemption_policy,
            hide_lesson_links_during_exam = excluded.hide_lesson_links_during_exam, updated_at = excluded.updated_at`,
       ).bind(aid, b.examCopyDeterrenceEnabled ? 1 : 0, b.accessibilityExemptionPolicy, b.hideLessonLinksDuringExam ? 1 : 0, now),
-      auditStmt(c.env.DB, now, u.id, 'assessment.upsert', 'assessment', aid, { copyDeterrence: b.examCopyDeterrenceEnabled }),
+      auditStmt(c.env.DB, now, u.id, 'assessment.upsert', 'assessment', aid, { courseId: l.course_id, lessonTitle: lessonRow?.title ?? null, changed: quizChanged || 'tanpa perubahan' }),
     ]);
     return c.json({ id: aid });
   });
@@ -519,7 +552,7 @@ export function adminRoutes(deps: Deps) {
     const q = await c.env.DB.prepare('SELECT COUNT(*) AS n FROM questions WHERE assessment_id = ?').bind(a.id).first<{ n: number }>();
     await c.env.DB.batch([
       c.env.DB.prepare('DELETE FROM assessments WHERE id = ?').bind(a.id),
-      auditStmt(c.env.DB, deps.now(), u.id, 'assessment.delete', 'assessment', a.id, { lessonId: l.id, questions: q?.n ?? 0 }),
+      auditStmt(c.env.DB, deps.now(), u.id, 'assessment.delete', 'assessment', a.id, { courseId: l.course_id, lessonId: l.id, questions: q?.n ?? 0 }),
     ]);
     return c.json({ ok: true });
   });
@@ -801,6 +834,23 @@ export function adminRoutes(deps: Deps) {
   r.post('/courses/:id/enrollments/:userId/upgrade', admins, async (c) => {
     const u = currentUser(c);
     return c.json(await upgradeEnrollment(c.env.DB, param(c, 'userId'), param(c, 'id'), u.id, deps.now()));
+  });
+
+  /** Ringkasan perubahan draf terhadap versi terbit (untuk konfirmasi terbit). */
+  r.get('/courses/:id/changes', editors, async (c) => {
+    const id = param(c, 'id');
+    const course = await c.env.DB.prepare('SELECT id FROM courses WHERE id = ?').bind(id).first();
+    if (!course) throw notFound('Kelas');
+    const ch = await draftChanges(c.env.DB, id);
+    return c.json({ ...ch, problems: ch.draftVersionId ? await publishProblems(c.env.DB, ch.draftVersionId) : [] });
+  });
+
+  /** Log perubahan satu kelas (siapa, kapan, apa). */
+  r.get('/courses/:id/log', editors, async (c) => {
+    const id = param(c, 'id');
+    const course = await c.env.DB.prepare('SELECT id FROM courses WHERE id = ?').bind(id).first();
+    if (!course) throw notFound('Kelas');
+    return c.json({ log: await courseLog(c.env.DB, id) });
   });
 
   r.get('/audit', admins, async (c) => {
