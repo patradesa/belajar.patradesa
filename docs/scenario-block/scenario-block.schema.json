@@ -6,77 +6,197 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "schemaVersion", "id", "version", "title", "summary", "audience",
-    "estimatedMinutes", "mode", "maxAttempts", "status", "validFrom",
-    "needsLocalValidation", "startNodeId", "nodes", "scoring", "takeaways"
+    "schemaVersion",
+    "id",
+    "version",
+    "title",
+    "summary",
+    "audience",
+    "estimatedMinutes",
+    "mode",
+    "maxAttempts",
+    "status",
+    "validFrom",
+    "needsLocalValidation",
+    "startNodeId",
+    "nodes",
+    "scoring",
+    "takeaways"
   ],
   "properties": {
-    "schemaVersion": { "const": "1.0" },
+    "schemaVersion": {
+      "const": "1.0"
+    },
     "id": {
       "description": "Kunci blok (blockKey), stabil lintas versi. Huruf kecil, angka, tanda hubung.",
-      "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{2,63}$"
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{2,63}$"
     },
-    "version": { "type": "integer", "minimum": 1 },
-    "title": { "type": "string", "minLength": 3, "maxLength": 120 },
-    "summary": { "type": "string", "minLength": 10, "maxLength": 400 },
+    "version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 120
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 10,
+      "maxLength": 400
+    },
     "audience": {
       "description": "Jabatan sasaran (village_role di user_profiles). Hanya untuk rekomendasi & filter statistik, bukan hak akses.",
-      "type": "array", "minItems": 1, "uniqueItems": true,
-      "items": { "enum": ["perbekel", "sekdes", "kaur", "kasi", "kawil", "operator_sid", "bpd", "kader", "lainnya"] }
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "perbekel",
+          "sekdes",
+          "kaur",
+          "kasi",
+          "kawil",
+          "operator_sid",
+          "bpd",
+          "kader",
+          "lainnya"
+        ]
+      }
     },
-    "estimatedMinutes": { "type": "integer", "minimum": 2, "maximum": 20 },
+    "estimatedMinutes": {
+      "type": "integer",
+      "minimum": 2,
+      "maximum": 20
+    },
     "mode": {
       "description": "formative = latihan, tidak memengaruhi kelulusan. graded = ikut syarat sertifikat.",
-      "enum": ["formative", "graded"]
+      "enum": [
+        "formative",
+        "graded"
+      ]
     },
-    "maxAttempts": { "type": "integer", "minimum": 1, "maximum": 10 },
-    "shuffleOptions": { "type": "boolean", "default": true },
-    "status": { "enum": ["draft", "in_review", "published", "archived"] },
+    "maxAttempts": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10
+    },
+    "shuffleOptions": {
+      "type": "boolean",
+      "default": true
+    },
+    "status": {
+      "enum": [
+        "draft",
+        "in_review",
+        "published",
+        "archived"
+      ]
+    },
     "validFrom": {
       "description": "Tanggal regulasi/SOP yang menjadi acuan; tampil sebagai 'Berlaku per …'.",
-      "type": "string", "format": "date"
+      "type": "string",
+      "format": "date"
     },
     "needsLocalValidation": {
-      "description": "true = tampilkan banner 'Cek SOP desa/Disdukcapil setempat'.",
+      "description": "true = tampilkan banner cek prosedur setempat (teks dari localValidationNote, atau teks umum bawaan).",
       "type": "boolean"
     },
+    "localValidationNote": {
+      "description": "Opsional. Teks banner cek lokal yang sesuai topik, mis. 'Cek SOP desa dan Disdukcapil setempat' (adminduk) atau 'Cek peraturan bupati/wali kota dan petunjuk DPMD setempat' (keuangan).",
+      "type": "string",
+      "minLength": 5,
+      "maxLength": 200
+    },
     "regulations": {
-      "type": "array", "maxItems": 8,
+      "type": "array",
+      "maxItems": 8,
       "items": {
-        "type": "object", "additionalProperties": false, "required": ["ref"],
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "ref"
+        ],
         "properties": {
-          "ref": { "type": "string", "minLength": 3, "maxLength": 160 },
-          "note": { "type": "string", "maxLength": 300 }
+          "ref": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 160
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 300
+          }
         }
       }
     },
-    "startNodeId": { "$ref": "#/$defs/nodeId" },
+    "startNodeId": {
+      "$ref": "#/$defs/nodeId"
+    },
     "nodes": {
-      "type": "array", "minItems": 2, "maxItems": 30,
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 30,
       "items": {
         "oneOf": [
-          { "$ref": "#/$defs/infoNode" },
-          { "$ref": "#/$defs/decisionNode" },
-          { "$ref": "#/$defs/endNode" }
+          {
+            "$ref": "#/$defs/infoNode"
+          },
+          {
+            "$ref": "#/$defs/decisionNode"
+          },
+          {
+            "$ref": "#/$defs/endNode"
+          }
         ]
       }
     },
     "scoring": {
       "description": "TIDAK PERNAH dikirim ke peserta.",
-      "type": "object", "additionalProperties": false,
-      "required": ["passPercent", "bands"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "passPercent",
+        "bands"
+      ],
       "properties": {
-        "passPercent": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "passPercent": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
         "bands": {
-          "type": "array", "minItems": 1, "maxItems": 5,
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 5,
           "items": {
-            "type": "object", "additionalProperties": false,
-            "required": ["key", "minPercent", "label", "message"],
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "key",
+              "minPercent",
+              "label",
+              "message"
+            ],
             "properties": {
-              "key": { "type": "string", "pattern": "^[a-z0-9-]{2,32}$" },
-              "minPercent": { "type": "integer", "minimum": 0, "maximum": 100 },
-              "label": { "type": "string", "minLength": 2, "maxLength": 40 },
-              "message": { "$ref": "#/$defs/richText" }
+              "key": {
+                "type": "string",
+                "pattern": "^[a-z0-9-]{2,32}$"
+              },
+              "minPercent": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "label": {
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 40
+              },
+              "message": {
+                "$ref": "#/$defs/richText"
+              }
             }
           }
         }
@@ -84,82 +204,201 @@
     },
     "takeaways": {
       "description": "Poin bawa pulang di layar akhir.",
-      "type": "array", "minItems": 1, "maxItems": 6,
-      "items": { "type": "string", "minLength": 5, "maxLength": 200 }
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 6,
+      "items": {
+        "type": "string",
+        "minLength": 5,
+        "maxLength": 200
+      }
     },
     "remedial": {
-      "type": "object", "additionalProperties": false, "required": ["label"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "label"
+      ],
       "properties": {
-        "label": { "type": "string", "maxLength": 80 },
-        "lessonKey": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{1,63}$" }
+        "label": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "lessonKey": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{1,63}$"
+        }
       }
     },
     "authors": {
       "description": "Inisial/peran penulis, bukan email.",
-      "type": "array", "maxItems": 5,
-      "items": { "type": "string", "maxLength": 60 }
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "string",
+        "maxLength": 60
+      }
     },
     "review": {
-      "type": "object", "additionalProperties": false,
+      "type": "object",
+      "additionalProperties": false,
       "properties": {
-        "reviewedBy": { "type": "string", "maxLength": 80 },
-        "reviewedAt": { "type": "string", "format": "date" },
-        "nextReviewDue": { "type": "string", "format": "date" },
-        "notes": { "description": "Catatan internal penelaah. TIDAK PERNAH dikirim ke peserta.", "type": "string", "maxLength": 1000 }
+        "reviewedBy": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "reviewedAt": {
+          "type": "string",
+          "format": "date"
+        },
+        "nextReviewDue": {
+          "type": "string",
+          "format": "date"
+        },
+        "notes": {
+          "description": "Catatan internal penelaah. TIDAK PERNAH dikirim ke peserta.",
+          "type": "string",
+          "maxLength": 1000
+        }
       }
     }
   },
   "$defs": {
-    "nodeId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,31}$" },
+    "nodeId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{0,31}$"
+    },
     "richText": {
       "description": "Markdown terbatas: **tebal**, *miring*, daftar '- ' dan '1. ', paragraf. Tanpa HTML mentah, tanpa tautan non-https.",
-      "type": "string", "minLength": 1, "maxLength": 1500
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1500
     },
     "infoNode": {
-      "type": "object", "additionalProperties": false,
-      "required": ["id", "type", "body", "nextNodeId"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "body",
+        "nextNodeId"
+      ],
       "properties": {
-        "id": { "$ref": "#/$defs/nodeId" },
-        "type": { "const": "info" },
-        "title": { "type": "string", "maxLength": 100 },
-        "body": { "$ref": "#/$defs/richText" },
-        "nextNodeId": { "$ref": "#/$defs/nodeId" }
+        "id": {
+          "$ref": "#/$defs/nodeId"
+        },
+        "type": {
+          "const": "info"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "body": {
+          "$ref": "#/$defs/richText"
+        },
+        "nextNodeId": {
+          "$ref": "#/$defs/nodeId"
+        }
       }
     },
     "endNode": {
-      "type": "object", "additionalProperties": false,
-      "required": ["id", "type"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type"
+      ],
       "properties": {
-        "id": { "$ref": "#/$defs/nodeId" },
-        "type": { "const": "end" },
-        "title": { "type": "string", "maxLength": 100 },
-        "body": { "$ref": "#/$defs/richText" }
+        "id": {
+          "$ref": "#/$defs/nodeId"
+        },
+        "type": {
+          "const": "end"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "body": {
+          "$ref": "#/$defs/richText"
+        }
       }
     },
     "decisionNode": {
-      "type": "object", "additionalProperties": false,
-      "required": ["id", "type", "body", "prompt", "options"],
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "body",
+        "prompt",
+        "options"
+      ],
       "properties": {
-        "id": { "$ref": "#/$defs/nodeId" },
-        "type": { "const": "decision" },
-        "title": { "type": "string", "maxLength": 100 },
-        "body": { "$ref": "#/$defs/richText" },
-        "prompt": { "type": "string", "minLength": 5, "maxLength": 200 },
+        "id": {
+          "$ref": "#/$defs/nodeId"
+        },
+        "type": {
+          "const": "decision"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "body": {
+          "$ref": "#/$defs/richText"
+        },
+        "prompt": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 200
+        },
         "options": {
-          "type": "array", "minItems": 2, "maxItems": 4,
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 4,
           "items": {
-            "type": "object", "additionalProperties": false,
-            "required": ["id", "text", "verdict", "score", "feedback", "nextNodeId"],
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "text",
+              "verdict",
+              "score",
+              "feedback",
+              "nextNodeId"
+            ],
             "properties": {
-              "id": { "type": "string", "pattern": "^[a-z0-9]{1,8}$" },
-              "text": { "type": "string", "minLength": 3, "maxLength": 300 },
+              "id": {
+                "type": "string",
+                "pattern": "^[a-z0-9]{1,8}$"
+              },
+              "text": {
+                "type": "string",
+                "minLength": 3,
+                "maxLength": 300
+              },
               "verdict": {
                 "description": "best=Tepat, acceptable=Bisa diterima, risky=Berisiko, wrong=Kurang tepat.",
-                "enum": ["best", "acceptable", "risky", "wrong"]
+                "enum": [
+                  "best",
+                  "acceptable",
+                  "risky",
+                  "wrong"
+                ]
               },
-              "score": { "type": "integer", "minimum": 0, "maximum": 10 },
-              "feedback": { "$ref": "#/$defs/richText" },
-              "nextNodeId": { "$ref": "#/$defs/nodeId" }
+              "score": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10
+              },
+              "feedback": {
+                "$ref": "#/$defs/richText"
+              },
+              "nextNodeId": {
+                "$ref": "#/$defs/nodeId"
+              }
             }
           }
         }

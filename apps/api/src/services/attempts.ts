@@ -383,8 +383,46 @@ export async function attemptResult(db: D1Database, attemptId: string, userId: s
     .prepare(`SELECT 1 AS x FROM appeals WHERE attempt_id = ? AND status = 'open'`)
     .bind(attemptId)
     .first();
-  // Kunci jawaban MCQ TIDAK ditampilkan (retake mungkin diizinkan).
+  // Kunci jawaban MCQ hanya ditampilkan bila kuis memakai review_policy 'after_done' DAN peserta sudah lulus
+  // atau kesempatannya habis — sehingga pembahasan tidak bisa dipakai untuk percobaan ulang.
+  let mcqReview: AttemptResult['mcqReview'] = null;
+  let reviewNote: string | null = null;
+  const pol = await db
+    .prepare('SELECT s.review_policy, s.max_attempts, s.id, t.user_id FROM attempts t JOIN assessments s ON s.id = t.assessment_id WHERE t.id = ?')
+    .bind(attemptId)
+    .first<{ review_policy: 'none' | 'after_done'; max_attempts: number; id: string; user_id: string }>();
+  if (pol?.review_policy === 'after_done' && (a.result_status === 'passed' || a.result_status === 'failed')) {
+    const used = await db
+      .prepare(`SELECT COUNT(*) AS n FROM attempts WHERE user_id = ? AND assessment_id = ? AND status <> 'voided'`)
+      .bind(pol.user_id, pol.id)
+      .first<{ n: number }>();
+    if (a.result_status === 'passed' || (used?.n ?? 0) >= pol.max_attempts) {
+      const { results: rows } = await db
+        .prepare(
+          `SELECT aq.sequence, aq.stem_snapshot, aq.options_snapshot_json, aq.answer_key_snapshot, ans.selected_option_key, q.explanation
+           FROM attempt_questions aq JOIN questions q ON q.id = aq.question_id
+           LEFT JOIN answers ans ON ans.attempt_question_id = aq.id
+           WHERE aq.attempt_id = ? AND aq.type = 'mcq' ORDER BY aq.sequence`,
+        )
+        .bind(attemptId)
+        .all<{ sequence: number; stem_snapshot: string; options_snapshot_json: string; answer_key_snapshot: string | null; selected_option_key: string | null; explanation: string | null }>();
+      mcqReview = rows.map((r) => ({
+        sequence: r.sequence,
+        stem: r.stem_snapshot,
+        options: (JSON.parse(r.options_snapshot_json) as { k: string; body: string }[]).map((o) => ({
+          body: o.body,
+          correct: o.k === r.answer_key_snapshot,
+          chosen: o.k === r.selected_option_key,
+        })),
+        explanation: r.explanation,
+      }));
+    } else {
+      reviewNote = 'Pembahasan soal akan tampil setelah Anda lulus atau kesempatan mencoba habis.';
+    }
+  }
   return {
+    mcqReview,
+    reviewNote,
     id: a.id,
     status: a.status,
     resultStatus: a.result_status,

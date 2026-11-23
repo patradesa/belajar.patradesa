@@ -118,7 +118,7 @@ describe('alur peserta', () => {
     const content = await l.json('GET', `/api/v1/lessons/${lessonId}/content`);
     expect(content.body.blocks).toContainEqual({ type: 'scenario', key: KEY });
     expect(content.body.scenarios).toEqual([
-      expect.objectContaining({ blockId, key: KEY, mode: 'graded', maxAttempts: 3, attemptsUsed: 0, activeAttemptId: null, passed: false, needsLocalValidation: true }),
+      expect.objectContaining({ blockId, key: KEY, mode: 'graded', maxAttempts: 3, attemptsUsed: 0, activeAttemptId: null, passed: false, needsLocalValidation: true, localValidationNote: expect.stringContaining('Disdukcapil') }),
     ]);
 
     const s = await start(l);

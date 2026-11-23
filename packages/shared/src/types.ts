@@ -154,6 +154,10 @@ export interface AttemptResult {
   passingScorePct: number;
   essays: { questionId: string; stem: string; score: number | null; maxScore: number; feedback: string | null }[];
   canAppeal: boolean;
+  /** Pembahasan PG; hanya bila kebijakan kuis 'after_done' dan peserta sudah lulus atau kesempatannya habis. */
+  mcqReview: { sequence: number; stem: string; options: { body: string; correct: boolean; chosen: boolean }[]; explanation: string | null }[] | null;
+  /** Alasan pembahasan belum ditampilkan (kebijakan aktif tetapi masih ada kesempatan). */
+  reviewNote: string | null;
 }
 
 /** Sertifikat kelulusan. Nomor & kode berasal dari Sertifikat Studio (sertifikat.patradesa.id). */

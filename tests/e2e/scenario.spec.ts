@@ -64,7 +64,8 @@ test('peserta mengerjakan skenario dengan keyboard di 360px; umpan balik & hasil
   await page.goto(`/materi/${lesson.id}`);
   const card = page.getByRole('region', { name: scenario.title });
   await expect(card).toBeVisible();
-  await expect(card.getByText(/Cek SOP desa\/Disdukcapil setempat/)).toBeVisible();
+  // Teks banner dari localValidationNote skenario contoh.
+  await expect(card.getByText(/Cek SOP desa dan Disdukcapil setempat/)).toBeVisible();
   await expect(card.getByText(/Berlaku per 2026-11-01/)).toBeVisible();
   await axe(page, 'kartu skenario');
 

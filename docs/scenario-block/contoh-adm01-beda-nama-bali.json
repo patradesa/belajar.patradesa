@@ -4,7 +4,13 @@
   "version": 1,
   "title": "Nama Anak Beda di KK dan Akta: Melayani Tanpa Menolak",
   "summary": "Latihan memverifikasi data warga yang namanya berbeda antardokumen (penanda nama Bali), memberi solusi sesuai SOP, dan menjaga privasi dokumen kependudukan.",
-  "audience": ["sekdes", "kasi", "kaur", "operator_sid", "kawil"],
+  "audience": [
+    "sekdes",
+    "kasi",
+    "kaur",
+    "operator_sid",
+    "kawil"
+  ],
   "estimatedMinutes": 8,
   "mode": "graded",
   "maxAttempts": 3,
@@ -12,10 +18,20 @@
   "status": "draft",
   "validFrom": "2026-11-01",
   "needsLocalValidation": true,
+  "localValidationNote": "Cek SOP desa dan Disdukcapil setempat; jenis surat dan syaratnya bisa berbeda antardaerah.",
   "regulations": [
-    { "ref": "UU No. 6 Tahun 2014 tentang Desa", "note": "Asas pelayanan, transparansi, akuntabilitas pemerintahan desa." },
-    { "ref": "UU No. 27 Tahun 2022 tentang Pelindungan Data Pribadi", "note": "Data kependudukan adalah data pribadi; batasi kanal dan penyimpanan." },
-    { "ref": "SOP pelayanan surat keterangan desa setempat", "note": "Jenis surat dan syarat berbeda antardesa; cek SOP sebelum menerbitkan." }
+    {
+      "ref": "UU No. 6 Tahun 2014 tentang Desa",
+      "note": "Asas pelayanan, transparansi, akuntabilitas pemerintahan desa."
+    },
+    {
+      "ref": "UU No. 27 Tahun 2022 tentang Pelindungan Data Pribadi",
+      "note": "Data kependudukan adalah data pribadi; batasi kanal dan penyimpanan."
+    },
+    {
+      "ref": "SOP pelayanan surat keterangan desa setempat",
+      "note": "Jenis surat dan syarat berbeda antardesa; cek SOP sebelum menerbitkan."
+    }
   ],
   "startNodeId": "intro",
   "nodes": [
@@ -166,9 +182,24 @@
   "scoring": {
     "passPercent": 70,
     "bands": [
-      { "key": "ulang", "minPercent": 0, "label": "Perlu mengulang", "message": "Beberapa keputusan berisiko bagi warga. Pelajari lagi **5 langkah layanan** lalu coba kembali." },
-      { "key": "cukup", "minPercent": 60, "label": "Cukup", "message": "Arah Anda sudah benar. Perhatikan lagi verifikasi dan privasi data." },
-      { "key": "baik", "minPercent": 85, "label": "Sangat baik", "message": "Anda melayani dengan cepat, tepat, dan menjaga data warga." }
+      {
+        "key": "ulang",
+        "minPercent": 0,
+        "label": "Perlu mengulang",
+        "message": "Beberapa keputusan berisiko bagi warga. Pelajari lagi **5 langkah layanan** lalu coba kembali."
+      },
+      {
+        "key": "cukup",
+        "minPercent": 60,
+        "label": "Cukup",
+        "message": "Arah Anda sudah benar. Perhatikan lagi verifikasi dan privasi data."
+      },
+      {
+        "key": "baik",
+        "minPercent": 85,
+        "label": "Sangat baik",
+        "message": "Anda melayani dengan cepat, tepat, dan menjaga data warga."
+      }
     ]
   },
   "takeaways": [
@@ -177,8 +208,13 @@
     "Arahkan pembetulan data ke Disdukcapil agar masalah tidak berulang.",
     "KK dan KTP tidak dikirim lewat WhatsApp pribadi atau grup."
   ],
-  "remedial": { "label": "Ulangi materi: 5 langkah layanan di meja desa", "lessonKey": "adm01-5-langkah" },
-  "authors": ["Tim Konten PatraDesa"],
+  "remedial": {
+    "label": "Ulangi materi: 5 langkah layanan di meja desa",
+    "lessonKey": "adm01-5-langkah"
+  },
+  "authors": [
+    "Tim Konten PatraDesa"
+  ],
   "review": {
     "notes": "Draf contoh. Cek istilah dan jenis surat dengan SOP desa dampingan di Bali sebelum terbit."
   }

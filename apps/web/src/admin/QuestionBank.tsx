@@ -110,6 +110,7 @@ export function QuestionBank({
                   {String(q.stem)} <span className="muted">({meta})</span>
                 </span>
               )}
+              {q.explanation ? <p className="help">Penjelasan: {String(q.explanation)}</p> : null}
               {editable && (
                 <button
                   type="button"

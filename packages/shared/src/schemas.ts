@@ -106,6 +106,12 @@ export const lessonUpsertSchema = z
     youtube: z.string().trim().max(200).nullable().optional(),
     requiredActiveSeconds: z.number().int().min(0).max(36_000).default(300),
     isRequired: z.boolean().default(true),
+    /** Kode materi stabil (dirujuk remedial skenario). Kosong saat membuat → kode acak; saat menyunting → tidak diubah. */
+    lessonKey: z
+      .string()
+      .trim()
+      .regex(/^[a-z0-9][a-z0-9-]{1,63}$/, 'Kode materi: huruf kecil, angka, dan tanda hubung (2–64 karakter).')
+      .optional(),
   })
   .strict();
 
@@ -124,6 +130,8 @@ export const assessmentUpsertSchema = z
     examCopyDeterrenceEnabled: z.boolean().default(true),
     accessibilityExemptionPolicy: z.enum(['per_user', 'none']).default('per_user'),
     hideLessonLinksDuringExam: z.boolean().default(true),
+    /** 'after_done': pembahasan (kunci + penjelasan) tampil setelah lulus atau kesempatan habis. */
+    reviewPolicy: z.enum(['none', 'after_done']).default('none'),
   })
   .strict()
   .refine((v) => v.mcqCount + v.essayCount > 0, { message: 'Minimal satu soal.' });
@@ -143,6 +151,8 @@ export const questionCreateSchema = z.discriminatedUnion('type', [
         .min(2)
         .max(6)
         .refine((o) => o.filter((x) => x.isCorrect).length === 1, { message: 'Tepat satu jawaban benar.' }),
+      /** Penjelasan/umpan balik; hanya tampil di pembahasan bila kebijakan kuis mengizinkan. */
+      explanation: z.string().trim().max(2000).optional(),
     })
     .strict(),
   z

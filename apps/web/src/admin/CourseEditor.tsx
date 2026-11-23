@@ -33,6 +33,7 @@ function LessonForm({ lesson, onSave, submitLabel }: { lesson?: Row; onSave: (bo
           youtube: type === 'youtube' ? String(f.get('youtube') ?? '') : null,
           requiredActiveSeconds: num(f.get('required')) * 60,
           isRequired: f.get('isRequired') === 'on',
+          ...(String(f.get('lessonKey') ?? '').trim() ? { lessonKey: String(f.get('lessonKey')).trim() } : {}),
         });
       }}
     >
@@ -43,6 +44,21 @@ function LessonForm({ lesson, onSave, submitLabel }: { lesson?: Row; onSave: (bo
       <div className="field">
         <label htmlFor={`${pre}-summary`}>Ringkasan</label>
         <input id={`${pre}-summary`} name="summary" type="text" maxLength={500} defaultValue={lesson?.summary ?? ''} />
+      </div>
+      <div className="field">
+        <label htmlFor={`${pre}-key`}>Kode materi (opsional)</label>
+        <input
+          id={`${pre}-key`}
+          name="lessonKey"
+          type="text"
+          pattern="[a-z0-9][a-z0-9\-]{1,63}"
+          maxLength={64}
+          defaultValue={lesson?.lesson_key ?? ''}
+          aria-describedby={`${pre}-key-help`}
+        />
+        <span id={`${pre}-key-help`} className="help">
+          Huruf kecil, angka, tanda hubung — mis. <code>dd26-u01-pilih-dasar-aturan</code>. Dipakai tautan remedial skenario. Kosongkan untuk kode otomatis.
+        </span>
       </div>
       <div className="field">
         <label htmlFor={`${pre}-type`}>Jenis</label>
@@ -63,8 +79,8 @@ function LessonForm({ lesson, onSave, submitLabel }: { lesson?: Row; onSave: (bo
         <label htmlFor={`${pre}-src`}>Isi materi / pengantar</label>
         <textarea id={`${pre}-src`} name="contentSource" rows={10} maxLength={60000} defaultValue={lesson?.content_source ?? ''} aria-describedby={`${pre}-src-help`} />
         <span id={`${pre}-src-help`} className="help">
-          Format: “## Judul”, “### Subjudul”, “- butir”, “1. butir”, “&gt; catatan”, “---” pemisah slide, **tebal**, [teks](https://…). HTML
-          tidak diizinkan.
+          Format: “## Judul”, “### Subjudul”, “- butir”, “1. butir”, “&gt; catatan”, “---” pemisah slide, **tebal**, [teks](https://…),
+          dan satu baris “[[skenario:kode]]” untuk menyisipkan skenario. HTML tidak diizinkan.
         </span>
       </div>
       <div className="field">
@@ -103,6 +119,7 @@ function AssessmentForm({ lesson, onSave }: { lesson: Row; onSave: (body: unknow
           examCopyDeterrenceEnabled: f.get('copy') === 'on',
           accessibilityExemptionPolicy: f.get('exempt') === 'on' ? 'per_user' : 'none',
           hideLessonLinksDuringExam: true,
+          reviewPolicy: f.get('review') === 'on' ? 'after_done' : 'none',
         });
       }}
     >
@@ -155,6 +172,10 @@ function AssessmentForm({ lesson, onSave }: { lesson: Row; onSave: (body: unknow
         <input type="checkbox" name="exempt" defaultChecked={a ? a.accessibility_exemption_policy === 'per_user' : true} /> Hormati akomodasi
         aksesibilitas per peserta
       </label>
+      <label className="check">
+        <input type="checkbox" name="review" defaultChecked={a ? a.review_policy === 'after_done' : false} /> Tampilkan pembahasan (kunci +
+        penjelasan soal) setelah peserta lulus atau kesempatannya habis
+      </label>
       <p className="help">Pendamping AI selalu dinonaktifkan selama kuis dan tidak dapat diubah.</p>
       <button className="btn" type="submit">
         Simpan pengaturan kuis
@@ -182,6 +203,7 @@ function QuestionForm({ onSave }: { onSave: (body: unknown) => Promise<boolean> 
                 options: [0, 1, 2, 3]
                   .map((i) => ({ body: String(f.get(`o${i}`) ?? '').trim(), isCorrect: String(f.get('correct')) === String(i) }))
                   .filter((o) => o.body),
+                ...(String(f.get('explanation') ?? '').trim() ? { explanation: String(f.get('explanation')).trim() } : {}),
               }
             : {
                 type,
@@ -235,6 +257,10 @@ function QuestionForm({ onSave }: { onSave: (body: unknown) => Promise<boolean> 
               <input id={`q-o${i}`} name={`o${i}`} type="text" placeholder={`Pilihan ${i + 1}`} required={i < 2} style={{ flex: 1, minWidth: '12rem' }} />
             </div>
           ))}
+          <div className="field">
+            <label htmlFor="q-expl">Penjelasan (opsional, tampil di pembahasan bila diaktifkan)</label>
+            <textarea id="q-expl" name="explanation" rows={2} maxLength={2000} />
+          </div>
         </fieldset>
       ) : (
         <>
