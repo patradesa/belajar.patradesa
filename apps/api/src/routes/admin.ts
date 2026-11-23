@@ -504,6 +504,25 @@ export function adminRoutes(deps: Deps) {
     return c.json({ id: aid });
   });
 
+  /**
+   * Hapus kuis dari materi di DRAFT (mis. kuis kosong yang tidak sengaja dibuat). Soal, opsi, dan kebijakan
+   * ikut terhapus (ON DELETE CASCADE). Versi terbit tidak dapat diubah; kuis yang sudah punya percobaan ditolak.
+   */
+  r.delete('/lessons/:id/assessment', editors, async (c) => {
+    const u = currentUser(c);
+    const l = await draftLesson(c.env.DB, param(c, 'id'));
+    const a = await c.env.DB.prepare('SELECT id FROM assessments WHERE lesson_id = ?').bind(l.id).first<{ id: string }>();
+    if (!a) throw notFound('Kuis');
+    const used = await c.env.DB.prepare('SELECT COUNT(*) AS n FROM attempts WHERE assessment_id = ?').bind(a.id).first<{ n: number }>();
+    if (used?.n) throw new HttpError(409, ERROR_CODES.CONFLICT, 'Kuis ini sudah pernah dikerjakan peserta sehingga tidak dapat dihapus.');
+    const q = await c.env.DB.prepare('SELECT COUNT(*) AS n FROM questions WHERE assessment_id = ?').bind(a.id).first<{ n: number }>();
+    await c.env.DB.batch([
+      c.env.DB.prepare('DELETE FROM assessments WHERE id = ?').bind(a.id),
+      auditStmt(c.env.DB, deps.now(), u.id, 'assessment.delete', 'assessment', a.id, { lessonId: l.id, questions: q?.n ?? 0 }),
+    ]);
+    return c.json({ ok: true });
+  });
+
   /** Statement INSERT untuk satu soal (+ opsi). `createdAt` dibedakan per soal agar urutan impor terjaga. */
   function questionInsertStatements(db: D1Database, assessmentId: string, b: QuestionCreate, createdAt: number) {
     const qid = newId();

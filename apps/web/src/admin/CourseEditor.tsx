@@ -513,6 +513,17 @@ export function CourseEditor({ id }: { id: string }) {
                   <QuestionBank assessment={l.assessment as Row} editable act={act} />
                   <ImportQuestions assessmentId={String(l.assessment.id)} existingCount={(l.assessment.questions as Row[]).length} onDone={reload} />
                   <QuestionForm onSave={(b) => act(() => api(`/admin/assessments/${String(l.assessment.id)}/questions`, { method: 'POST', body: b }), 'Soal ditambahkan.')} />
+                  <button
+                    type="button"
+                    className="btn btn-danger"
+                    onClick={() =>
+                      window.confirm(
+                        `Hapus kuis "${String(l.assessment.title)}" beserta ${(l.assessment.questions as Row[]).length} soalnya dari draft ini? Materinya tetap ada.`,
+                      ) && void act(() => api(`/admin/lessons/${String(l.id)}/assessment`, { method: 'DELETE' }), 'Kuis dihapus dari materi.')
+                    }
+                  >
+                    Hapus kuis dari materi ini
+                  </button>
                 </>
               )}
               <button type="button" className="btn btn-danger" onClick={() => window.confirm('Hapus materi dari draft?') && void act(() => api(`/admin/lessons/${String(l.id)}`, { method: 'DELETE' }))}>
