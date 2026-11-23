@@ -197,16 +197,29 @@ test('tangkapan layar & PDF panduan', async ({ browser }) => {
   await ap.getByRole('heading', { name: 'Daftar kelas' }).waitFor();
   await shot(ap, 'admin-02-panel.jpg');
   await ap.goto(`/admin/kelas/${course.id}`);
-  await ap.getByRole('heading', { name: 'Foto sampul kelas' }).waitFor();
+  await ap.getByRole('button', { name: /^Edit materi Menangani Pengaduan Warga/ }).waitFor();
   await shot(ap, 'admin-03-editor.jpg');
-  await ap.getByRole('button', { name: 'Buat draft versi baru' }).click();
-  await ap.getByRole('button', { name: 'Terbitkan draft' }).waitFor();
-  await ap.getByText(/^3\. Menangani Pengaduan Warga/).click();
+  // Ikon pensil pada versi terbit → draf otomatis + editor materi terbuka.
+  await ap.getByRole('button', { name: /^Edit materi Menangani Pengaduan Warga/ }).click();
+  await ap.getByRole('button', { name: 'Tinjau & terbitkan' }).waitFor();
   const bank = ap.getByRole('heading', { name: /^Bank soal:/ });
   await bank.scrollIntoViewIfNeeded();
   await ap.evaluate(() => window.scrollBy(0, -40));
   await ap.waitForTimeout(400);
   await shot(ap, 'admin-04-bank-soal.jpg');
+  // Ubah satu angka lalu buka panel terbit (tanpa menerbitkan) untuk tangkapan ringkasan perubahan.
+  const minutes = ap.getByLabel('Waktu belajar minimum (menit)');
+  await minutes.scrollIntoViewIfNeeded();
+  await minutes.fill('7');
+  await ap.getByRole('button', { name: 'Simpan & terbitkan' }).first().click();
+  await ap.getByRole('heading', { name: 'Terbitkan perubahan' }).waitFor();
+  await ap.getByText(/waktu minimum .* → 7 menit/).waitFor();
+  await ap.waitForTimeout(700);
+  await shot(ap, 'admin-07-terbit.jpg');
+  await ap.getByRole('tab', { name: 'Log perubahan' }).click();
+  await ap.getByRole('cell', { name: 'Draf dibuat' }).first().waitFor();
+  await ap.evaluate(() => window.scrollTo(0, 0));
+  await shot(ap, 'admin-08-log.jpg');
   await ap.goto('/admin/review');
   await ap.getByRole('heading', { name: 'Kuis Dokumentasi & Keterbukaan' }).first().waitFor();
   await shot(ap, 'admin-05-review.jpg');
