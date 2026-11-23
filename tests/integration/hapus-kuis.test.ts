@@ -15,8 +15,21 @@ beforeAll(async () => {
   courseId = (await admin.json('POST', '/api/v1/admin/courses', { slug: 'kelas-hapus-kuis', title: 'Kelas Hapus Kuis', visibility: 'public' })).body.id;
   await admin.json('POST', `/api/v1/admin/courses/${courseId}/lessons`, { title: 'Unit 1', contentType: 'html', contentSource: 'Isi unit.', requiredActiveSeconds: 0, lessonKey: 'unit-1' });
   const u1 = await lessonOf('unit-1');
+  // Sejak validasi terbit, kuis kosong tidak bisa diterbitkan lagi:
   expect((await admin.json('PUT', `/api/v1/admin/lessons/${u1.id}/assessment`, quiz)).status).toBe(200);
+  const refused = await admin.json('POST', `/api/v1/admin/courses/${courseId}/publish`);
+  expect(refused.status).toBe(409);
+  expect(refused.body.error.message).toContain('Kuis "Kuis Tak Sengaja"');
+  // Simulasikan data lama (terbit sebelum validasi ada): terbitkan, lalu pasang kuis kosong langsung di versi terbit.
+  const quizRow = await h.env.DB.prepare('SELECT * FROM assessments WHERE lesson_id = ?').bind(u1.id).first<Record<string, unknown>>();
+  await h.env.DB.prepare('DELETE FROM assessments WHERE lesson_id = ?').bind(u1.id).run();
   expect((await admin.json('POST', `/api/v1/admin/courses/${courseId}/publish`)).status).toBe(200);
+  await h.env.DB.prepare(
+    `INSERT INTO assessments (id, lesson_id, title, time_limit_seconds, passing_score_pct, max_attempts, mcq_count, essay_count, is_required, created_at)
+     VALUES (?, ?, ?, 600, 70, 3, 5, 0, 1, 1)`,
+  )
+    .bind(String(quizRow!.id), u1.id, 'Kuis Tak Sengaja')
+    .run();
 });
 afterAll(() => h.dispose());
 

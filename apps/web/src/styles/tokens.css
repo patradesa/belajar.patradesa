@@ -61,6 +61,15 @@
   --color-progress-fill: #334e0f;
   --color-progress-track: #e5e7eb;
   --color-accent-decor: #dd9933;
+  /* Accordion sub-materi: 4 aksen bergiliran (Amati, Analisis, Aksi, Asesmen). Semua lolos AA di latar tint & putih. */
+  --color-sec-1: #116798;
+  --color-sec-1-bg: #eaf3f9;
+  --color-sec-2: #4b7414;
+  --color-sec-2-bg: #eef5e3;
+  --color-sec-3: #9a5b06;
+  --color-sec-3-bg: #fdf2e1;
+  --color-sec-4: #2c470b;
+  --color-sec-4-bg: #e9efe1;
   /* Label kecil (eyebrow) amber gelap seperti Studio; seleksi teks hijau muda. */
   --color-eyebrow: #a15d00;
   /* Tanda "Lulus": ikon segel amber, teks amber gelap (kontras ≥ 4,5:1), latar krem hangat. */

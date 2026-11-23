@@ -94,14 +94,10 @@ test('pilihan soal kuis: centang/keluarkan soal di draft lalu simpan', async ({ 
   await page.getByRole('button', { name: 'Buat kelas demo penilaian' }).click();
   await expect(page.getByText(/Kelas demo dibuat/)).toBeVisible();
   await page.locator('tr', { hasText: 'Demo Penilaian & Sertifikat' }).first().getByRole('link', { name: 'Kelola' }).click();
-  // Versi terbit: bank tampil hanya-baca.
-  await page.getByText(/^3\. Dari Kelulusan ke Sertifikat/).click();
-  await expect(page.getByText('Versi terbit hanya-baca.', { exact: false })).toBeVisible();
-  await page.getByRole('button', { name: 'Buat draft versi baru' }).click();
-  await expect(page.getByText('Draft dibuat.')).toBeVisible();
-  // Tunggu data draft termuat (materi mendapat ID baru) sebelum membuka panel, agar panel tidak tertutup lagi.
-  await expect(page.getByRole('button', { name: 'Terbitkan draft' })).toBeVisible();
-  await page.getByText(/^3\. Dari Kelulusan ke Sertifikat/).click();
+  // Editor sederhana: ikon pensil pada versi terbit membuat draf otomatis lalu membuka editor materi itu.
+  await page.getByRole('button', { name: /^Edit materi Dari Kelulusan ke Sertifikat/ }).click();
+  await expect(page.getByText(/Draf dibuat otomatis/)).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Tinjau & terbitkan' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Bank soal: 5 pilihan ganda, 2 esai' })).toBeVisible();
   // Daftar pilihan terbuka otomatis untuk bank kecil (≤ 20 soal).
   await expect(page.getByText(/^Pilih soal yang dipakai kuis/)).toBeVisible();
@@ -114,6 +110,11 @@ test('pilihan soal kuis: centang/keluarkan soal di draft lalu simpan', async ({ 
   await page.getByRole('button', { name: 'Pakai semua PG' }).click();
   await page.getByRole('button', { name: 'Simpan pilihan soal kuis' }).click();
   await expect(page.getByText('Pilihan soal kuis tersimpan: 5 pilihan ganda, 2 esai.')).toBeVisible();
+  // Log perubahan mencatat draf & pilihan soal.
+  await page.getByRole('tab', { name: 'Log perubahan' }).click();
+  await expect(page.getByRole('cell', { name: 'Pilihan soal kuis diubah' }).first()).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'Draf dibuat' })).toBeVisible();
+  await axe(page, 'log perubahan kelas');
 });
 
 test('profil: daftar kelas + progres dan bagian Sertifikat saya (lolos axe)', async ({ page }) => {

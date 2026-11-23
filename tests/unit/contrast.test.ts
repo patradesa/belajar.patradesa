@@ -73,6 +73,22 @@ const PAIRS: [string, string, number, string][] = [
   ['color-link', 'color-warning-bg', 4.5, 'tautan di alert peringatan'],
   ['color-progress-fill', 'color-progress-track', 3, 'bilah progres'],
   ['color-text', 'color-progress-track', 4.5, 'label tombol nonaktif'],
+  ['color-heading', 'color-sec-1-bg', 4.5, 'judul sub-materi 1 di latar tint'],
+  ['color-text', 'color-sec-1-bg', 4.5, 'teks sub-materi 1 di latar tint'],
+  ['color-sec-1', 'color-sec-1-bg', 4.5, 'nomor/ikon sub-materi 1 di latar tint'],
+  ['color-sec-1', 'color-surface', 3, 'garis aksen sub-materi 1 di kartu'],
+  ['color-heading', 'color-sec-2-bg', 4.5, 'judul sub-materi 2 di latar tint'],
+  ['color-text', 'color-sec-2-bg', 4.5, 'teks sub-materi 2 di latar tint'],
+  ['color-sec-2', 'color-sec-2-bg', 4.5, 'nomor/ikon sub-materi 2 di latar tint'],
+  ['color-sec-2', 'color-surface', 3, 'garis aksen sub-materi 2 di kartu'],
+  ['color-heading', 'color-sec-3-bg', 4.5, 'judul sub-materi 3 di latar tint'],
+  ['color-text', 'color-sec-3-bg', 4.5, 'teks sub-materi 3 di latar tint'],
+  ['color-sec-3', 'color-sec-3-bg', 4.5, 'nomor/ikon sub-materi 3 di latar tint'],
+  ['color-sec-3', 'color-surface', 3, 'garis aksen sub-materi 3 di kartu'],
+  ['color-heading', 'color-sec-4-bg', 4.5, 'judul sub-materi 4 di latar tint'],
+  ['color-text', 'color-sec-4-bg', 4.5, 'teks sub-materi 4 di latar tint'],
+  ['color-sec-4', 'color-sec-4-bg', 4.5, 'nomor/ikon sub-materi 4 di latar tint'],
+  ['color-sec-4', 'color-surface', 3, 'garis aksen sub-materi 4 di kartu'],
 ];
 
 describe('kontras warna WCAG 2.2 AA', () => {

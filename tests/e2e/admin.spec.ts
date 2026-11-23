@@ -63,7 +63,8 @@ test('impor bank soal JSON lewat UI admin: validasi, impor bertahap, jumlah bank
   };
 
   await page.goto(`/admin/kelas/${course.id}`);
-  await page.getByText('1. Modul Uji').click();
+  // Editor sederhana: buka materi lewat ikon pensil.
+  await page.getByRole('button', { name: 'Edit materi Modul Uji' }).click();
   await expect(page.getByRole('heading', { name: 'Bank soal: 0 pilihan ganda, 0 esai' })).toBeVisible();
   await page.getByText('Impor bank soal dari berkas JSON').click();
   // Berkas rusak → pesan galat per soal.

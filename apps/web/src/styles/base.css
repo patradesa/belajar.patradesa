@@ -1569,3 +1569,273 @@ td .badge {
 .scn-score {
   font-size: 1.25rem;
 }
+
+/* ---------------------------------------------------------------- Halaman materi: tata letak & accordion sub-materi */
+.reader-layout article .content {
+  max-width: none;
+}
+@media (min-width: 1024px) {
+  /* Kolom bacaan dibatasi ±52rem agar baris nyaman dibaca, dan sidebar menempel di sebelahnya (tanpa celah lebar). */
+  .reader-layout {
+    grid-template-columns: minmax(0, 52rem) 19rem;
+    gap: var(--space-6);
+    justify-content: start;
+  }
+  .reader-layout > aside {
+    position: sticky;
+    top: var(--space-4);
+  }
+}
+.lesson-sections > * + * {
+  margin-top: var(--space-3);
+}
+.sec-summary {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+.sec-summary-text {
+  margin: 0;
+}
+.sec-summary .progress {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+.sec {
+  --sec: var(--color-sec-1);
+  --sec-bg: var(--color-sec-1-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-left: 6px solid var(--sec);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+.sec-2 {
+  --sec: var(--color-sec-2);
+  --sec-bg: var(--color-sec-2-bg);
+}
+.sec-3 {
+  --sec: var(--color-sec-3);
+  --sec-bg: var(--color-sec-3-bg);
+}
+.sec-4 {
+  --sec: var(--color-sec-4);
+  --sec-bg: var(--color-sec-4-bg);
+}
+.sec-head {
+  margin: 0;
+  font-size: 1.1rem;
+}
+.sec-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 3rem;
+  padding: var(--space-3) var(--space-4);
+  border: 0;
+  background: var(--sec-bg);
+  color: var(--color-heading);
+  font: inherit;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+.sec-toggle:hover {
+  filter: brightness(0.97);
+}
+.sec-toggle:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: -3px;
+}
+.sec-status,
+.sec-chevron {
+  flex: none;
+  color: var(--sec);
+}
+.sec-status-icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+.sec.is-done .sec-status-icon {
+  stroke-width: 2.4;
+}
+.sec-title {
+  flex: 1;
+  min-width: 0;
+}
+.sec-state {
+  flex: none;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--sec);
+}
+.sec-chevron {
+  width: 1.25rem;
+  height: 1.25rem;
+  transition: transform 0.2s ease;
+}
+.sec-toggle[aria-expanded='true'] .sec-chevron {
+  transform: rotate(180deg);
+}
+.sec-panel {
+  padding: var(--space-4) var(--space-5) var(--space-5);
+}
+.sec-panel > .content > :first-child {
+  margin-top: 0;
+}
+.sec-end {
+  height: 1px;
+}
+.sec-next {
+  margin-top: var(--space-4);
+  display: flex;
+  justify-content: flex-end;
+}
+@media (max-width: 480px) {
+  .sec-state {
+    display: none;
+  }
+  .sec-panel {
+    padding: var(--space-3) var(--space-3) var(--space-4);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sec-chevron {
+    transition: none;
+  }
+}
+
+/* ---------------------------------------------------------------- Editor kelas sederhana (ikon pensil, draf → terbit) */
+.editor-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.icon-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+}
+.icon-text .icon {
+  width: 1.1em;
+  height: 1.1em;
+}
+.draft-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border-subtle);
+  border-left: 6px solid var(--color-accent-decor);
+  border-radius: var(--radius);
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+}
+.publish-panel {
+  border-left: 6px solid var(--color-primary-button-bg);
+}
+.change-list li + li {
+  margin-top: var(--space-1);
+}
+.subnav .tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  min-height: var(--touch);
+  padding: 0 12px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-muted);
+  font-family: var(--font-display);
+  font-size: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.subnav .tab-btn:hover {
+  color: var(--color-heading);
+  background: var(--color-surface-soft);
+}
+.subnav .tab-btn[aria-selected='true'] {
+  background: var(--color-primary-button-bg);
+  color: var(--color-primary-button-text);
+}
+.subnav .tab-btn .icon {
+  width: 1.1em;
+  height: 1.1em;
+}
+.editor-lessons {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+.editor-lesson {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+}
+.editor-lesson.is-editing {
+  border-color: var(--color-primary-button-bg);
+  box-shadow: 0 0 0 1px var(--color-primary-button-bg);
+}
+.editor-lesson-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+}
+.editor-lesson-no {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--color-surface-soft);
+  color: var(--color-heading);
+  font-weight: 800;
+}
+.editor-lesson-main {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+.editor-lesson-main .muted {
+  font-size: 0.875rem;
+}
+.icon-btn {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: var(--touch);
+  height: var(--touch);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-heading);
+  cursor: pointer;
+}
+.icon-btn:hover {
+  background: var(--color-surface-soft);
+}
+.icon-btn .icon {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+.editor-panel {
+  padding: var(--space-4);
+  border-top: 1px solid var(--color-border-subtle);
+}

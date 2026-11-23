@@ -4,6 +4,7 @@ import { ApiError, api } from '../lib/api';
 import { Link } from '../lib/router';
 import { useSession } from '../lib/session';
 import { BlockRenderer } from '../components/BlockRenderer';
+import { LessonSections } from '../components/LessonSections';
 import { ErrorAlert, Loading, PageTitle, formatDuration, useAsync } from '../components/common';
 
 // Modul berat/opsional dimuat hanya saat diperlukan.
@@ -13,7 +14,7 @@ const AiPanel = lazy(() => import('../components/AiPanel'));
 const ScenarioBlock = lazy(() => import('../components/ScenarioBlock'));
 
 /** Muat chunk skenario hanya saat blok mendekati layar (hemat kuota). */
-function ScenarioSlot({ summary, lessonId }: { summary: LessonScenarioSummary; lessonId: string }) {
+function ScenarioSlot({ summary, lessonId, onFinish }: { summary: LessonScenarioSummary; lessonId: string; onFinish?: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
   const [near, setNear] = useState(typeof IntersectionObserver === 'undefined');
   useEffect(() => {
@@ -26,7 +27,7 @@ function ScenarioSlot({ summary, lessonId }: { summary: LessonScenarioSummary; l
     <div ref={ref} className="scn-slot">
       {near ? (
         <Suspense fallback={<Loading label="Memuat skenario…" />}>
-          <ScenarioBlock summary={summary} lessonId={lessonId} />
+          <ScenarioBlock summary={summary} lessonId={lessonId} onFinish={onFinish} />
         </Suspense>
       ) : (
         <p className="muted">Skenario: {summary.title}</p>
@@ -39,7 +40,8 @@ function ScenarioSlot({ summary, lessonId }: { summary: LessonScenarioSummary; l
  * Heartbeat: dikirim tiap ~25 dtk HANYA bila tab tampak dan ada interaksi dalam 60 dtk terakhir.
  * Klien tidak pernah mengirim durasi; server menghitung kredit dari jamnya sendiri.
  */
-function useLearningSession(lessonId: string) {
+/** `ready`: sesi login & token CSRF sudah dimuat (halaman materi yang dibuka langsung/di-refresh). */
+function useLearningSession(lessonId: string, ready: boolean) {
   const [state, setState] = useState<LearningSessionResponse | null>(null);
   const [expired, setExpired] = useState(false);
   const [error, setError] = useState<unknown>(null);
@@ -55,8 +57,8 @@ function useLearningSession(lessonId: string) {
   }, [lessonId]);
 
   useEffect(() => {
-    void start();
-  }, [start]);
+    if (ready) void start();
+  }, [start, ready]);
 
   useEffect(() => {
     const mark = () => {
@@ -114,9 +116,9 @@ function SlideDeck({ blocks, renderScenario }: { blocks: Block[]; renderScenario
 }
 
 export function LessonPage({ id }: { id: string }) {
-  const { me } = useSession();
+  const { me, loading: sessionLoading } = useSession();
   const { data, error, loading, reload } = useAsync(() => api<LessonContent>(`/lessons/${id}/content`), [id]);
-  const session = useLearningSession(id);
+  const session = useLearningSession(id, !sessionLoading && !!me);
   const [aiOpen, setAiOpen] = useState(false);
 
   if (loading) return <Loading />;
@@ -125,10 +127,11 @@ export function LessonPage({ id }: { id: string }) {
   const s = session.state;
   const pct = s && s.requiredActiveSeconds ? Math.min(100, Math.round((s.activeSeconds / s.requiredActiveSeconds) * 100)) : 100;
   const examActive = !!me?.activeAttempt;
-  const renderScenario = (key: string) => {
+  const renderScenario = (key: string, onFinish?: () => void) => {
     const summary = (data.scenarios ?? []).find((x) => x.key === key);
-    return summary ? <ScenarioSlot summary={summary} lessonId={data.id} /> : null;
+    return summary ? <ScenarioSlot summary={summary} lessonId={data.id} onFinish={onFinish} /> : null;
   };
+  const sectioned = data.contentType !== 'slides' && data.blocks.some((b) => b.type === 'h2');
 
   return (
     <div className="stack">
@@ -140,6 +143,8 @@ export function LessonPage({ id }: { id: string }) {
         <article className="stack">
           {data.contentType === 'slides' ? (
             <SlideDeck blocks={data.blocks} renderScenario={renderScenario} />
+          ) : sectioned ? (
+            <LessonSections blocks={data.blocks} lessonId={data.id} userId={me?.user.id ?? 'tamu'} scenarios={data.scenarios ?? []} renderScenario={renderScenario} />
           ) : (
             <BlockRenderer blocks={data.blocks} renderScenario={renderScenario} />
           )}
