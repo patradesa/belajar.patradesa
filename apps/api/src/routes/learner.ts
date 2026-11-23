@@ -24,6 +24,7 @@ import { requireLessonAccess } from '../services/access';
 import { heartbeat, startLearningSession, touchProgressStatement } from '../services/learning';
 import { attemptResult, attemptView, loadOwnedAttempt, saveAnswers, startAttempt, submitAttempt } from '../services/attempts';
 import { ensureCertificate, issueAfterAttempt, myCertificates, publicCertificate, toView } from '../services/certificates';
+import { upgradeEnrollment } from '../services/enrollmentUpgrade';
 import { lessonScenarioSummaries, scenarioDelivery, startScenarioAttempt, submitScenarioChoice } from '../services/scenarios';
 
 export function learnerRoutes(deps: Deps) {
@@ -194,6 +195,16 @@ export function learnerRoutes(deps: Deps) {
   });
 
   // ---------------------------------------------------------------- belajar
+  /** Pindah ke versi kelas terbaru tanpa kehilangan progres yang kode materinya sama. */
+  r.post('/courses/:id/upgrade', requireAuth, async (c) => {
+    const u = currentUser(c);
+    const now = deps.now();
+    await enforceRateLimit(c.env.DB, `upgrade:${u.id}`, 5, 60_000, now);
+    const course = await c.env.DB.prepare('SELECT id FROM courses WHERE id = ? OR slug = ?').bind(param(c, 'id'), param(c, 'id')).first<{ id: string }>();
+    if (!course) throw notFound('Kelas');
+    return c.json(await upgradeEnrollment(c.env.DB, u.id, course.id, u.id, now));
+  });
+
   r.get('/lessons/:id/content', requireAuth, async (c) => {
     const u = currentUser(c);
     const now = deps.now();

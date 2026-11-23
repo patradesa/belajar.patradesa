@@ -407,10 +407,18 @@ function Audit() {
 
 function Report({ courseId }: { courseId: string }) {
   const { data, error, loading, reload } = useAsync(() => api<{ learners: Row[] }>(`/admin/reports/${courseId}`), [courseId]);
+  const { run, view } = useAction();
+  const upgrade = (l: Row) =>
+    window.confirm(`Pindahkan ${String(l.display_name)} dari versi ${String(l.version_no)} ke versi ${String(l.current_version_no)}? Progres materi dengan kode yang sama ikut terbawa.`) &&
+    void run(async () => {
+      await api(`/admin/courses/${courseId}/enrollments/${String(l.user_id)}/upgrade`, { method: 'POST' });
+      reload();
+    }, 'Peserta dipindahkan ke versi terbaru.');
   return (
     <div className="stack">
       <h2>Laporan kelas</h2>
       <p className="muted">Data minimal sesuai kebutuhan pemantauan. Jangan diekspor ke pihak yang tidak berwenang.</p>
+      {view}
       {loading && <Loading />}
       {Boolean(error) && <ErrorAlert error={error} onRetry={reload} />}
       <div className="table-scroll">
@@ -422,6 +430,7 @@ function Report({ courseId }: { courseId: string }) {
               <th scope="col">Percobaan</th>
               <th scope="col">Nilai terbaik</th>
               <th scope="col">Lulus</th>
+              <th scope="col">Versi</th>
             </tr>
           </thead>
           <tbody>
@@ -434,6 +443,17 @@ function Report({ courseId }: { courseId: string }) {
                 <td>{String(l.attempts)}</td>
                 <td>{l.best_score === null ? '–' : `${String(l.best_score)}%`}</td>
                 <td>{Number(l.passed_attempts) > 0 ? 'Ya' : 'Belum'}</td>
+                <td>
+                  v{String(l.version_no)}
+                  {l.current_version_no !== null && Number(l.version_no) < Number(l.current_version_no) && (
+                    <>
+                      {' '}
+                      <button type="button" className="btn btn-secondary btn-small" onClick={() => upgrade(l)}>
+                        Pindahkan ke v{String(l.current_version_no)}
+                      </button>
+                    </>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>

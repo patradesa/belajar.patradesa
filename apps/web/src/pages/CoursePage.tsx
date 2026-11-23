@@ -101,6 +101,44 @@ export function CoursePage({ id }: { id: string }) {
           {actionErr}
         </div>
       )}
+      {data.upgrade && (
+        <section className="card card-soft stack" aria-labelledby="versi-baru-judul">
+          <h2 id="versi-baru-judul">Ada versi baru kelas ini</h2>
+          <p>
+            Anda belajar di versi {data.upgrade.fromVersion}; versi terbaru adalah {data.upgrade.toVersion}.{' '}
+            {data.upgrade.carriedLessons > 0
+              ? `Progres ${data.upgrade.carriedLessons} materi yang sama akan ikut terbawa.`
+              : 'Progres materi lama tidak cocok dengan materi baru, jadi Anda mulai dari awal di versi baru.'}{' '}
+            Hasil skenario yang sama tetap berlaku; kuis di versi baru dimulai dari nol.
+          </p>
+          {data.upgrade.blockedReason ? (
+            <p className="muted">{data.upgrade.blockedReason}</p>
+          ) : (
+            <div className="btn-row">
+              <button
+                type="button"
+                className="btn"
+                disabled={busy}
+                onClick={async () => {
+                  if (!window.confirm(`Pindah ke versi ${data.upgrade!.toVersion}? Langkah ini tidak bisa dibatalkan.`)) return;
+                  setBusy(true);
+                  setActionErr(null);
+                  try {
+                    await api(`/courses/${encodeURIComponent(data.id)}/upgrade`, { method: 'POST' });
+                    reload();
+                  } catch (e) {
+                    setActionErr(errorMessage(e));
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                Perbarui ke versi {data.upgrade.toVersion}
+              </button>
+            </div>
+          )}
+        </section>
+      )}
       {data.completion && (
         <div className={`alert ${data.completion.passed ? 'alert-success' : 'alert-warning'}`}>
           {data.completion.passed ? (
