@@ -92,6 +92,8 @@ export interface CourseDetail {
   coverUrl: string | null;
   /** Sertifikat peserta untuk kelas ini (null bila belum memenuhi syarat). */
   certificate: CertificateView | null;
+  /** Ada versi kelas lebih baru dari versi pendaftaran peserta (null = sudah terbaru / tidak terdaftar). */
+  upgrade: { fromVersion: number; toVersion: number; blockedReason: string | null; carriedLessons: number } | null;
 }
 
 export interface LessonContent {

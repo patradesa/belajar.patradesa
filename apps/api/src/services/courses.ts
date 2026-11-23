@@ -10,6 +10,7 @@ import {
   type MyCourse,
   type VillageRole,
 } from '@patradesa/shared';
+import { upgradeInfo } from './enrollmentUpgrade';
 import { HttpError, notFound } from '../lib/http';
 import { newId } from '../lib/crypto';
 import { assessmentEligibility, loadAssessment } from './attempts';
@@ -224,6 +225,7 @@ export async function courseDetail(db: D1Database, idOrSlug: string, userId: str
     enrollment: enr ? { id: enr.id, status: enr.status, expiresAt: enr.expires_at } : null,
     lessons: out,
     completion: enr ? { passed: reasons.length === 0, reasons } : null,
+    upgrade: userId && enr ? await upgradeInfo(db, userId, c.id) : null,
     rating: await courseRating(db, c.id),
     myRating: userId
       ? ((await db.prepare('SELECT stars FROM course_ratings WHERE user_id = ? AND course_id = ?').bind(userId, c.id).first<{ stars: number }>())?.stars ?? null)

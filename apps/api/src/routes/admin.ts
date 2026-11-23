@@ -27,6 +27,7 @@ import { currentUser, hasRole, requireRole } from '../middleware/auth';
 import { recomputeAfterReviewStatement, resultFromScoreStatement } from '../services/finalize';
 import { createGradingDemo } from '../services/demoGrading';
 import { assertScenarioKeysExist, pinScenarioStatements } from '../services/scenarios';
+import { upgradeEnrollment } from '../services/enrollmentUpgrade';
 import { integrationConfigured, integrationProblem, issueAfterAttempt, pushToStudio, revokeCertificate, type CertificateRow } from '../services/certificates';
 
 const MAX_PDF_BYTES = 20 * 1024 * 1024;
@@ -780,7 +781,9 @@ export function adminRoutes(deps: Deps) {
   r.get('/reports/:courseId', admins, async (c) => {
     const id = param(c, 'courseId');
     const { results } = await c.env.DB.prepare(
-      `SELECT u.display_name, e.status AS enrollment_status, e.started_at,
+      `SELECT u.id AS user_id, u.display_name, e.status AS enrollment_status, e.started_at,
+              (SELECT version_no FROM course_versions WHERE id = e.course_version_id) AS version_no,
+              (SELECT cv.version_no FROM courses c JOIN course_versions cv ON cv.id = c.current_version_id WHERE c.id = e.course_id) AS current_version_no,
               (SELECT COUNT(*) FROM lesson_progress p JOIN lessons l ON l.id = p.lesson_id
                 WHERE p.user_id = e.user_id AND l.course_version_id = e.course_version_id AND p.completed_at IS NOT NULL) AS lessons_completed,
               (SELECT COUNT(*) FROM lessons l WHERE l.course_version_id = e.course_version_id) AS lessons_total,
@@ -792,6 +795,12 @@ export function adminRoutes(deps: Deps) {
       .bind(id)
       .all();
     return c.json({ learners: results });
+  });
+
+  /** Admin memindahkan satu peserta ke versi kelas terbaru (aturan sama dengan tombol peserta). */
+  r.post('/courses/:id/enrollments/:userId/upgrade', admins, async (c) => {
+    const u = currentUser(c);
+    return c.json(await upgradeEnrollment(c.env.DB, param(c, 'userId'), param(c, 'id'), u.id, deps.now()));
   });
 
   r.get('/audit', admins, async (c) => {
