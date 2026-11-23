@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { Block, Inline } from '@patradesa/shared';
 
 /** Render konten terstruktur. TIDAK memakai dangerouslySetInnerHTML: semua teks menjadi text node. */
@@ -20,7 +21,8 @@ function Inlines({ items }: { items: Inline[] }) {
   );
 }
 
-export function BlockRenderer({ blocks }: { blocks: Block[] }) {
+/** `renderScenario`: halaman materi menyisipkan blok interaktif (lazy); tanpa itu blok diabaikan. */
+export function BlockRenderer({ blocks, renderScenario }: { blocks: Block[]; renderScenario?: (key: string) => ReactNode }) {
   return (
     <div className="content prose">
       {blocks.map((b, i) => {
@@ -54,6 +56,8 @@ export function BlockRenderer({ blocks }: { blocks: Block[] }) {
                 <Inlines items={b.inlines} />
               </aside>
             );
+          case 'scenario':
+            return renderScenario ? <div key={i}>{renderScenario(b.key)}</div> : null;
           default:
             return null;
         }

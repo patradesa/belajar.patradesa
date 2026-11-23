@@ -7,6 +7,7 @@ import { ErrorAlert, Loading, PageTitle, useAsync } from '../components/common';
 import { CourseEditor } from './CourseEditor';
 import { AdminLoginPage } from '../pages/AdminLoginPage';
 import { Certificates } from './Certificates';
+import { ScenarioDetail, ScenarioList } from './ScenarioAdmin';
 
 /** Area admin/mentor/editor — dimuat lazy, tidak termasuk bundle awal learner. */
 
@@ -16,6 +17,7 @@ function Tabs({ path }: { path: string }) {
   const { me } = useSession();
   const items: [string, string, boolean][] = [
     ['/admin', 'Kelas', hasRole(me, 'admin', 'content_editor')],
+    ['/admin/skenario', 'Skenario', hasRole(me, 'admin', 'content_editor', 'mentor')],
     ['/admin/review', 'Review esai', hasRole(me, 'admin', 'mentor')],
     ['/admin/banding', 'Banding', hasRole(me, 'admin', 'mentor')],
     ['/admin/pengguna', 'Pengguna', hasRole(me, 'admin', 'mentor')],
@@ -30,7 +32,7 @@ function Tabs({ path }: { path: string }) {
           .filter((i) => i[2])
           .map(([href, label]) => {
             // "Kelas" juga aktif di editor & laporan kelas.
-            const active = href === '/admin' ? path === '/admin' || path.startsWith('/admin/kelas/') || path.startsWith('/admin/laporan/') : path === href;
+            const active = href === '/admin' ? path === '/admin' || path.startsWith('/admin/kelas/') || path.startsWith('/admin/laporan/') : href === '/admin/skenario' ? path.startsWith('/admin/skenario') : path === href;
             return (
               <li key={href}>
                 <Link href={href} aria-current={active ? 'page' : undefined}>
@@ -450,6 +452,8 @@ export default function AdminApp({ path }: { path: string }) {
   let m: Record<string, string> | null;
   if ((m = match('/admin/kelas/:id', path))) body = <CourseEditor id={m.id!} />;
   else if ((m = match('/admin/laporan/:id', path))) body = <Report courseId={m.id!} />;
+  else if (path === '/admin/skenario') body = <ScenarioList />;
+  else if ((m = match('/admin/skenario/:id', path))) body = <ScenarioDetail id={m.id!} />;
   else if (path === '/admin/review') body = <Reviews />;
   else if (path === '/admin/banding') body = <Appeals />;
   else if (path === '/admin/pengguna') body = <Users />;
