@@ -32,7 +32,7 @@ export interface Guide {
   sections: GuideSection[];
 }
 
-export const GUIDE_VERSION = 'Versi 1.0 · November 2026';
+export const GUIDE_VERSION = 'Versi 1.1 · November 2026';
 export const APP_URL = 'https://belajar.patradesa.id';
 
 /**
@@ -131,6 +131,9 @@ const peserta: Guide = {
       intro: 'Halaman kelas berisi daftar materi berurutan. Klik judul materi untuk membukanya.',
       points: [
         'Jenis materi: Bacaan, Slide (gunakan tombol berikut/sebelumnya), PDF, atau Video YouTube.',
+        'Bacaan dibagi menjadi bagian-bagian berwarna yang bisa dibuka dan ditutup. Tanda centang berarti bagian sudah dibaca (atau latihannya sudah dikerjakan); gunakan Buka semua bagian atau Lanjut ke bagian berikutnya.',
+        'Latihan skenario di dalam materi: pilih tindakan, baca umpan balik, lalu lanjutkan sampai hasil akhir. Skenario yang dinilai menjadi syarat lulus kelas.',
+        'Bila kelas diperbarui, kartu Ada versi baru kelas ini muncul di halaman kelas. Tekan Perbarui; progres materi yang sama tetap tercatat.',
         'Setiap materi punya waktu belajar minimum. Waktu dihitung server hanya saat halaman materi terbuka dan aktif.',
         'Kotak Progres belajar menunjukkan waktu yang sudah tercatat. Materi berstatus Selesai setelah waktu minimum terpenuhi.',
         'Pendamping AI (bila tersedia) dapat menjawab pertanyaan seputar materi, tetapi dikunci selama Anda mengerjakan kuis.',
@@ -143,20 +146,20 @@ const peserta: Guide = {
     },
     {
       id: 'kuis',
-      title: 'Mengerjakan kuis',
-      steps: [
-        'Selesaikan waktu belajar minimum materi yang memiliki kuis. Tombol Mulai Kuis aktif setelah syarat terpenuhi.',
-        'Klik Mulai Kuis. Waktu dihitung server sejak kuis dimulai; sisa waktu tampil di bagian atas.',
-        'Jawab soal pilihan ganda dan esai. Jawaban tersimpan otomatis (tanda "✓ Tersimpan").',
-        'Klik Kumpulkan jawaban bila sudah selesai. Bila waktu habis, jawaban dikumpulkan otomatis.',
-      ],
+      title: 'Mengatur kuis',
+      intro: 'Kuis melekat pada satu materi. Klik pensil pada materi itu lalu buka bagian Kuis. Tidak semua materi perlu kuis; materi tanpa kuis cukup dibiarkan tanpa pengaturan.',
       points: [
-        'Soal dan urutan pilihan diacak untuk setiap peserta dan setiap percobaan.',
-        'Batas jumlah percobaan dan masa jeda antar-percobaan ditentukan pengelola dan tampil di halaman kelas.',
-        'Selama kuis berlangsung, Pendamping AI dikunci dan menyalin teks soal dinonaktifkan.',
-        'Bila koneksi terputus, buka kembali kuis: jawaban yang sudah tersimpan tidak hilang selama waktu masih berjalan.',
+        'Judul kuis, Batas waktu (menit), Nilai lulus (%), Maks. percobaan, dan Jeda antar percobaan (menit).',
+        'Toleransi jaringan (detik): tambahan waktu singkat untuk koneksi lambat saat mengumpulkan.',
+        'Jumlah soal PG dan esai ditampilkan: jumlah soal yang diundi dari bank untuk setiap peserta.',
+        'Kuis wajib untuk kelulusan, penghalang salin/klik kanan, dan menghormati akomodasi per peserta.',
+        'Tampilkan pembahasan: kunci jawaban dan penjelasan tiap soal tampil setelah peserta lulus atau kesempatannya habis (tidak membantu percobaan ulang).',
+        'Hapus kuis dari materi ini: menghapus kuis beserta soalnya dari draf, misalnya kuis yang tidak sengaja dibuat. Ditolak bila kuis sudah pernah dikerjakan peserta.',
       ],
-      image: { file: 'peserta-07-kuis.jpg', alt: 'Layar kuis berisi sisa waktu, soal pilihan ganda, dan tombol Kumpulkan jawaban', caption: 'Layar kuis: sisa waktu, soal, status tersimpan, dan tombol Kumpulkan jawaban.' },
+      tips: [
+        'Pendamping AI selalu dikunci selama kuis dan tidak dapat diaktifkan.',
+        'Jangan menandai kuis "wajib" bila belum ada soalnya. Kelas dengan kuis wajib kosong tidak bisa diterbitkan.',
+      ],
     },
     {
       id: 'hasil',
@@ -241,12 +244,14 @@ const admin: Guide = {
       id: 'peran',
       title: 'Peran dan hak akses',
       points: [
-        'Admin: semua menu — membuat dan menerbitkan kelas, mengatur peran pengguna, sertifikat, laporan, dan log audit.',
-        'Editor konten: menyusun materi, kuis, dan bank soal pada versi draft. Tidak dapat menerbitkan atau mengatur pengguna.',
-        'Mentor: menilai esai dan menanggapi banding pada kelas yang ditugaskan kepadanya.',
+        'Admin: semua menu. Membuat kelas, menerbitkan perubahan, mengatur peran pengguna, sertifikat, laporan, dan log audit.',
+        'Editor konten: menyusun materi, kuis, bank soal, dan skenario, lalu menyimpannya sebagai draf. Tidak dapat menerbitkan atau mengatur pengguna.',
+        'Mentor: menilai esai dan menanggapi banding pada kelas yang ditugaskan kepadanya, serta melihat statistik skenario kelas itu.',
         'Peserta: hanya belajar. Peran pengelola diberikan admin lewat menu Pengguna.',
       ],
-      tips: ['Berikan peran seminimal mungkin sesuai tugas. Semua perubahan penting tercatat di log audit.'],
+      tips: [
+        'Berikan peran seminimal mungkin sesuai tugas. Semua perubahan penting tercatat di log audit dan Log perubahan kelas.',
+      ],
     },
     {
       id: 'masuk',
@@ -263,6 +268,7 @@ const admin: Guide = {
       title: 'Mengenal panel Admin',
       points: [
         'Kelas: buat kelas baru, daftar kelas, tautan Kelola dan Laporan.',
+        'Skenario: unggah, tinjau, terbitkan, dan lihat statistik skenario latihan (studi kasus bercabang).',
         'Review esai: antrean esai yang menunggu penilaian.',
         'Banding: pengajuan banding nilai dari peserta.',
         'Pengguna: cari pengguna, atur peran, dan akomodasi aksesibilitas.',
@@ -276,44 +282,73 @@ const admin: Guide = {
       title: 'Membuat kelas baru',
       steps: [
         'Di tab Kelas, isi Judul, Slug URL (huruf kecil, angka, tanda minus; contoh: penyelenggaraan-pemerintahan-desa), dan Deskripsi singkat.',
-        'Klik Buat kelas. Editor kelas terbuka pada versi draft.',
-        'Lengkapi pengaturan, foto sampul, materi, dan kuis (bagian berikut), lalu terbitkan.',
+        'Klik Buat kelas. Editor kelas terbuka dan kelas langsung berstatus draf.',
+        'Tambahkan materi dan kuis (bagian berikut), atur kelas lewat tombol Edit kelas, lalu terbitkan.',
       ],
       warning: 'Slug menjadi alamat kelas (belajar.patradesa.id/kelas/slug) dan tidak dapat diubah setelah dibuat.',
     },
     {
       id: 'versi',
-      title: 'Draft dan versi terbit',
-      points: [
-        'Versi terbit bersifat tetap. Peserta yang sudah terdaftar tetap memakai versi yang mereka ikuti.',
-        'Untuk mengubah materi atau soal kelas yang sudah terbit, klik Buat draft versi baru. Draft menyalin seluruh materi, kuis, bank soal, dan pilihan soal.',
-        'Setelah draft siap, admin menekan Terbitkan draft. Peserta baru akan memakai versi baru.',
+      title: 'Mengedit dengan ikon pensil: draf lalu terbit',
+      intro: 'Setiap materi dan kelas punya ikon pensil. Cukup klik pensil, ubah, dan simpan. Sistem mengurus versi di belakang layar.',
+      steps: [
+        'Di editor kelas, klik ikon pensil pada materi yang ingin diubah. Pada kelas yang sudah terbit, draf dibuat otomatis (salinan versi terbit).',
+        'Ubah isi, lalu pilih Simpan sebagai draf. Perubahan tersimpan tetapi peserta belum melihatnya. Bilah kuning Ada perubahan yang belum terbit tampil di atas.',
+        'Bila sudah siap, admin memilih Simpan & terbitkan (atau Tinjau & terbitkan di bilah kuning). Panel Terbitkan perubahan terbuka (lihat bagian Menerbitkan perubahan).',
+        'Editor konten hanya melihat Simpan sebagai draf; admin yang menerbitkannya.',
       ],
-      image: { file: 'admin-03-editor.jpg', alt: 'Editor kelas berisi foto sampul, pengaturan kelas, dan daftar materi', caption: 'Editor kelas: foto sampul, pengaturan, dan daftar materi.' },
+      tips: [
+        'Versi terbit tidak diubah langsung. Dengan begitu nilai, kuis, dan sertifikat peserta yang sedang belajar tetap konsisten sampai Anda memindahkan mereka ke versi baru.',
+        'Judul, visibilitas, dan jadwal kelas (tombol Edit kelas) langsung berlaku tanpa perlu terbit.',
+      ],
+      image: { file: 'admin-03-editor.jpg', alt: 'Editor kelas berisi daftar materi dengan ikon pensil di setiap baris', caption: 'Editor kelas: daftar materi dengan ikon pensil.' },
     },
     {
       id: 'pengaturan',
-      title: 'Pengaturan kelas dan foto sampul',
+      title: 'Edit kelas dan foto sampul',
+      intro: 'Klik tombol Edit kelas di kanan atas editor. Perubahan di sini langsung berlaku.',
       points: [
         'Judul dan Deskripsi. Deskripsi mendukung format sederhana: "## Judul", "- butir", "1. langkah", "**tebal**". Ringkasan katalog diambil otomatis (maksimal 5 baris).',
-        'Visibilitas: Publik tampil di katalog; Privat hanya untuk peserta yang sudah terdaftar.',
-        'Jendela waktu: pendaftaran dibuka/ditutup dan masa akses mulai/berakhir (opsional).',
-        'Durasi akses per peserta (hari) dan masa aktif sesi belajar (menit).',
+        'Visibilitas: Publik tampil di katalog dan mesin pencari; Privat hanya untuk pemegang tautan dan peserta yang sudah terdaftar.',
+        'Jadwal akses & sesi (opsional): pendaftaran dibuka/ditutup, masa akses, durasi akses per peserta, dan masa aktif sesi belajar.',
         'Disarankan untuk jabatan: centang jabatan sasaran agar kelas ditandai di katalog peserta.',
         'Foto sampul: JPG, PNG, atau WebP, maksimal 2 MB, disarankan lanskap 1200×750 px. Jangan memakai foto warga tanpa izin.',
       ],
+      warning: 'Kelas yang masih dalam telaah sebaiknya diatur Privat sampai siap dipublikasikan.',
     },
     {
       id: 'materi',
       title: 'Menyusun materi',
       steps: [
-        'Pada draft, buka bagian Tambah materi.',
-        'Isi Judul materi, Ringkasan, dan pilih Jenis: Bacaan, Slide, PDF (unggah setelah disimpan), atau Video YouTube.',
-        'Tulis Isi materi. Untuk slide, pisahkan setiap slide dengan baris "---".',
+        'Klik Tambah materi di bawah daftar, atau ikon pensil pada materi yang sudah ada.',
+        'Isi Judul materi, Ringkasan, dan Kode materi (opsional). Kode berupa huruf kecil, angka, dan tanda minus, mis. dd26-u01-pilih-dasar-aturan. Kode dipakai untuk membawa progres peserta saat versi diperbarui dan untuk tautan Ulangi materi di hasil skenario.',
+        'Pilih Jenis: Bacaan, Slide, PDF (unggah setelah disimpan), atau Video YouTube.',
+        'Tulis Isi materi. Judul "## ..." membagi bacaan menjadi bagian-bagian yang bisa dibuka-tutup oleh peserta. Untuk slide, pisahkan setiap slide dengan baris "---". Sisipkan skenario dengan satu baris: [[skenario:kode-skenario]].',
         'Tentukan Waktu belajar minimum (menit) dan centang Materi wajib bila diperlukan untuk kelulusan.',
-        'Klik Tambah materi. Materi dapat disunting lagi dengan membuka panelnya.',
+        'Pilih Simpan sebagai draf atau Simpan & terbitkan.',
       ],
-      tips: ['Waktu belajar minimum yang realistis: sekitar 1 menit untuk setiap 150–200 kata bacaan.'],
+      tips: [
+        'Waktu belajar minimum yang realistis: sekitar 1 menit untuk setiap 150–200 kata bacaan.',
+        'Materi pengantar atau tes (mis. Pre-test dan Post-test) cukup diberi waktu minimum 0 menit agar kuisnya langsung bisa dibuka.',
+      ],
+    },
+    {
+      id: 'skenario',
+      title: 'Skenario latihan (studi kasus bercabang)',
+      intro: 'Skenario melatih peserta mengambil keputusan: pilih tindakan, lihat umpan balik, lalu cerita berlanjut. Skenario ditulis sebagai berkas JSON (lihat Panduan Penulis Konten) dan diperiksa dengan validator sebelum diunggah.',
+      steps: [
+        'Buka tab Skenario. Pilih Unggah banyak skenario sekaligus untuk memilih beberapa berkas .json, atau Unggah satu skenario untuk menempel isi JSON.',
+        'Bila ada galat, sistem menyebut lokasi persisnya (mis. /nodes/3/options/1/nextNodeId). Perbaiki berkas lalu unggah lagi; unggahan ulang untuk skenario yang masih draf menimpa draf tersebut.',
+        'Buka skenario dari daftar dan periksa Pratinjau alur: semua langkah, pilihan, penilaian, dan umpan balik.',
+        'Admin menerbitkan lewat Terbitkan (satu skenario) atau Terbitkan beberapa skenario (pilih semua, isi data penelaah sekali). Data penelaah wajib: nama, tanggal telaah, dan tanggal telaah ulang.',
+        'Sisipkan skenario di materi dengan baris [[skenario:kode]]. Kelas tidak dapat diterbitkan bila ada skenario di dalamnya yang belum terbit.',
+      ],
+      points: [
+        'Mode latihan (formative) tidak memengaruhi kelulusan. Mode dinilai (graded) menjadi syarat lulus kelas.',
+        'Statistik (tab skenario terbit): sebaran pilihan per langkah, bisa difilter jabatan, wilayah, dan tanggal. Tanpa nama atau email; angka 1–4 ditampilkan "< 5" agar peserta tidak dapat dikenali. Setiap pembukaan dicatat di audit.',
+        'Versi skenario yang sudah terbit tidak berubah. Mengunggah ulang kode yang sama membuat versi baru berstatus draf.',
+      ],
+      warning: 'Isi penelaah dengan jujur. Skenario yang belum ditelaah substansinya (regulasi, SOP) jangan dipublikasikan ke peserta umum.',
     },
     {
       id: 'kuis',
@@ -331,8 +366,8 @@ const admin: Guide = {
       id: 'bank-soal',
       title: 'Bank soal dan pilihan soal kuis',
       steps: [
-        'Tambah soal satu per satu lewat formulir (pilihan ganda: tandai satu jawaban benar; esai: isi rubrik "Kriteria|skor maks" per baris dan contoh jawaban).',
-        'Atau impor banyak soal sekaligus dari berkas JSON lewat Impor bank soal dari berkas JSON. Sistem memeriksa berkas lalu menyimpannya bertahap.',
+        'Tambah soal satu per satu lewat formulir (pilihan ganda: tandai satu jawaban benar dan, bila perlu, isi Penjelasan; esai: isi rubrik "Kriteria|skor maks" per baris dan contoh jawaban).',
+        'Atau impor banyak soal sekaligus dari berkas JSON lewat Impor bank soal dari berkas JSON. Kunci "explanation" pada soal pilihan ganda menjadi penjelasan.',
         'Di daftar Pilih soal yang dipakai kuis, centang soal yang ikut diundi. Gunakan Pakai semua atau Keluarkan semua per jenis soal.',
         'Klik Simpan pilihan soal kuis. Pastikan jumlah soal yang dipakai tidak kurang dari jumlah yang ditampilkan.',
       ],
@@ -344,14 +379,44 @@ const admin: Guide = {
     },
     {
       id: 'terbit',
-      title: 'Daftar periksa sebelum menerbitkan',
+      title: 'Menerbitkan perubahan',
+      steps: [
+        'Klik Tinjau & terbitkan di bilah kuning, atau pilih Simpan & terbitkan pada formulir (khusus admin).',
+        'Panel Terbitkan perubahan menampilkan ringkasan apa yang berubah, mis. "waktu minimum 0 menit → 5 menit", "nilai lulus 0% → 70%", Materi baru, atau Materi dihapus.',
+        'Bila ada masalah (mis. kuis butuh 10 soal tetapi baru ada 4), panel menyebutnya dan tombol terbit dinonaktifkan sampai diperbaiki.',
+        'Centang Pindahkan juga peserta yang sudah terdaftar bila peserta lama perlu langsung memakai versi baru. Klik Terbitkan sekarang.',
+      ],
       points: [
         'Setiap materi berisi konten yang benar dan waktu belajar minimum yang wajar.',
-        'Kuis memiliki cukup soal yang dipakai (tidak ada peringatan kuning).',
-        'Rubrik esai jelas dan contoh jawaban sudah diisi.',
-        'Visibilitas, jendela waktu, foto sampul, dan jabatan sasaran sudah benar.',
-        'Klik Terbitkan draft (khusus admin), lalu cek tampilan kelas di katalog.',
+        'Kuis memiliki cukup soal yang dipakai; kuis wajib tidak kosong.',
+        'Semua skenario di materi sudah terbit; kode materi dan tautan remedial sudah benar.',
+        'Visibilitas, jadwal, foto sampul, dan jabatan sasaran sudah benar; kelas yang belum ditelaah diatur Privat.',
       ],
+      image: { file: 'admin-07-terbit.jpg', alt: 'Panel Terbitkan perubahan berisi ringkasan perubahan dan opsi memindahkan peserta', caption: 'Panel Terbitkan perubahan.' },
+    },
+    {
+      id: 'perbarui-peserta',
+      title: 'Memindahkan peserta ke versi terbaru',
+      intro: 'Peserta yang sudah terdaftar tetap memakai versi lama sampai dipindahkan. Pemindahan tidak menghapus pendaftaran maupun riwayat.',
+      points: [
+        'Peserta melihat kartu Ada versi baru kelas ini di halaman kelas, lalu menekan Perbarui ke versi N. Admin juga dapat memindahkan dari Laporan (kolom Versi, tombol Pindahkan) atau lewat opsi di panel terbit.',
+        'Yang ikut terbawa: progres materi dengan kode materi yang sama (dihitung ulang terhadap waktu minimum versi baru), hasil skenario, dan skenario yang sedang dikerjakan.',
+        'Yang mulai baru: kuis versi baru dimulai dari nol.',
+        'Ditolak bila peserta sedang mengerjakan kuis atau sertifikat kelas itu sudah ada.',
+      ],
+      tips: [
+        'Beri kode materi yang tetap pada setiap materi sejak awal. Tanpa kode yang sama, progres tidak dapat dicocokkan.',
+      ],
+    },
+    {
+      id: 'log-kelas',
+      title: 'Log perubahan kelas',
+      points: [
+        'Buka editor kelas lalu tab Log perubahan.',
+        'Setiap baris mencatat waktu, pelaku, jenis perubahan, dan rincian: materi yang diubah beserta perubahan angka (nilai lulus, waktu, kesempatan), versi yang diterbitkan, dan peserta yang dipindahkan.',
+        'Log tidak dapat diubah atau dihapus, dan tidak memuat email peserta.',
+      ],
+      image: { file: 'admin-08-log.jpg', alt: 'Tab Log perubahan berisi tabel waktu, pelaku, perubahan, dan rincian', caption: 'Log perubahan kelas.' },
     },
     {
       id: 'review',
@@ -401,7 +466,7 @@ const admin: Guide = {
       id: 'laporan',
       title: 'Laporan kelas dan log audit',
       points: [
-        'Laporan (dari Daftar kelas): materi selesai, jumlah percobaan, nilai terbaik, dan status lulus setiap peserta.',
+        'Laporan (dari Daftar kelas): materi selesai, jumlah percobaan, nilai terbaik, status lulus, dan versi kelas yang diikuti setiap peserta.',
         'Audit: waktu, pelaku, aksi, dan target setiap perubahan penting (membuat kelas, menerbitkan, menilai, mengubah peran, mencabut sertifikat).',
       ],
       warning: 'Laporan berisi data pribadi peserta. Jangan diekspor atau dibagikan kepada pihak yang tidak berwenang.',
@@ -420,9 +485,11 @@ const admin: Guide = {
       title: 'Pemecahan masalah',
       faq: [
         { q: 'Peserta tidak bisa memulai kuis.', a: 'Periksa waktu belajar minimum materi kuis, batas percobaan, dan jeda antar-percobaan di pengaturan kuis.' },
-        { q: 'Muncul peringatan "Soal yang dipakai belum cukup".', a: 'Centang lebih banyak soal di daftar pilihan, atau kurangi jumlah soal yang ditampilkan di pengaturan kuis.' },
+        { q: 'Terbit ditolak: kuis butuh sekian soal.', a: 'Tambahkan soal atau perbanyak soal yang dicentang di Pilih soal yang dipakai kuis. Bila kuisnya tidak diperlukan, klik Hapus kuis dari materi ini.' },
+        { q: 'Peserta tidak melihat materi baru.', a: 'Peserta lama masih di versi sebelumnya. Pindahkan lewat opsi di panel terbit, tombol Pindahkan di Laporan, atau minta peserta menekan Perbarui di halaman kelas.' },
+        { q: 'Terbit ditolak: skenario belum diterbitkan.', a: 'Buka tab Skenario, terbitkan skenario yang disebut, lalu terbitkan kelas lagi.' },
         { q: 'Sertifikat berstatus "Menunggu Studio".', a: 'Klik Terbitkan sekarang dan baca pesannya. Bila menyebut integrasi belum siap atau HTTP 401, hubungi tim teknis Patra Desa.' },
-        { q: 'Tidak bisa mengubah materi.', a: 'Versi terbit tidak dapat diubah. Klik Buat draft versi baru terlebih dahulu.' },
+        { q: 'Saya salah menyimpan sebagai draf.', a: 'Tidak masalah: draf tidak terlihat peserta. Ubah lagi lewat pensil atau tutup draf dengan tidak menerbitkannya.' },
       ],
     },
   ],

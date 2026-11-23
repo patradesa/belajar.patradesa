@@ -10,6 +10,9 @@ import { Icon } from '../components/Icon';
 
 type Row = Record<string, any>;
 
+/** Format kode materi yang valid (sama dengan skema server). */
+const KEY_OK = /^[a-z0-9][a-z0-9-]{1,63}$/;
+
 const toLocal = (ms: number | null | undefined) => {
   if (!ms) return '';
   const d = new Date(ms);
@@ -65,11 +68,13 @@ function LessonForm({
           type="text"
           pattern="[a-z0-9][a-z0-9\-]{1,63}"
           maxLength={64}
-          defaultValue={lesson?.lesson_key ?? ''}
+          // Materi lama punya kode acak (huruf besar/garis bawah) yang tidak lolos pola; kosongkan agar kode itu tidak berubah dan formulir tetap bisa disimpan.
+          defaultValue={KEY_OK.test(String(lesson?.lesson_key ?? '')) ? String(lesson?.lesson_key) : ''}
+          placeholder={lesson?.lesson_key && !KEY_OK.test(String(lesson.lesson_key)) ? `otomatis: ${String(lesson.lesson_key)}` : undefined}
           aria-describedby={`${pre}-key-help`}
         />
         <span id={`${pre}-key-help`} className="help">
-          Huruf kecil, angka, tanda hubung — mis. <code>dd26-u01-pilih-dasar-aturan</code>. Dipakai tautan remedial skenario. Kosongkan untuk kode otomatis.
+          Huruf kecil, angka, tanda hubung — mis. <code>dd26-u01-pilih-dasar-aturan</code>. Dipakai tautan remedial skenario. Kosongkan agar kode tidak berubah.
         </span>
       </div>
       <div className="field">

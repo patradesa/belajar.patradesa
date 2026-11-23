@@ -99,6 +99,9 @@ test('pilihan soal kuis: centang/keluarkan soal di draft lalu simpan', async ({ 
   await expect(page.getByText(/Draf dibuat otomatis/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Tinjau & terbitkan' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Bank soal: 5 pilihan ganda, 2 esai' })).toBeVisible();
+  // Regresi: materi lama berkode acak (huruf besar) tetap bisa disimpan tanpa mengubah kodenya.
+  await page.getByRole('button', { name: 'Simpan sebagai draf' }).first().click();
+  await expect(page.getByText('Materi disimpan sebagai draf.')).toBeVisible();
   // Daftar pilihan terbuka otomatis untuk bank kecil (≤ 20 soal).
   await expect(page.getByText(/^Pilih soal yang dipakai kuis/)).toBeVisible();
   await page.getByRole('checkbox', { name: /Berapa nilai lulus kuis demo ini/ }).uncheck();
