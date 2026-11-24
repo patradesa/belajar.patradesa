@@ -892,6 +892,11 @@ export function adminRoutes(deps: Deps) {
     await auditStmt(c.env.DB, now, u.id, 'certificate.revoke', 'certificate', out.id).run();
     return c.json({ status: out.status });
   });
+  });
+
+  r.route('/', adminImportBundleRoute);
 
   return r;
 }
+
+
