@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "lms-lokal",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["C:/Users/Gustulang/Projects/belajar.patradesa/scripts/lokal.mjs"],
+      "port": 8787
+    }
+  ]
+}
