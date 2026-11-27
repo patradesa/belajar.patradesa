@@ -16,6 +16,9 @@ export interface Env {
   AI_DAILY_QUOTA?: string;
   /** Alamat Sertifikat Studio, mis. https://sertifikat.patradesa.id (tanpa garis miring akhir). */
   SERTIFIKAT_BASE_URL?: string;
+  /** Alamat yang dipanggil server untuk API integrasi. Wajib beda zona dari Worker ini (mis. *.pages.dev):
+   *  subrequest Worker ke situs Pages di zona yang sama (patradesa.id) gagal HTTP 522. Kosong → SERTIFIKAT_BASE_URL. */
+  SERTIFIKAT_API_URL?: string;
   /** Rahasia bersama HMAC dengan Studio (LMS_INTEGRATION_SECRET di Studio), minimal 32 karakter. */
   SERTIFIKAT_INTEGRATION_SECRET?: string;
 }

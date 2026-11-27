@@ -60,6 +60,11 @@ function studioBase(env: Env): string {
   return (env.SERTIFIKAT_BASE_URL ?? '').replace(/\/+$/, '');
 }
 
+/** Alamat untuk panggilan server ke API integrasi (lihat SERTIFIKAT_API_URL di env.ts). Tautan verifikasi tetap studioBase. */
+export function studioApiBase(env: Env): string {
+  return (env.SERTIFIKAT_API_URL || env.SERTIFIKAT_BASE_URL || '').replace(/\/+$/, '');
+}
+
 export function toView(r: CertificateRow & { slug?: string }): CertificateView {
   return {
     id: r.id,
@@ -185,7 +190,7 @@ async function callStudio(
   const body = JSON.stringify(payload);
   const ts = String(now);
   const signature = await hmacHex(env.SERTIFIKAT_INTEGRATION_SECRET!, `${ts}.${body}`);
-  const res = await fetchFn(`${studioBase(env)}${path}`, {
+  const res = await fetchFn(`${studioApiBase(env)}${path}`, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
