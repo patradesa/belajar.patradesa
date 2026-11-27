@@ -30,7 +30,7 @@ import { assertScenarioKeysExist, pinScenarioStatements } from '../services/scen
 import { upgradeEnrollment } from '../services/enrollmentUpgrade';
 import { adminImportBundleRoutes } from './admin/importBundle';
 import { LESSON_FIELDS, QUIZ_FIELDS, courseLog, diffFields, draftChanges, publishProblems } from '../services/courseChanges';
-import { integrationConfigured, integrationProblem, issueAfterAttempt, pushToStudio, revokeCertificate, type CertificateRow } from '../services/certificates';
+import { checkStudio, integrationConfigured, integrationProblem, issueAfterAttempt, pushToStudio, revokeCertificate, type CertificateRow } from '../services/certificates';
 
 const MAX_PDF_BYTES = 20 * 1024 * 1024;
 const MAX_COVER_BYTES = 2 * 1024 * 1024;
@@ -955,6 +955,9 @@ export function adminRoutes(deps: Deps) {
     await auditStmt(c.env.DB, now, u.id, 'certificate.retry', 'certificate', row.id, { issued: out.status === 'issued' }).run();
     return c.json({ status: out.status, lastError: out.last_error, certificateNo: out.certificate_no });
   });
+
+  // Uji koneksi LMS → Sertifikat Studio (tanpa mengubah data di Studio).
+  r.post('/certificates/studio-check', admins, async (c) => c.json(await checkStudio(c.env, deps.fetch, deps.now())));
 
   r.post('/certificates/:id/revoke', admins, async (c) => {
     const u = currentUser(c);

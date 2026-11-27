@@ -4,7 +4,9 @@
 name = "patradesa-belajar-dev"
 main = "apps/api/src/index.ts"
 compatibility_date = "2026-11-01"
-compatibility_flags = ["nodejs_compat"]
+# global_fetch_strictly_public: fetch() keluar lewat internet publik (seperti peramban), termasuk ke situs Pages
+# di akun Cloudflare yang sama (Sertifikat Studio). Tanpa ini panggilan ke Studio gagal HTTP 522.
+compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
 workers_dev = false
 
 [assets]

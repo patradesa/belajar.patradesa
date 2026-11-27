@@ -242,3 +242,35 @@ describe('konfigurasi integrasi', () => {
     expect(integrationProblem({ ...base, SERTIFIKAT_INTEGRATION_SECRET: SECRET })).toBeNull();
   });
 });
+
+describe('uji koneksi Studio', () => {
+  it('404 bertanda tangan → terhubung; 522 dari tepi → gagal dengan keterangan cf-ray; hanya admin', async () => {
+    studioDown = false;
+    const prev = h.fetchMock;
+    // Studio nyata menjawab 404 untuk kode yang tidak ada (setelah tanda tangan diterima).
+    h.fetchMock = async (url, init) => {
+      const res = await prev!(url, init);
+      return JSON.parse(String(init?.body ?? '{}')).code === 'ZZZZZZZZZZZZZZZZ' ? Response.json({ error: 'Sertifikat tidak ditemukan.' }, { status: 404 }) : res;
+    };
+    const ok = await admin.json('POST', '/api/v1/admin/certificates/studio-check');
+    expect(ok.status).toBe(200);
+    expect(ok.body).toMatchObject({ ok: true, status: 404 });
+    const last = studioCalls.at(-1)!;
+    expect(last).toMatchObject({ path: '/api/integrasi/cabut', validSig: true });
+    expect(last.body.code).toBe('ZZZZZZZZZZZZZZZZ');
+
+    h.fetchMock = async () =>
+      new Response('<html><title>Connection timed out</title><body>Error code 522</body></html>', {
+        status: 522,
+        headers: { server: 'cloudflare', 'cf-ray': 'abc123-SIN', 'content-type': 'text/html' },
+      });
+    const bad = await admin.json('POST', '/api/v1/admin/certificates/studio-check');
+    expect(bad.body).toMatchObject({ ok: false, status: 522 });
+    expect(bad.body.diag).toContain('cf-ray abc123-SIN');
+    expect(bad.body.diag).toContain('Error code 522');
+    h.fetchMock = prev;
+
+    const learner = await new Client(h).login('bukan-admin-cek@contoh.test', 'Peserta');
+    expect((await learner.json('POST', '/api/v1/admin/certificates/studio-check')).status).toBe(403);
+  });
+});

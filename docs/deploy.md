@@ -57,7 +57,7 @@ Sertifikat kelas diterbitkan oleh Sertifikat Studio lewat `POST /api/integrasi/t
 1. Buat satu rahasia acak ≥ 32 karakter. Pasang di **kedua** aplikasi dengan nilai yang sama:
    - LMS (Worker `belajar-patradesa`) → Variables and Secrets → Secret `SERTIFIKAT_INTEGRATION_SECRET`.
    - Studio → Secret `LMS_INTEGRATION_SECRET` (lihat DEPLOY.md di repo certificate-studio).
-2. `SERTIFIKAT_BASE_URL` sudah ada di `wrangler.toml` (staging & produksi). Tanpa secret, penerbitan tidak berjalan: sertifikat tersimpan "Menunggu Studio" dan admin melihat peringatan di tab **Sertifikat**.
+2. `SERTIFIKAT_BASE_URL` (alamat tautan verifikasi) dan `SERTIFIKAT_API_URL` (alamat panggilan server, `*.pages.dev`) sudah ada di `wrangler.toml` (staging & produksi). Worker memakai flag `global_fetch_strictly_public` agar panggilan ke Studio (Pages di akun yang sama) keluar lewat internet publik; tanpa itu Cloudflare menjawab HTTP 522. Cek dengan tombol **Uji koneksi Studio** di tab Sertifikat. Tanpa secret, penerbitan tidak berjalan: sertifikat tersimpan "Menunggu Studio" dan admin melihat peringatan di tab **Sertifikat**.
 3. Jalankan migrasi `0003_certificates` (LMS) dan `0003_integrasi_belajar` (Studio) sebelum deploy kode.
 4. Uji: Admin → Kelas → **Buat kelas demo penilaian** → Review esai (nilai 2 esai) → tab Sertifikat menampilkan nomor PD/BELAJAR → cabut sertifikat demo setelah selesai (nomor tetap terpakai di Studio; staging memakai Studio produksi).
 
