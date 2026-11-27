@@ -65,7 +65,7 @@ export function GoogleSignIn({ config, returnTo, onError }: { config: AuthConfig
   if (!config.googleEnabled) return null;
   return (
     <div className="stack">
-      <div ref={tsRef} className="turnstile-box" aria-label="Verifikasi keamanan" />
+      <div ref={tsRef} className="turnstile-box" role="group" aria-label="Verifikasi keamanan" />
       <button type="button" className="btn btn-block google-btn" onClick={start} disabled={!token || busy} aria-describedby="google-help">
         <GoogleG />
         {busy ? 'Mengalihkan…' : 'Masuk dengan Google'}
