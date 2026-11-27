@@ -306,7 +306,7 @@ const admin: Guide = {
     {
       id: 'pengaturan',
       title: 'Edit kelas dan foto sampul',
-      intro: 'Klik tombol Edit kelas di kanan atas editor. Perubahan di sini langsung berlaku.',
+      intro: 'Klik tombol Edit kelas di kolom info kelas (kiri; di HP paling atas). Perubahan di sini langsung berlaku.',
       points: [
         'Judul dan Deskripsi. Deskripsi mendukung format sederhana: "## Judul", "- butir", "1. langkah", "**tebal**". Ringkasan katalog diambil otomatis (maksimal 5 baris).',
         'Visibilitas: Publik tampil di katalog dan mesin pencari; Privat hanya untuk pemegang tautan dan peserta yang sudah terdaftar.',

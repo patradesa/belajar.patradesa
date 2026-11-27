@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { VILLAGE_ROLES, VILLAGE_ROLE_LABELS } from '@patradesa/shared';
+import { VILLAGE_ROLES, VILLAGE_ROLE_LABELS, VILLAGE_ROLE_SHORT } from '@patradesa/shared';
 import { api, errorMessage } from '../lib/api';
 import { hasRole, useSession } from '../lib/session';
 import { ErrorAlert, Loading, useAsync } from '../components/common';
@@ -20,6 +20,83 @@ const toLocal = (ms: number | null | undefined) => {
 };
 const fromLocal = (v: FormDataEntryValue | null) => (v && String(v) ? new Date(String(v)).getTime() : null);
 const num = (v: FormDataEntryValue | null) => Number(v ?? 0);
+const fmtDate = (ms: unknown) =>
+  ms ? new Date(Number(ms)).toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
+const STATUS_NAME: Record<string, string> = { published: 'Diterbitkan', draft: 'Draf', archived: 'Diarsipkan' };
+
+/** Kolom kiri editor: identitas kelas (sampul, status, ringkasan) seperti panel info di LMS lain. */
+function CourseInfo({ c, data, statusLine, lessons, showSettings, onToggleSettings }: { c: Row; data: Row; statusLine: string; lessons: Row[]; showSettings: boolean; onToggleSettings: () => void }) {
+  // Di HP detail tertutup dulu agar daftar materi cepat terlihat; di desktop terbuka.
+  const [open, setOpen] = useState(() => typeof window === 'undefined' || !window.matchMedia || window.matchMedia('(min-width: 960px)').matches);
+  const minutes = lessons.reduce((t, l) => t + Math.round(Number(l.required_active_seconds) / 60), 0);
+  const quizzes = lessons.filter((l) => l.assessment).length;
+  const roles = ((data.recommendedFor ?? []) as string[]).map((r) => VILLAGE_ROLE_SHORT[r as keyof typeof VILLAGE_ROLE_SHORT] ?? r);
+  const mentors = ((data.mentors ?? []) as Row[]).map((m) => String(m.display_name));
+  const status = String(c.status);
+  const desc = String(c.description ?? '').replace(/[#*]/g, '').trim();
+  return (
+    <aside className="card course-info" aria-labelledby="kelas-judul">
+      {data.coverUrl ? (
+        <img src={String(data.coverUrl)} alt="" className="course-info-cover" />
+      ) : (
+        <div className="course-info-cover course-info-placeholder" aria-hidden="true">
+          <img src="/logo-patradesa.png" alt="" width={140} height={34} />
+          <span>Belum ada foto sampul</span>
+        </div>
+      )}
+      <div className="course-info-body">
+        <div className="badge-row">
+          <span className={status === 'published' ? 'badge badge-success' : 'badge badge-warning'}>{STATUS_NAME[status] ?? status}</span>
+          <span className="badge">{c.visibility === 'private' ? 'Privat' : 'Publik'}</span>
+        </div>
+        <h2 id="kelas-judul" className="course-info-title">
+          {String(c.title)}
+        </h2>
+        <p className="muted course-info-status">{statusLine}</p>
+        <button type="button" className="btn btn-secondary icon-text" aria-expanded={showSettings} onClick={onToggleSettings}>
+          <Icon name="pencil" /> Edit kelas
+        </button>
+        <div className="course-info-detail">
+          <button type="button" className="course-info-toggle" aria-expanded={open} aria-controls="kelas-detail" onClick={() => setOpen((x) => !x)}>
+            Detail <span aria-hidden="true">{open ? '▴' : '▾'}</span>
+          </button>
+          <dl id="kelas-detail" hidden={!open}>
+            <dt>Kode kelas</dt>
+            <dd>
+              <code>{String(c.slug)}</code>
+            </dd>
+            <dt>Isi</dt>
+            <dd>
+              {lessons.length} materi · {quizzes} kuis · {minutes} menit minimum
+            </dd>
+            {roles.length > 0 && (
+              <>
+                <dt>Jabatan sasaran</dt>
+                <dd>{roles.join(', ')}</dd>
+              </>
+            )}
+            {mentors.length > 0 && (
+              <>
+                <dt>Mentor</dt>
+                <dd>{mentors.join(', ')}</dd>
+              </>
+            )}
+            {desc && (
+              <>
+                <dt>Deskripsi</dt>
+                <dd className="course-info-desc">{desc}</dd>
+              </>
+            )}
+            <dt>Dibuat pada</dt>
+            <dd>{fmtDate(c.created_at)}</dd>
+            <dt>Terakhir diubah</dt>
+            <dd>{fmtDate(c.updated_at)}</dd>
+          </dl>
+        </div>
+      </div>
+    </aside>
+  );
+}
 
 function LessonForm({
   lesson,
@@ -626,20 +703,14 @@ export function CourseEditor({ id }: { id: string }) {
     if (ok && mode === 'publish') setPublishOpen(true);
   };
 
+  const statusLine = `${c.status === 'published' ? `Terbit v${String(current?.version_no ?? '-')}` : 'Belum pernah terbit'} · ${c.visibility === 'private' ? 'Privat' : 'Publik'}${
+    isDraft ? ` · draf v${String(editing?.version_no)} belum terbit` : ''
+  }`;
+
   return (
-    <div className="stack">
-      <div className="editor-head">
-        <div>
-          <h2 style={{ margin: 0 }}>{String(c.title)}</h2>
-          <p className="muted" style={{ margin: 0 }}>
-            {c.status === 'published' ? `Terbit v${String(current?.version_no ?? '-')}` : 'Belum pernah terbit'} · {c.visibility === 'private' ? 'Privat' : 'Publik'}
-            {isDraft ? ` · draf v${String(editing?.version_no)} belum terbit` : ''}
-          </p>
-        </div>
-        <button type="button" className="btn btn-secondary icon-text" aria-expanded={showSettings} onClick={() => setShowSettings((x) => !x)}>
-          <Icon name="pencil" /> Edit kelas
-        </button>
-      </div>
+    <div className="course-manage">
+      <CourseInfo c={c} data={data} statusLine={statusLine} lessons={lessons} showSettings={showSettings} onToggleSettings={() => setShowSettings((x) => !x)} />
+      <div className="stack course-manage-main">
       {view}
       {notice && (
         <div className="alert alert-success" role="status">
@@ -675,7 +746,9 @@ export function CourseEditor({ id }: { id: string }) {
         />
       )}
 
-      <div className="subnav">
+      <div className="course-manage-head">
+        <h3>Daftar materi</h3>
+        <div className="subnav">
         <ul role="tablist" aria-label="Bagian editor kelas">
           <li role="presentation">
             <button type="button" role="tab" aria-selected={tab === 'materi'} className="tab-btn" onClick={() => setTab('materi')}>
@@ -688,6 +761,7 @@ export function CourseEditor({ id }: { id: string }) {
             </button>
           </li>
         </ul>
+        </div>
       </div>
 
       {tab === 'log' ? (
@@ -713,6 +787,9 @@ export function CourseEditor({ id }: { id: string }) {
                         {quiz ? ` · kuis ${(quiz.questions as Row[]).length} soal${Number(quiz.is_required) === 1 ? ' (wajib)' : ''}` : ''}
                       </span>
                     </div>
+                    <span className={Number(l.is_required) === 1 ? 'badge badge-success editor-lesson-badge' : 'badge editor-lesson-badge'}>
+                      {Number(l.is_required) === 1 ? 'Wajib' : 'Opsional'}
+                    </span>
                     <button
                       type="button"
                       className="icon-btn"
@@ -834,6 +911,7 @@ export function CourseEditor({ id }: { id: string }) {
           )}
         </>
       )}
+      </div>
     </div>
   );
 }
