@@ -53,5 +53,24 @@ Setiap bagian memakai skema endpoint yang sama dengan editor (materi, kuis, soal
 | `lessonKey` atau ID skenario ganda | |
 | Kuis menampilkan lebih banyak soal daripada isi bank | |
 
+## Format 1.0.0 (diubah otomatis)
+Berkas dari alur produksi materi berbantuan AI memakai bentuk lain: `"schema_version": "1.0.0"`, `course`, `modules[]` dengan `content_html`, `interactive_blocks`, dan `questions`. Halaman Impor paket dan endpoint validasi **mengenali bentuk ini dan mengubahnya** ke paket v1 di atas dengan pengubah yang sama (`packages/shared/src/schemas/coursePackageV1.ts`), lalu memeriksa hasilnya seperti biasa. Semua keputusan pengubahan tampil sebagai *Catatan pengubahan* sebelum impor.
+
+| Sumber 1.0.0 | Hasil di LMS |
+|---|---|
+| `course.slug/title/summary` | kelas privat, slug sama; `upsert_by_slug` **tidak** memperbarui kelas lama — impor selalu membuat kelas baru |
+| `course.target_roles` (teks bebas) | kode jabatan LMS lewat kata kunci (perbekel, sekretaris, kaur, kasi, kelian → kawil, operator/SID, BPD, kader/PKK/BUMDes); yang tak cocok dilewati + catatan |
+| `modules[]` | satu materi per modul; `lessonKey` = `slug`; waktu aktif minimum = ½ `duration_minutes`; `is_mandatory` → wajib |
+| `content_html` | Markdown-lite: h2/h3 → `##`/`###`, p, li, blockquote, **tebal**, tautan https. Tag lain dibuang (teks tetap) + catatan. Bila tidak ada h2, diberi bagian `## Bacaan` |
+| `interactive_blocks` | tiap blok jadi skenario draf (ID = `id` blok) dan bagian `## Latihan: <judul>` berisi `[[skenario:id]]` |
+| · `branching_scenario` | node keputusan; penilaian pilihan dari `verdict` bila ada, atau kata pembuka umpan balik: *Tepat* → terbaik 10, *Bisa diterima/Cukup* → 6, *Berisiko* → 3, *Kurang tepat/Tidak tepat/Salah* → 0. **Tidak bisa ditentukan → masalah**, bukan tebakan. `next_node_id: null` → node akhir |
+| · `drag_and_drop` | satu pertanyaan "pilih kategori" per butir (2–4 kategori) |
+| · `hotspot_checklist` | latihan langkah demi langkah tanpa skor (situasi → langkah yang disarankan) |
+| `questions` semua modul | satu kuis **Evaluasi Akhir** di materi terakhir; lulus = `completion_rules.min_quiz_score` (bawaan 70), 3 kesempatan, pembahasan setelah selesai |
+| · `multiple_choice` | `correct_answer` harus sama persis dengan tepat satu opsi (bila tidak → masalah); `feedback` → pembahasan |
+| · `essay` | rubrik dibagi rata total 100 (tinjau di editor kuis) |
+
+Skenario hasil pengubahan berstatus **draf**, mode formatif, 3 kesempatan, berlaku sejak tanggal impor. Telaah penilaian pilihan sebelum menerbitkan. Aturan remedial dan metadata lain (`low_bandwidth_mode`, dsb.) belum dipakai dan disebut di catatan.
+
 ## Batas
 Berkas ≤ 2 MB · ≤ 30 materi · ≤ 40 skenario · ≤ 500 soal per kuis. Materi PDF perlu diunggah berkasnya lewat editor setelah impor.

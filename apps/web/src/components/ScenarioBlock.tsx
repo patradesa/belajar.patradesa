@@ -172,9 +172,16 @@ export default function ScenarioBlock({ summary, lessonId, onFinish }: { summary
     const f = d.final;
     body = (
       <div className="stack">
-        <p className="scn-score">
-          <strong>{f.percent}%</strong> ({f.score} dari {f.maxScore} poin) · <span className={f.passed ? 'badge badge-success' : 'badge'}>{f.band.label}</span>
-        </p>
+        {f.maxScore > 0 ? (
+          <p className="scn-score">
+            <strong>{f.percent}%</strong> ({f.score} dari {f.maxScore} poin) · <span className={f.passed ? 'badge badge-success' : 'badge'}>{f.band.label}</span>
+          </p>
+        ) : (
+          // Latihan langkah demi langkah tanpa pilihan: tidak ada skor.
+          <p className="scn-score">
+            <span className="badge badge-success">✓ {f.band.label}</span>
+          </p>
+        )}
         <RichText text={f.band.message} />
         {d.node?.body && <RichText text={d.node.body} />}
         <h4>Poin bawa pulang</h4>

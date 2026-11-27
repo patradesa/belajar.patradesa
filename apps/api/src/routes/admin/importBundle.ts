@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { CourseBundleSchema, ERROR_CODES, bundleEmbeddedScenarioKeys, bundleScenarioDefinitions } from '@patradesa/shared';
+import { CourseBundleSchema, ERROR_CODES, bundleEmbeddedScenarioKeys, bundleScenarioDefinitions, convertCoursePackageV1, isCoursePackageV1 } from '@patradesa/shared';
 import type { AppEnv } from '../../env';
 import { HttpError } from '../../lib/http';
 import { requireRole } from '../../middleware/auth';
@@ -29,12 +29,23 @@ export function adminImportBundleRoutes() {
       throw new HttpError(400, ERROR_CODES.VALIDATION, 'Berkas bukan JSON yang valid.');
     }
 
+    // Format "paket kelas 1.0.0" (modules[], content_html, interactive_blocks) diubah dulu ke paket LMS.
+    let format: 'bundle-v1' | 'course-package-1.0.0' = 'bundle-v1';
+    const conversionNotes: string[] = [];
+    if (isCoursePackageV1(raw)) {
+      format = 'course-package-1.0.0';
+      const conv = convertCoursePackageV1(raw);
+      conversionNotes.push(...conv.notes);
+      if (!conv.bundle) return c.json({ ok: false, format, problems: conv.problems, warnings: conv.notes, summary: null, scenarios: [] });
+      raw = conv.bundle;
+    }
     const parsed = CourseBundleSchema.safeParse(raw);
     if (!parsed.success) {
       return c.json({
         ok: false,
+        format,
         problems: parsed.error.issues.slice(0, 60).map((i) => `${i.path.length ? '/' + i.path.join('/') : '/'}: ${i.message}`),
-        warnings: [],
+        warnings: conversionNotes,
         summary: null,
         scenarios: [],
       });
@@ -42,7 +53,7 @@ export function adminImportBundleRoutes() {
     const bundle = parsed.data;
     const db = c.env.DB;
     const problems: string[] = [];
-    const warnings: string[] = [];
+    const warnings: string[] = [...conversionNotes];
 
     // 1 query: slug kelas.
     const slugTaken = await db.prepare('SELECT 1 AS x FROM courses WHERE slug = ?').bind(bundle.course.slug).first();
@@ -93,6 +104,7 @@ export function adminImportBundleRoutes() {
     const quizzes = bundle.lessons.filter((l) => l.quiz);
     return c.json({
       ok: problems.length === 0,
+      format,
       problems,
       warnings,
       summary: {
