@@ -1,0 +1,781 @@
+{
+  "schema_version": "1.0.0",
+  "mode": "upsert_by_slug",
+  "course": {
+    "slug": "daya-desa-literasi-digital-bali",
+    "title": "Daya Desa & Helai Literasi Digital: Praktik Inklusif dan Bermakna di Desa Bali",
+    "code": "LIT-DESA-01",
+    "summary": "Kelas interaktif berbasis buku Daya Desa dan Helai Literasi Digital (Donny Utoyo, 2026) yang dipecah menjadi 13 helai ringkas dengan 30 simulasi, soal, dan skenario kontekstual bagi perangkat desa, kelian banjar/dusun, pengelola BUMDes, dan kader komunitas di Bali.",
+    "target_roles": [
+      "Perbekel / Kepala Desa",
+      "Sekretaris Desa",
+      "Kaur & Kasi Desa",
+      "Kelian Banjar / Kepala Dusun",
+      "Pengelola BUMDes & Kader Literasi Desa"
+    ],
+    "status": "draft",
+    "estimated_minutes": 195,
+    "low_bandwidth_friendly": true,
+    "privacy_policy": {
+      "use_dummy_data_only": true,
+      "collects_nik_or_kk": false,
+      "notes": "Gunakan nama dan lokasi contoh dummy saat latihan maupun simulasi. Jangan pernah menuliskan NIK, nomor KK, nomor rekening pribadi, atau data sensitif warga sungguhan."
+    },
+    "completion_rules": {
+      "require_all_mandatory_modules": true,
+      "min_quiz_score": 70,
+      "remedial_on_quiz_fail": {
+        "enabled": true,
+        "review_module_slugs": [
+          "m01-digital-dan-ruang-ketiga-desa",
+          "m04-kesenjangan-desa-digital",
+          "m05-desa-digital-inklusif",
+          "m10-risiko-digital-desa",
+          "m11-tata-kelola-digital-desa",
+          "m13-peta-dan-kompas-literasi-digital"
+        ]
+      },
+      "issue_certificate_on_complete": true
+    }
+  },
+  "modules": [
+    {
+      "order": 1,
+      "slug": "m01-digital-dan-ruang-ketiga-desa",
+      "title": "Helai 1: Digital dan Ruang Ketiga Desa",
+      "duration_minutes": 15,
+      "is_mandatory": true,
+      "low_bandwidth_mode": {
+        "text_first": true,
+        "optional_video_click_to_load": true
+      },
+      "content_html": "<article class=\"ld-module\"><h2>Helai 1: Digital dan Ruang Ketiga Desa</h2><p>Dalam situasi krisis atau bencana, yang sering paling menyesakkan bukan hanya kerusakan fisik, melainkan terputusnya hubungan sosial dan komunikasi antarwarga. Ketahanan komunitas bertumpu pada modal sosial serta empat kapasitas adaptif: pengembangan ekonomi, modal sosial, informasi dan komunikasi, serta kompetensi komunitas.</p><p>Di luar rumah (<em>ruang pertama</em>) dan kantor/sekolah (<em>ruang kedua</em>), warga memiliki <strong>ruang ketiga</strong> seperti balai banjar, wantilan, balai desa, atau pelataran tempat warga saling menyapa dan berkabar. Ketika ruang komunal yang dipercaya warga terhubung secara digital (<em>ruang ketiga terkoneksi digital</em>), sinyal darurat atau kanal informasi menjadi penyangga solidaritas dan koordinasi bantuan.</p><p><strong>Konteks Bali:</strong> Saat hujan lebat memicu banjir genangan atau longsor di jalur antarbanjar di Desa Dauh Tukad (<em>dummy</em>), balai banjar atau balai desa menjadi titik kumpul warga dan relawan untuk memastikan kabar keluarga, mengecek warga lansia, serta menyalurkan bantuan secara tertib.</p></article>",
+      "interactive_blocks": [
+        {
+          "type": "branching_scenario",
+          "id": "sim-01-ruang-ketiga-banjar",
+          "title": "Simulasi 1: Titik Kabar & Koordinasi Saat Gangguan Cuaca Ekstrem",
+          "start_node_id": "n1",
+          "nodes": [
+            {
+              "id": "n1",
+              "situation": "Hujan deras berjam-jam di Desa Dauh Tukad (dummy) membuat satu ruas jalan banjar tergenang dan sebagian warga kehilangan sinyal seluler. Kelian Banjar Suka Maju (dummy) menerima laporan via pesan suara bahwa dua keluarga lansia belum bisa dihubungi. Apa langkah pertama yang paling tepat?",
+              "choices": [
+                {
+                  "id": "c1a",
+                  "label": "Mengaktifkan balai banjar sebagai titik pusat kabar dan koordinasi warga/relawan sambil memadukan pengecekan langsung ke rumah lansia terdekat.",
+                  "feedback": "Tepat. Ruang komunal yang dipercaya warga bekerja paling kuat ketika konektivitas dipadukan dengan relasi sosial dan pengecekan langsung yang aman.",
+                  "next_node_id": "n2"
+                },
+                {
+                  "id": "c1b",
+                  "label": "Menunggu laporan lengkap dari kecamatan sebelum memberi tahu warga atau mengecek kondisi lapangan.",
+                  "feedback": "Kurang tepat. Dalam krisis, keterlambatan kabar mempercepat kecemasan; koordinasi cepat berbasis ruang komunal dan relasi warga sangat menentukan.",
+                  "next_node_id": "n2"
+                }
+              ]
+            },
+            {
+              "id": "n2",
+              "situation": "Di balai banjar yang disiapkan titik pengisian daya dan koneksi darurat, beberapa warga berebut menyalakan ponsel dan saling menyebarkan foto genangan tanpa keterangan waktu atau lokasi. Bagaimana perangkat desa menata suasana?",
+              "choices": [
+                {
+                  "id": "c2a",
+                  "label": "Menetapkan papan/grup informasi resmi desa dengan waktu dan lokasi jelas, memberi giliran pengisian daya secara tertib, serta menenangkan warga agar tidak panik.",
+                  "feedback": "Tepat. Menjaga arus informasi yang jelas dan adil di ruang ketiga memperkuat rasa aman serta mencegah rumor.",
+                  "next_node_id": null,
+                  "is_ending": true
+                },
+                {
+                  "id": "c2b",
+                  "label": "Membiarkan siapa saja mengunggah foto apa pun ke grup warga tanpa konteks agar warga 'bebas berekspresi'.",
+                  "feedback": "Kurang tepat. Foto tanpa konteks waktu dan lokasi saat situasi darurat mudah memicu kepanikan dan salah arah bantuan.",
+                  "next_node_id": null,
+                  "is_ending": true
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "questions": [
+        {
+          "id": "q-02-ruang-ketiga",
+          "type": "multiple_choice",
+          "prompt": "Mengapa titik koneksi atau informasi di balai banjar atau balai desa di Bali lebih cepat membangun kepercayaan warga saat krisis dibanding sekadar memasang perangkat di sudut tersembunyi?",
+          "options": [
+            "Karena balai banjar atau balai desa sudah menjadi ruang ketiga dengan legitimasi dan kedekatan sosial di mata warga",
+            "Karena perangkat digital otomatis menggantikan kebutuhan saling menyapa antarwarga",
+            "Karena warga tidak lagi membutuhkan kabar dari tetangga ketika ada layar"
+          ],
+          "correct_answer": "Karena balai banjar atau balai desa sudah menjadi ruang ketiga dengan legitimasi dan kedekatan sosial di mata warga",
+          "feedback": "Teknologi bekerja paling bermakna ketika bertemu ruang komunal yang sudah dipercaya dan menjadi bagian dari relasi sosial warga."
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "slug": "m02-desa-era-digital",
+      "title": "Helai 2: Desa Era Digital",
+      "duration_minutes": 15,
+      "is_mandatory": true,
+      "low_bandwidth_mode": {
+        "text_first": true,
+        "optional_video_click_to_load": true
+      },
+      "content_html": "<article class=\"ld-module\"><h2>Helai 2: Desa Era Digital</h2><p>Desa di era digital bukan ruang kosong yang baru mulai bergerak saat teknologi masuk. Teknologi berinteraksi secara berlapis dengan sejarah, struktur sosial, nilai budaya, dan kebutuhan praktis warga.</p><p>Perlu dibedakan antara desa yang <em>memiliki teknologi</em> (sekadar ada perangkat/jaringan) dan desa yang <em>mengalami digitalisasi</em> (warga mengolah cara bekerja, berkomunikasi, dan berusaha sesuai konteks lokal). Di Indonesia, profil desa juga beragam—antara desa perkotaan dan desa perdesaan (termasuk di Bali)—sehingga pintu masuk digitalisasi tidak bisa diseragamkan.</p><p><strong>Konteks Bali:</strong> Buku ini menyinggung Desa Kamasan (Klungkung) sebagai contoh bagaimana kerajinan tradisional berakar kuat bertemu promosi digital melalui keluarga dan generasi muda, berdampingan dengan inisiatif swadaya komunitas seperti Desa Kaliabu dan Gerakan Desa Membangun (GDM) di Desa Melung.</p></article>",
+      "interactive_blocks": [
+        {
+          "type": "drag_and_drop",
+          "id": "sim-03-memiliki-vs-mengalami-digitalisasi",
+          "title": "Simulasi 3: Membedakan 'Memiliki Teknologi' vs 'Mengalami Digitalisasi'",
+          "instruction": "Kelompokkan contoh kondisi desa di Bali berikut ke kategori yang paling tepat.",
+          "pairs": [
+            {
+              "target": "Memiliki Teknologi (Baru Sekadar Ada Sarana)",
+              "items": [
+                "Router Wi-Fi terpasang di kantor desa tetapi jarang dipakai warga karena alur layanannya rumit",
+                "Akun media sosial desa dibuat saat lomba lalu tidak pernah diperbarui atau ditanggapi"
+              ]
+            },
+            {
+              "target": "Mengalami Digitalisasi Bermakna (Menjawab Kebutuhan Lokal)",
+              "items": [
+                "Perajin tenun atau lukis tradisional di desa Bali dibantu anak muda memasarkan karya tanpa mengubah pakem tradisi",
+                "Pelayanan surat pengantar dan jadwal kegiatan banjar menjadi lebih mudah diakses warga sesuai ritme lokal"
+              ]
+            }
+          ],
+          "feedback_correct": "Tepat. Digitalisasi baru terasa maknanya ketika perangkat dan kanal digital terhubung dengan praktik hidup serta kebutuhan nyata warga.",
+          "feedback_incorrect": "Cermati kembali perbedaan antara sekadar ketersediaan sarana dan perubahan praktik yang benar-benar menjawab kebutuhan warga."
+        }
+      ],
+      "questions": [
+        {
+          "id": "q-04-dua-lintasan-desa",
+          "type": "multiple_choice",
+          "prompt": "Pelajaran utama dari perbandingan lintasan digitalisasi antar-komunitas (seperti inisiatif komunitas bawah vs penguatan sektor/program lokal seperti di Kamasan) bagi perangkat desa di Bali adalah...",
+          "options": [
+            "Membaca dulu karakter sosial, budaya, dan kebutuhan riil desa sebelum menentukan teknologi serta pintu masuknya",
+            "Mewajibkan seluruh banjar memakai satu aplikasi yang sama tanpa melihat kesiapan warga",
+            "Menganggap tradisi lokal sebagai penghambat yang harus diganti sepenuhnya oleh sistem digital"
+          ],
+          "correct_answer": "Membaca dulu karakter sosial, budaya, dan kebutuhan riil desa sebelum menentukan teknologi serta pintu masuknya",
+          "feedback": "Setiap desa memiliki konteks sosial dan budaya spesifik; membaca desa terlebih dahulu membuat teknologi lebih tepat guna dan berakar."
+        }
+      ]
+    },
+    {
+      "order": 3,
+      "slug": "m03-ritme-desa-digital",
+      "title": "Helai 3: Ritme Desa Digital",
+      "duration_minutes": 15,
+      "is_mandatory": true,
+      "low_bandwidth_mode": {
+        "text_first": true,
+        "optional_video_click_to_load": false
+      },
+      "content_html": "<article class=\"ld-module\"><h2>Helai 3: Ritme Desa Digital</h2><p>Digitalisasi sering masuk pelan-pelan ke dalam ritme harian desa: menunggu kabar lewat ponsel, bertukar informasi di grup warga, membantu keluarga merantau, atau mengurus kebutuhan praktis seperti pembayaran dan administrasi.</p><p>Namun konektivitas tidak seragam antarwarga. Ada pergeseran dari sekadar akses fisik ke intensitas dan kualitas penggunaan—sering kali masih didominasi hiburan dan media sosial ketimbang pembelajaran atau penggunaan produktif. Keterbatasan sinyal atau kuota juga memunculkan taktik lokal seperti mencari titik sinyal atau menitip pulsa/kuota.</p><p><strong>Konteks Bali:</strong> Di desa-desa di Bali, undangan <em>mebat</em>, gotong royong banjar, atau informasi layanan kesehatan sering beredar cepat di grup percakapan warga, tetapi tidak semua krama membaca atau memahaminya dengan cara yang sama—terutama lansia atau warga yang ponselnya dipakai bergantian.</p></article>",
+      "interactive_blocks": [
+        {
+          "type": "hotspot_checklist",
+          "id": "sim-05-ritme-informasi-banjar",
+          "title": "Simulasi 5: Menyelaraskan Informasi Digital dengan Ritme Harian Warga Bali",
+          "spots": [
+            {
+              "step": 1,
+              "situation": "Pengumuman jadwal layanan posyandu atau pendataan bantuan hanya dikirim berupa selebaran PDF panjang di grup WhatsApp banjar pada jam kerja.",
+              "recommended_action": "Sajikan ringkasan singkat dan jelas di badan pesan (tanggal, jam, lokasi, syarat ringan) serta tetap umumkan melalui jalur lisan/banjar yang biasa didengar warga.",
+              "feedback": "Pesan ringkas yang menyatu dengan jalur komunikasi akrab membuat informasi menjangkau lebih banyak warga tanpa membebani kuota atau pemahaman teknis."
+            },
+            {
+              "step": 2,
+              "situation": "Warga lanjut usia di banjar kesulitan membuka tautan formulir daring yang dikirim ke grup.",
+              "recommended_action": "Sediakan opsi pendampingan ramah di balai desa/banjar atau jalur konfirmasi sederhana tanpa membuat warga merasa malu atau tertinggal.",
+              "feedback": "Menghormati perbedaan ritme dan kenyamanan warga mencegah digitalisasi menciptakan eksklusi baru."
+            }
+          ]
+        }
+      ],
+      "questions": [
+        {
+          "id": "q-06-ritme-dan-penggunaan",
+          "type": "multiple_choice",
+          "prompt": "Mengapa warga desa yang sudah sama-sama memegang ponsel bisa memiliki pengalaman digital yang sangat berbeda dalam kehidupan sehari-hari?",
+          "options": [
+            "Karena usia, tingkat pendidikan, kepemilikan perangkat pribadi, biaya kuota, dan kepercayaan diri memengaruhi cara dan tujuan penggunaan",
+            "Karena sinyal seluler selalu berbeda untuk setiap merek ponsel di ruangan yang sama",
+            "Karena warga desa tidak pernah membutuhkan informasi praktis melalui ponsel"
+          ],
+          "correct_answer": "Karena usia, tingkat pendidikan, kepemilikan perangkat pribadi, biaya kuota, dan kepercayaan diri memengaruhi cara dan tujuan penggunaan",
+          "feedback": "Ketersediaan ponsel belum otomatis berarti kedalaman, otonomi, atau kebermanfaatan penggunaan yang setara bagi setiap individu."
+        }
+      ]
+    },
+    {
+      "order": 4,
+      "slug": "m04-kesenjangan-desa-digital",
+      "title": "Helai 4: Kesenjangan Desa Digital",
+      "duration_minutes": 15,
+      "is_mandatory": true,
+      "low_bandwidth_mode": {
+        "text_first": true,
+        "optional_video_click_to_load": false
+      },
+      "content_html": "<article class=\"ld-module\"><h2>Helai 4: Kesenjangan Desa Digital</h2><p>Kesenjangan digital tidak berhenti pada ada atau tidaknya sinyal. Ia berlapis: mulai dari akses fisik/material (perangkat, kuota, kualitas jaringan), motivasi, keterampilan, hingga penggunaan dan hasil nyata—serta beririsan dengan ketimpangan sosial seperti usia, gender, pendidikan, pendapatan, dan geografis.</p><p>Di dalam satu rumah tangga pun, ponsel sering dipakai bersama dan pengeluaran kuota bersaing dengan kebutuhan harian. Pelatihan yang seragam dan tidak peka konteks justru berisiko memperlebar jarak antara yang sudah siap dan yang tertinggal.</p><p><strong>Konteks Bali:</strong> Meski Bali memiliki konektivitas yang relatif lebih baik dibanding banyak wilayah lain, perbedaan tetap terasa antara wilayah wisata/perkotaan dan desa pegunungan atau pesisir, antara krama muda dan lansia, serta antara anggota keluarga yang memegang gawai sendiri dan yang berbagi.</p></article>",
+      "interactive_blocks": [
+        {
+          "type": "branching_scenario",
+          "id": "sim-07-pelatihan-tidak-seragam",
+          "title": "Simulasi 7: Merancang Kelas Literasi agar Tidak Memperlebar Kesenjangan",
+          "start_node_id": "n1",
+          "nodes": [
+            {
+              "id": "n1",
+              "situation": "Perangkat desa di Kecamatan Sukawati (dummy) ingin mengadakan pelatihan digital satu kali untuk seluruh warga. Sebagian peserta sudah biasa berjualan daring, sementara sebagian lain adalah lansia dan ibu rumah tangga yang baru memakai ponsel untuk pesan suara. Apa yang sebaiknya dilakukan?",
+              "choices": [
+                {
+                  "id": "c1a",
+                  "label": "Memetakan kebutuhan dan tingkat kenyamanan peserta terlebih dahulu lalu membagi sesi bertahap sesuai titik berangkat masing-masing.",
+                  "feedback": "Tepat. Pendekatan yang peka lapisan kesenjangan mencegah yang sudah mahir mendominasi dan membuat pemula merasa aman belajar.",
+                  "next_node_id": null,
+                  "is_ending": true
+                },
+                {
+                  "id": "c1b",
+                  "label": "Memberikan satu materi cepat beristilah teknis tinggi agar semua peserta segera mengejar standar yang sama dalam dua jam.",
+                  "feedback": "Kurang tepat. Pelatihan seragam yang terburu-buru cenderung membuat kelompok pemula tertinggal dan merasa tidak mampu.",
+                  "next_node_id": null,
+                  "is_ending": true
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "questions": [
+        {
+          "id": "q-08-lapisan-kesenjangan",
+          "type": "multiple_choice",
+          "prompt": "Mengapa data 'rumah tangga memiliki HP' bisa terlihat tinggi tetapi 'individu yang memiliki HP sendiri dan memanfaatkannya secara produktif' masih jauh lebih rendah?",
+          "options": [
+            "Karena perangkat sering dipakai bersama dalam keluarga, biaya kuota diperhitungkan ketat, dan keterampilan/kepercayaan diri tiap anggota berbeda",
+            "Karena setiap rumah tangga di desa hanya diizinkan membeli satu nomor telepon",
+            "Karena ponsel tidak dapat dipakai oleh anggota keluarga selain kepala rumah tangga"
+          ],
+          "correct_answer": "Karena perangkat sering dipakai bersama dalam keluarga, biaya kuota diperhitungkan ketat, dan keterampilan/kepercayaan diri tiap anggota berbeda",
+          "feedback": "Akses rumah tangga tidak otomatis berarti akses personal, kendali penggunaan, atau manfaat ekonomi yang merata bagi seluruh anggota keluarga."
+        }
+      ]
+    },
+    {
+      "order": 5,
+      "slug": "m05-desa-digital-inklusif",
+      "title": "Helai 5: Desa Digital Inklusif",
+      "duration_minutes": 15,
+      "is_mandatory": true,
+      "low_bandwidth_mode": {
+        "text_first": true,
+        "optional_video_click_to_load": false
+      },
+      "content_html": "<article class=\"ld-module\"><h2>Helai 5: Desa Digital Inklusif</h2><p>Literasi digital bukan sekadar bisa mengoperasikan aplikasi. Ia adalah keterampilan dan nilai untuk memahami informasi secara kritis, menjaga keamanan akun dan privasi, bersikap etis, serta memanfaatkan teknologi secara bermakna dalam kehidupan sosial.</p><p>Di lapangan, kebutuhan paling mendesak sering kali sangat membumi: kata sandi yang kuat, mengenali penipuan, menjaga akun pesan agar tidak diambil alih, serta menghindari kejenuhan privasi (<em>privacy fatigue</em>) yang membuat warga pasrah. Pembelajaran paling kuat tumbuh dari komunitas dan <em>local champion</em> dalam ruang belajar yang aman dan tidak menghakimi.</p><p><strong>Konteks Bali:</strong> Saat menyosialisasikan layanan digital di banjar atau kelompok PKK (<em>dummy</em>), memulai dari keamanan akun, perlindungan data pribadi, dan bahasa yang hangat membuat warga lebih berani bertanya sebelum mencoba fitur yang lebih jauh.</p></article>",
+      "interactive_blocks": [
+        {
+          "type": "hotspot_checklist",
+          "id": "sim-09-fondasi-aman-sebelum-fitur",
+          "title": "Simulasi 9: Membangun Fondasi Aman Sebelum Melompat ke Fitur Baru",
+          "spots": [
+            {
+              "step": 1,
+              "situation": "Seorang krama di Banjar Merta Sari (dummy) mengaku pasrah ('biarlah, yang penting gampang') setelah beberapa kali menerima pesan tak dikenal dan memakai tanggal lahir sebagai kata sandi.",
+              "recommended_action": "Ajak berlatih langkah kecil yang mudah dipahami—seperti membuat frasa sandi yang lebih kuat, mengaktifkan pengamanan tambahan akun, dan mengenali ciri pesan mencurigakan—tanpa menyalahkan.",
+              "feedback": "Pendampingan yang sabar dan praktis membantu mengatasi rasa pasrah (privacy fatigue) serta menumbuhkan rasa mampu."
+            },
+            {
+              "step": 2,
+              "situation": "Kader desa ingin langsung mengajarkan pembuatan konten promosi sebelum warga memahami cara membedakan tautan resmi dan tautan jebakan.",
+              "recommended_action": "Dahulukan keamanan akun dan verifikasi tautan/pesan agar warga tidak kehilangan akun atau dana saat mulai aktif beraktivitas daring.",
+              "feedback": "Keamanan adalah fondasi awal agar keterampilan berikutnya berdiri di atas pijakan yang kokoh."
+            }
+          ]
+        }
+      ],
+      "questions": [
+        {
+          "id": "q-10-literasi-keterampilan-hidup",
+          "type": "multiple_choice",
+          "prompt": "Mengapa buku ini memandang literasi digital sebagai keterampilan hidup dan proses sosial, bukan sekadar daftar kecakapan teknis sesaat?",
+          "options": [
+            "Karena warga memaknai risiko, etika, privasi, dan manfaat teknologi dalam relasi sosial, kepercayaan, serta ruang belajar yang berkelanjutan",
+            "Karena warga desa tidak mampu mempelajari fungsi dasar tombol atau aplikasi pada ponsel",
+            "Karena sertifikat pelatihan satu kali sudah cukup mengubah kebiasaan sosial selamanya"
+          ],
+          "correct_answer": "Karena warga memaknai risiko, etika, privasi, dan manfaat teknologi dalam relasi sosial, kepercayaan, serta ruang belajar yang berkelanjutan",
+          "feedback": "Literasi digital yang berakar tumbuh melalui pengalaman berulang, rasa aman untuk mencoba, dan dukungan komunitas."
+        }
+      ]
+    },
+    {
+      "order": 6,
+      "slug": "m06-nafkah-desa-digital",
+      "title": "Helai 6: Nafkah Desa Digital",
+      "duration_minutes": 15,
+      "is_mandatory": true,
+      "low_bandwidth_mode": {
+        "text_first": true,
+        "optional_video_click_to_load": true
+      },
+      "content_html": "<article class=\"ld-module\"><h2>Helai 6: Nafkah Desa Digital</h2><p>Literasi digital untuk nafkah menyentuh hal konkret: bagaimana usaha kecil memperkenalkan produk, membangun kepercayaan pembeli jarak jauh melalui foto jujur dan komunikasi yang jelas, mengelola pesanan, serta menjaga ritme kerja di tengah kesibukan harian.</p><p>Manfaat ekonomi tidak otomatis merata ke semua warga: pelaku usaha muda atau yang terhubung langsung dengan pasar digital sering lebih cepat beradaptasi, sementara usaha tradisional atau petani dengan rantai jual berbeda membutuhkan pendampingan yang relevan dan ekosistem pendukung (pembayaran, pengemasan, logistik, dan teman belajar).</p><p><strong>Konteks Bali:</strong> Pelaku usaha banten/upakara harian, kerajinan perak atau tenun, olahan kopi/buah lokal, hingga homestay kecil di desa Bali membutuhkan pendampingan yang realistis—menjaga kejujuran foto produk, kejelasan harga/pengiriman, dan waktu kerja yang tidak menggerus kehidupan keluarga.</p></article>",
+      "interactive_blocks": [
+        {
+          "type": "branching_scenario",
+          "id": "sim-11-kepercayaan-lapak-daring",
+          "title": "Simulasi 11: Membangun Kepercayaan & Ritme Usaha Kecil di Desa Bali",
+          "start_node_id": "n1",
+          "nodes": [
+            {
+              "id": "n1",
+              "situation": "Ni Luh Sari (dummy), perajin anyaman dan olahan pangan rumahan di Gianyar (dummy), baru mulai menerima pesanan luar kota lewat media sosial. Pembeli sering menanyakan stok, ketahanan produk, dan ongkos kirim. Apa langkah yang paling tepat?",
+              "choices": [
+                {
+                  "id": "c1a",
+                  "label": "Menampilkan foto asli sesuai kondisi produk, menjelaskan batas waktu pengiriman serta cara penyimpanan secara jujur, dan membalas pesan pada jam layanan yang realistis.",
+                  "feedback": "Tepat. Kepercayaan di ruang daring tumbuh dari kejujuran informasi, kejelasan layanan, dan ritme kerja yang tetap seimbang.",
+                  "next_node_id": null,
+                  "is_ending": true
+                },
+                {
+                  "id": "c1b",
+                  "label": "Mengunggah foto editan berlebihan dan menjanjikan pengiriman instan tanpa memperhitungkan waktu produksi serta logistik.",
+                  "feedback": "Kurang tepat. Ketidaksesuaian antara janji di layar dan kenyataan barang mudah merusak reputasi dan kepercayaan pembeli.",
+                  "next_node_id": null,
+                  "is_ending": true
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "questions": [
+        {
+          "id": "q-12-relevansi-nafkah",
+          "type": "multiple_choice",
+          "prompt": "Mengapa pelatihan pemasaran digital yang sama sering kali tidak memberi dampak ekonomi yang setara bagi seluruh warga desa?",
+          "options": [
+            "Karena jenis usaha, rantai pemasaran, kesiapan waktu, modal sosial, serta dukungan ekosistem tiap warga berbeda-beda",
+            "Karena pembeli daring hanya mau membeli barang dari kawasan perkotaan besar",
+            "Karena warga desa tidak pernah mengalokasikan pengeluaran untuk koneksi telekomunikasi"
+          ],
+          "correct_answer": "Karena jenis usaha, rantai pemasaran, kesiapan waktu, modal sosial, serta dukungan ekosistem tiap warga berbeda-beda",
+          "feedback": "Dampak ekonomi digital bergantung pada relevansi teknologi dengan jenis usaha, kapasitas pendukung, dan pendampingan berkelanjutan."
+        }
+      ]
+    },
+    {
+      "order": 7,
+      "slug": "m07-perempuan-desa-digital",
+      "title": "Helai 7: Perempuan Desa Digital",
+      "duration_minutes": 15,
+      "is_mandatory": true,
+      "low_bandwidth_mode": {
+        "text_first": true,
+        "optional_video_click_to_load": false
+      },
+      "content_html": "<article class=\"ld-module\"><h2>Helai 7: Perempuan Desa Digital</h2><p>Perempuan desa sering hadir dekat dengan ponsel untuk urusan keluarga, komunikasi, dan usaha rumah tangga, tetapi kedekatan tersebut belum tentu berarti keleluasaan, kepemilikan perangkat pribadi, waktu belajar yang cukup, atau rasa aman di ruang digital.</p><p>Hambatan seperti kekhawatiran salah/ditertawakan, pembagian beban domestik, atau risiko kekerasan/penipuan daring menuntut ruang belajar yang aman, fasilitator perempuan/lokal yang suportif, dan penguatan kepercayaan diri—bukan sekadar sesi teknis satu kali.</p><p><strong>Konteks Bali:</strong> Di tingkat banjar, kelompok PKK, dan usaha keluarga di Bali, perempuan memegang peran penting dalam ekonomi rumah tangga serta tradisi. Membuka ruang belajar yang ramah waktu dan bebas rasa sungkan membantu perempuan lebih aman, terlindungi, dan berdaya.</p></article>",
+      "interactive_blocks": [
+        {
+          "type": "hotspot_checklist",
+          "id": "sim-13-ruang-aman-perempuan-desa",
+          "title": "Simulasi 13: Menyiapkan Ruang Belajar Digital yang Ramah & Aman bagi Perempuan",
+          "spots": [
+            {
+              "step": 1,
+              "situation": "Beberapa ibu rumah tangga di Banjar Sari Kaja (dummy) enggan ikut kelas digital karena khawatir tidak sempat mengurus pekerjaan rumah dan takut ditertawakan saat bertanya soal pengaturan privasi.",
+              "recommended_action": "Jadwalkan sesi singkat di waktu yang disepakati bersama, bentuk kelompok kecil saling dukung, dan tegaskan bahwa setiap pertanyaan wajar dan dihargai.",
+              "feedback": "Menghormati batas waktu domestik dan menciptakan suasana tanpa penghakiman menumbuhkan keberanian belajar."
+            },
+            {
+              "step": 2,
+              "situation": "Seorang peserta baru merasa tidak nyaman karena foto kegiatan keluarga/komunitas dibagikan luas tanpa izin ke grup terbuka.",
+              "recommended_action": "Bahas pentingnya izin sebelum membagikan foto atau cerita orang lain serta cara mengatur privasi akun dan kontak secara praktis.",
+              "feedback": "Perlindungan privasi dan martabat memperkuat rasa aman perempuan saat beraktivitas di ruang digital."
+            }
+          ]
+        }
+      ],
+      "questions": [
+        {
+          "id": "q-14-inklusi-gender",
+          "type": "multiple_choice",
+          "prompt": "Mengapa pemberdayaan digital perempuan desa tidak cukup hanya dengan mengajarkan cara memakai aplikasi?",
+          "options": [
+            "Karena akses dan partisipasi perempuan juga dipengaruhi kendali perangkat, alokasi kuota/waktu domestik, rasa aman, serta dukungan komunitas",
+            "Karena perempuan di desa tidak memiliki peran dalam komunikasi atau ekonomi keluarga",
+            "Karena fitur aplikasi digital berbeda secara khusus berdasarkan jenis kelamin"
+          ],
+          "correct_answer": "Karena akses dan partisipasi perempuan juga dipengaruhi kendali perangkat, alokasi kuota/waktu domestik, rasa aman, serta dukungan komunitas",
+          "feedback": "Literasi digital perempuan membutuhkan ekosistem yang mendukung rasa aman, kepercayaan diri, dan relasi sosial yang setara."
+        }
+      ]
+    },
+    {
+      "order": 8,
+      "slug": "m08-komunitas-digital-desa",
+      "title": "Helai 8: Komunitas Digital Desa",
+      "duration_minutes": 15,
+      "is_mandatory": true,
+      "low_bandwidth_mode": {
+        "text_first": true,
+        "optional_video_click_to_load": false
+      },
+      "content_html": "<article class=\"ld-module\"><h2>Helai 8: Komunitas Digital Desa</h2><p>Teknologi digital di desa membutuhkan 'rumah sosial'—yakni komunitas yang hidup dari kepercayaan, kebiasaan berkumpul, dan nilai bersama. Komunitas bekerja sebagai penafsir teknologi: menentukan apa yang masuk akal, bagaimana dipakainya, dan batas apa yang dijaga agar relasi sosial tetap kuat.</p><p>Inisiatif komunitas (seperti jejaring relawan TIK maupun penguatan kedaulatan data desa melalui Sistem Informasi Desa) menunjukkan bahwa warga bukan sekadar pengguna pasif aplikasi dari luar, melainkan pengelola dan penafsir perubahan.</p><p><strong>Konteks Bali:</strong> Sekaa teruna/teruni, kelompok seni dan budaya, paguyuban UMKM, hingga pengelola informasi banjar dapat menjadi simpul belajar bersama yang menerjemahkan praktik digital ke bahasa keseharian warga tanpa mengikis kebersamaan.</p></article>",
+      "interactive_blocks": [
+        {
+          "type": "branching_scenario",
+          "id": "sim-15-komunitas-penafsir-teknologi",
+          "title": "Simulasi 15: Komunitas sebagai Penafsir Teknologi di Tingkat Desa & Banjar",
+          "start_node_id": "n1",
+          "nodes": [
+            {
+              "id": "n1",
+              "situation": "Sebuah pihak luar menawarkan aplikasi pendataan dan pengumuman warga yang serba otomatis, tetapi menuntut seluruh data diunggah ke server eksternal tanpa kejelasan pengelolaan dan kendali desa. Apa sikap komunitas dan perangkat desa?",
+              "choices": [
+                {
+                  "id": "c1a",
+                  "label": "Menguji kesesuaian dengan kebutuhan desa, kejelasan pengelolaan/kedaulatan data, serta kesiapan warga sebelum memutuskan pemanfaatannya.",
+                  "feedback": "Tepat. Komunitas berperan menafsirkan teknologi agar selaras dengan kepentingan dan kendali data desa.",
+                  "next_node_id": null,
+                  "is_ending": true
+                },
+                {
+                  "id": "c1b",
+                  "label": "Langsung menyerahkan seluruh pendataan warga tanpa menelaah keamanan data dan keberlanjutan pengelolaannya.",
+                  "feedback": "Kurang tepat. Tata kelola data desa perlu menjaga keamanan, kejelasan tanggung jawab, dan keberlanjutan bagi warga.",
+                  "next_node_id": null,
+                  "is_ending": true
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "questions": [
+        {
+          "id": "q-16-rumah-sosial",
+          "type": "multiple_choice",
+          "prompt": "Apa yang terjadi bila teknologi digital dipasang di desa tanpa 'rumah sosial' atau komunitas yang mengelolanya?",
+          "options": [
+            "Program berisiko berhenti di level simbolik—ada perangkat atau pelatihan, tetapi kurang berakar, kurang bermakna, dan tidak berkelanjutan",
+            "Teknologi secara otomatis membangun kepercayaan dan solidaritas baru tanpa keterlibatan warga",
+            "Seluruh warga akan langsung menguasai pengelolaan sistem tanpa proses belajar"
+          ],
+          "correct_answer": "Program berisiko berhenti di level simbolik—ada perangkat atau pelatihan, tetapi kurang berakar, kurang bermakna, dan tidak berkelanjutan",
+          "feedback": "Komunitas yang hidup menjaga agar teknologi diolah sesuai kebutuhan nyata dan nilai kebersamaan warga."
+        }
+      ]
+    },
+    {
+      "order": 9,
+      "slug": "m09-anak-remaja-desa-digital",
+      "title": "Helai 9: Anak/Remaja Desa Digital",
+      "duration_minutes": 15,
+      "is_mandatory": true,
+      "low_bandwidth_mode": {
+        "text_first": true,
+        "optional_video_click_to_load": false
+      },
+      "content_html": "<article class=\"ld-module\"><h2>Helai 9: Anak/Remaja Desa Digital</h2><p>Anak dan remaja di desa kerap lebih cepat menguasai gawai dibanding orang tua, tetapi kecakapan teknis tidak sama dengan kesiapan sosial dan emosional menghadapi risiko daring (konten tidak sesuai, penipuan, perundungan, atau tekanan sosial).</p><p>Mediasi orang tua dan pendampingan melalui dialog terbuka jauh lebih efektif daripada sekadar melarang tanpa penjelasan. Anak dan remaja juga dapat menjadi jembatan belajar lintas generasi apabila didampingi secara seimbang, sejalan dengan semangat pelindungan anak di ruang digital.</p><p><strong>Konteks Bali:</strong> Remaja di banjar sering menjadi yang pertama membantu orang tua/kakek-nenek mengatur ponsel atau membaca pesan, tetapi mereka juga membutuhkan pendampingan yang hangat dari keluarga, sekolah, dan tokoh komunitas agar tidak menghadapi pengalaman daring sendirian.</p></article>",
+      "interactive_blocks": [
+        {
+          "type": "hotspot_checklist",
+          "id": "sim-17-dialog-pendampingan-remaja",
+          "title": "Simulasi 17: Mendampingi Remaja Desa Melalui Dialog, Bukan Sekadar Larangan",
+          "spots": [
+            {
+              "step": 1,
+              "situation": "Seorang remaja di desa Bali tampak gelisah setelah berdebat atau mendapat komentar menyakitkan di media sosial, sementara orang tuanya merasa tidak paham dunia media sosial.",
+              "recommended_action": "Dorong dialog yang tenang dan tidak menghakimi—tanyakan apa yang terjadi, dengarkan perasaannya, dan bantu mencari solusi aman bersama.",
+              "feedback": "Dialog terbuka membangun rasa aman sehingga remaja berani bercerita saat menghadapi masalah daring."
+            },
+            {
+              "step": 2,
+              "situation": "Remaja desa mahir membantu warga senior memakai aplikasi, tetapi mulai terjebak begadang dan terpapar konten berisiko.",
+              "recommended_action": "Hargai peran positif remaja sebagai teman belajar lintas generasi sekaligus sepakat menjaga keseimbangan waktu dan keamanan digital.",
+              "feedback": "Keseimbangan dan pendampingan menjaga remaja tetap sehat serta terlindungi."
+            }
+          ]
+        }
+      ],
+      "questions": [
+        {
+          "id": "q-18-mediasi-dialog",
+          "type": "multiple_choice",
+          "prompt": "Mengapa kecakapan anak/remaja mengoperasikan gawai tidak bisa disamakan dengan kesiapan menghadapi risiko di ruang digital?",
+          "options": [
+            "Karena kesiapan menghadapi risiko membutuhkan kematangan sosial-emosional, berpikir kritis, dan pendampingan orang dewasa yang mau berdialog",
+            "Karena anak dan remaja di desa tidak pernah menggunakan media sosial atau game daring",
+            "Karena larangan keras tanpa penjelasan selalu lebih efektif daripada berdialog"
+          ],
+          "correct_answer": "Karena kesiapan menghadapi risiko membutuhkan kematangan sosial-emosional, berpikir kritis, dan pendampingan orang dewasa yang mau berdialog",
+          "feedback": "Pendampingan berbasis dialog dan rasa aman membantu anak serta remaja mengelola peluang dan risiko daring secara lebih bijak."
+        }
+      ]
+    },
+    {
+      "order": 10,
+      "slug": "m10-risiko-digital-desa",
+      "title": "Helai 10: Risiko Digital Desa",
+      "duration_minutes": 15,
+      "is_mandatory": true,
+      "low_bandwidth_mode": {
+        "text_first": true,
+        "optional_video_click_to_load": false
+      },
+      "content_html": "<article class=\"ld-module\"><h2>Helai 10: Risiko Digital Desa</h2><p>Hoaks, judi online, dan pinjaman online ilegal sering saling berkelindan di ruang digital desa—memanfaatkan arus informasi cepat di grup percakapan, kebutuhan ekonomi mendesak, serta belum kuatnya budaya verifikasi informasi.</p><p>Judi online dan pinjol ilegal dapat menjerat berbagai kelompok usia dan memicu lingkaran utang serta kerentanan sosial, termasuk risiko penyalahgunaan rekening. Literasi media dan pengingat preventif yang sederhana terbukti membantu mengurangi penyebaran hoaks dan meningkatkan kewaspadaan.</p><p><strong>Konteks Bali:</strong> Kabar palsu tentang bantuan, isu keamanan, atau ajakan 'cuan instan' lewat judi daring dan pinjaman ilegal mudah menyebar di grup keluarga maupun warga jika tidak dibiasakan cek fakta dan diskusi tenang.</p></article>",
+      "interactive_blocks": [
+        {
+          "type": "branching_scenario",
+          "id": "sim-19-hoaks-dan-tawaran-instan",
+          "title": "Simulasi 19: Menghadapi Kabar Sensasional & Tawaran Pinjaman/Permainan Instan",
+          "start_node_id": "n1",
+          "nodes": [
+            {
+              "id": "n1",
+              "situation": "Sebuah pesan berantai di grup warga desa Bali mengklaim ada bantuan dana tunai mendadak lewat tautan singkat dan meminta data pribadi, sementara di grup lain ada promosi aplikasi 'menang cepat' dan pinjaman cair dalam hitungan menit. Apa tindakan perangkat desa dan kader?",
+              "choices": [
+                {
+                  "id": "c1a",
+                  "label": "Tidak ikut meneruskan tautan yang belum terverifikasi, mengingatkan warga untuk memeriksa kanal resmi serta risiko pinjol ilegal/judi daring, dan menyampaikan informasi resmi desa secara jernih.",
+                  "feedback": "Tepat. Menahan penyebaran kabar belum terverifikasi dan mengingatkan risiko finansial/penipuan melindungi warga sejak dini.",
+                  "next_node_id": null,
+                  "is_ending": true
+                },
+                {
+                  "id": "c1b",
+                  "label": "Segera meneruskan pesan ke banyak grup agar warga 'tahu duluan' sebelum mengecek kebenarannya.",
+                  "feedback": "Kurang tepat. Meneruskan pesan tanpa verifikasi mempercepat hoaks dan memperbesar risiko warga tertipu atau membocorkan data.",
+                  "next_node_id": null,
+                  "is_ending": true
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "questions": [
+        {
+          "id": "q-20-budaya-verifikasi",
+          "type": "multiple_choice",
+          "prompt": "Mengapa hoaks, judi online, dan pinjaman online ilegal sering saling berkaitan dalam merugikan warga desa?",
+          "options": [
+            "Karena ketiganya memanfaatkan celah verifikasi informasi, kebutuhan mendesak, dan kurangnya kehati-hatian terhadap risiko digital maupun finansial",
+            "Karena pinjaman online ilegal selalu diawasi ketat dan bebas bunga bagi warga desa",
+            "Karena judi online hanya muncul pada warga berpenghasilan sangat tinggi di pusat kota"
+          ],
+          "correct_answer": "Karena ketiganya memanfaatkan celah verifikasi informasi, kebutuhan mendesak, dan kurangnya kehati-hatian terhadap risiko digital maupun finansial",
+          "feedback": "Membangun kebiasaan verifikasi informasi dan kehati-hatian finansial membantu memutus mata rantai risiko digital di desa."
+        }
+      ]
+    },
+    {
+      "order": 11,
+      "slug": "m11-tata-kelola-digital-desa",
+      "title": "Helai 11: Tata Kelola Digital Desa",
+      "duration_minutes": 15,
+      "is_mandatory": true,
+      "low_bandwidth_mode": {
+        "text_first": true,
+        "optional_video_click_to_load": false
+      },
+      "content_html": "<article class=\"ld-module\"><h2>Helai 11: Tata Kelola Digital Desa</h2><p>Tata kelola digital desa bukan sekadar memindahkan layanan atau papan informasi ke aplikasi. Intinya adalah memperluas partisipasi warga, memperkuat transparansi dan akuntabilitas, serta membangun kepercayaan publik—yang juga sejalan dengan pengukuran layanan/teknologi desa dalam Indeks Desa dan kerangka SPBE.</p><p>Sistem digital tidak akan hidup jika aparat belum terlatih mengoperasikannya, warga tidak memahami cara memanfaatkannya, atau koordinasi lintas pemangku kepentingan terputus. Teknologi adalah alat; kepercayaan dan kapasitas sosial adalah fondasinya.</p><p><strong>Konteks Bali:</strong> Layanan administrasi desa, informasi program/anggaran, dan unit usaha desa (BUMDes) akan lebih dipercaya warga bila informasinya mudah dipahami, konsisten, dan dilengkapi pendampingan agar warga yang kurang familiar tetap terlayani dengan baik.</p></article>",
+      "interactive_blocks": [
+        {
+          "type": "hotspot_checklist",
+          "id": "sim-21-tata-kelola-berbasis-kepercayaan",
+          "title": "Simulasi 21: Memperkuat Tata Kelola Digital Desa yang Transparan & Inklusif",
+          "spots": [
+            {
+              "step": 1,
+              "situation": "Pemerintah desa meluncurkan layanan pengajuan surat dan informasi kegiatan berbasis digital, tetapi warga yang tidak memiliki ponsel atau belum terbiasa memakai aplikasi merasa kesulitan.",
+              "recommended_action": "Pertahankan jalur layanan tatap muka/bantuan di kantor desa dan banjar sembari mendampingi warga secara bertahap agar tidak ada warga yang terpinggirkan.",
+              "feedback": "Tata kelola digital yang baik memudahkan warga dan menjaga akses yang adil bagi semua lapisan."
+            },
+            {
+              "step": 2,
+              "situation": "Laporan kegiatan dan anggaran desa atau unit usaha desa diunggah ke kanal digital, tetapi disajikan dengan istilah teknis yang sulit dipahami warga awam.",
+              "recommended_action": "Sajikan ringkasan yang jelas, mudah dibaca, dan terbuka untuk ditanyakan dalam forum musyawarah atau kanal resmi desa.",
+              "feedback": "Keterbukaan yang mudah dipahami menumbuhkan kepercayaan publik dan partisipasi yang bermakna."
+            }
+          ]
+        }
+      ],
+      "questions": [
+        {
+          "id": "q-22-fondasi-tata-kelola",
+          "type": "multiple_choice",
+          "prompt": "Apa syarat utama agar digitalisasi layanan dan tata kelola desa benar-benar berdampak dan berkelanjutan?",
+          "options": [
+            "Adanya kepercayaan publik, kapasitas aparat dan warga, partisipasi, serta alur layanan yang konsisten dan mudah dipahami",
+            "Sekadar membeli aplikasi mahal lalu memindahkan papan pengumuman tanpa pendampingan",
+            "Menghapus seluruh layanan tatap muka agar warga dipaksa memakai aplikasi"
+          ],
+          "correct_answer": "Adanya kepercayaan publik, kapasitas aparat dan warga, partisipasi, serta alur layanan yang konsisten dan mudah dipahami",
+          "feedback": "Teknologi hanyalah alat; kepercayaan, literasi, dan kapasitas kelembagaan menentukan apakah tata kelola digital benar-benar bekerja."
+        }
+      ]
+    },
+    {
+      "order": 12,
+      "slug": "m12-menganyam-literasi-digital-desa",
+      "title": "Helai 12: Menganyam Literasi Digital Desa",
+      "duration_minutes": 15,
+      "is_mandatory": true,
+      "low_bandwidth_mode": {
+        "text_first": true,
+        "optional_video_click_to_load": false
+      },
+      "content_html": "<article class=\"ld-module\"><h2>Helai 12: Menganyam Literasi Digital Desa</h2><p>Menganyam literasi digital berarti memadukan kecakapan baru ke dalam pola hidup, relasi sosial, dan nilai yang sudah hidup di desa—bukan memaksa desa meniru kota atau sekadar melakukan 'modernisasi' teknis yang memperlebar ketimpangan lama.</p><p>Habitus sosial serta cara kerja algoritma platform dapat memperkuat pola lama jika warga tidak sadar dan tidak memiliki ruang belajar yang aman. Karena itu, literasi digital adalah proses jangka panjang yang merawat kepercayaan, ruang publik yang sehat, dan keberdayaan kolektif.</p><p><strong>Konteks Bali:</strong> Nilai kebersamaan, gotong royong, dan musyawarah yang hidup di desa dan banjar di Bali menjadi modal berharga untuk menganyam praktik digital yang beradab, menjaga keharmonisan relasi sosial, dan mencegah perdebatan daring merusak kerukunan luring.</p></article>",
+      "interactive_blocks": [
+        {
+          "type": "branching_scenario",
+          "id": "sim-23-menganyam-tanpa-memecah",
+          "title": "Simulasi 23: Menjaga Ruang Publik Digital Desa Tetap Sehat & Rukun",
+          "start_node_id": "n1",
+          "nodes": [
+            {
+              "id": "n1",
+              "situation": "Perbedaan pendapat soal iuran atau jadwal kegiatan banjar memanas di grup percakapan warga hingga saling menyindir secara terbuka. Bagaimana perangkat desa/pengurus merespons?",
+              "choices": [
+                {
+                  "id": "c1a",
+                  "label": "Meredakan ketegangan dengan bahasa yang tenang, mengingatkan etika komunikasi agar tidak saling mempermalukan, dan mengarahkan pembahasan substansi ke forum/musyawarah yang tepat.",
+                  "feedback": "Tepat. Menjaga adab dan ruang dialog mencegah gesekan di layar merembet menjadi keretakan hubungan sosial di banjar.",
+                  "next_node_id": null,
+                  "is_ending": true
+                },
+                {
+                  "id": "c1b",
+                  "label": "Ikut membalas sindiran di grup terbuka untuk membela salah satu pihak.",
+                  "feedback": "Kurang tepat. Membalas dengan emosi di ruang terbuka memperluas konflik dan menggerus kepercayaan antarwarga.",
+                  "next_node_id": null,
+                  "is_ending": true
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "questions": [
+        {
+          "id": "q-24-menganyam-dan-habitus",
+          "type": "multiple_choice",
+          "prompt": "Apa makna 'menganyam literasi digital desa' menurut Helai 12?",
+          "options": [
+            "Menjalin kemampuan dan kesadaran digital ke dalam relasi sosial, nilai, dan kebiasaan hidup desa secara bertahap dan inklusif",
+            "Mengganti seluruh tradisi dan kebiasaan musyawarah desa dengan interaksi serba daring",
+            "Menganggap peningkatan angka koneksi otomatis membuat seluruh warga berdaya"
+          ],
+          "correct_answer": "Menjalin kemampuan dan kesadaran digital ke dalam relasi sosial, nilai, dan kebiasaan hidup desa secara bertahap dan inklusif",
+          "feedback": "Menganyam literasi digital memperkuat daya dan perlindungan warga tanpa mencabut desa dari nilai sosial yang menguatkannya."
+        }
+      ]
+    },
+    {
+      "order": 13,
+      "slug": "m13-peta-dan-kompas-literasi-digital",
+      "title": "Helai Bonus: Peta dan Kompas Literasi Digital (CABE & 3S)",
+      "duration_minutes": 15,
+      "is_mandatory": true,
+      "low_bandwidth_mode": {
+        "text_first": true,
+        "optional_video_click_to_load": false
+      },
+      "content_html": "<article class=\"ld-module\"><h2>Helai Bonus: Peta dan Kompas Literasi Digital</h2><p>Pelatihan yang manjur bertumpu pada tiga prinsip fasilitator: (1) kenali manusianya sebelum membuka materi, (2) ciptakan ruang belajar bukan ruang ujian, dan (3) rawat ruang belajarnya setelah sesi selesai (melalui pegangan ringkas, <em>local champion</em>, dan tindak lanjut).</p><p>Sebagai <strong>peta jalan</strong> digunakan <strong>4 Pilar CABE</strong> (<em>Cakap, Aman, Budaya, Etika</em>), dan sebagai <strong>kompas sikap</strong> digunakan <strong>3S Internet Sehat</strong> (<em>Sadar, Saring, Seimbang</em>) melalui langkah penyusunan sesi yang bertahap dan dekat dengan keseharian warga.</p><p><strong>Konteks Bali:</strong> Saat melatih perangkat desa, kelian banjar, atau kader di Bali, mulai dari kebutuhan nyata mereka, gunakan bahasa yang membumi dan ramah, beri ruang praktik tanpa rasa malu, lalu tunjuk pendamping lokal yang sabar mendampingi setelah pelatihan usai.</p></article>",
+      "interactive_blocks": [
+        {
+          "type": "drag_and_drop",
+          "id": "sim-25-peta-cabe-dan-kompas-3s",
+          "title": "Simulasi 25: Memadukan Peta CABE dengan Kompas 3S Internet Sehat",
+          "instruction": "Pasangkan kerangka dan prinsip pelatihan berikut ke perannya yang tepat.",
+          "pairs": [
+            {
+              "target": "Peta Jalan 4 Pilar CABE",
+              "items": [
+                "Cakap: membangun penguasaan dasar perangkat & aplikasi secara bertahap",
+                "Aman: menguatkan kata sandi, privasi, perlindungan akun, dan kewaspadaan risiko",
+                "Budaya & Etika: mengaitkan nilai sosial desa, izin/martabat orang lain, dan tanggung jawab berbagi"
+              ]
+            },
+            {
+              "target": "Kompas Sikap 3S & Prinsip Fasilitator",
+              "items": [
+                "Sadar, Saring, Seimbang: mengenali kebutuhan, memilah informasi/risiko, dan menjaga ritme hidup",
+                "Kenali manusianya dulu, jadikan ruang belajar bukan ujian, dan rawat tindak lanjut pasca-sesi"
+              ]
+            }
+          ],
+          "feedback_correct": "Tepat. Memadukan CABE dan 3S dengan pendampingan berkelanjutan membuat pelatihan lebih membumi dan tidak berhenti saat sesi selesai.",
+          "feedback_incorrect": "Periksa kembali fungsi CABE sebagai urutan/peta pilar materi dan 3S beserta prinsip fasilitator sebagai kompas sikap serta proses belajar."
+        }
+      ],
+      "questions": [
+        {
+          "id": "q-26-prinsip-tindak-lanjut",
+          "type": "multiple_choice",
+          "prompt": "Mengapa pelatihan literasi digital di desa sering kurang berdampak jika langsung ditutup begitu sesi dan foto bersama selesai?",
+          "options": [
+            "Karena warga baru mulai mencoba sendiri di rumah dan membutuhkan ruang bertanya, pegangan ringkas, serta pendamping lokal (local champion) yang sabar",
+            "Karena warga desa tidak pernah lupa langkah teknis setelah mendengarnya sekali saja",
+            "Karena materi pelatihan selalu lebih penting daripada pendampingan setelah sesi"
+          ],
+          "correct_answer": "Karena warga baru mulai mencoba sendiri di rumah dan membutuhkan ruang bertanya, pegangan ringkas, serta pendamping lokal (local champion) yang sabar",
+          "feedback": "Literasi digital adalah proses pembiasaan yang tumbuh melalui praktik lanjutan dan dukungan komunitas setelah sesi formal berakhir."
+        },
+        {
+          "id": "q-27-refleksi-ruang-ketiga-banjar",
+          "type": "essay",
+          "requires_human_grading": true,
+          "prompt": "Dengan menggunakan nama/contoh dummy (misalnya Desa Dauh Tukad atau Banjar Suka Maju), rancang satu skenario singkat (5–7 kalimat) bagaimana balai banjar atau balai desa di Bali difungsikan sebagai 'ruang ketiga terkoneksi digital' saat terjadi gangguan layanan atau kabar darurat warga, tanpa mencantumkan data pribadi asli.",
+          "rubric": [
+            "Mengaitkan ruang komunal/banjar dengan kepercayaan sosial warga dan konektivitas/informasi",
+            "Menjaga alur komunikasi tetap jelas, menenangkan, dan terkoordinasi",
+            "Menggunakan contoh dummy dan mematuhi prinsip privasi/data minim"
+          ]
+        },
+        {
+          "id": "q-28-refleksi-kesenjangan-inklusif",
+          "type": "essay",
+          "requires_human_grading": true,
+          "prompt": "Pilih satu kelompok yang rentan tertinggal dalam akses atau pemanfaatan digital di desa Bali (misalnya warga lansia, perempuan dengan beban kerja ganda, atau remaja tanpa pendampingan) menggunakan contoh dummy. Jelaskan hambatan nyata yang mereka hadapi dan dua langkah pendampingan yang inklusif.",
+          "rubric": [
+            "Mengenali hambatan berlapis (bukan sekadar ketiadaan gawai atau sinyal)",
+            "Menawarkan langkah pendampingan yang ramah, kontekstual, dan tidak menghakimi",
+            "Mematuhi penggunaan data dummy tanpa informasi sensitif"
+          ]
+        },
+        {
+          "id": "q-29-refleksi-risiko-tata-kelola",
+          "type": "essay",
+          "requires_human_grading": true,
+          "prompt": "Susun skenario penanganan (6–8 kalimat) ketika beredar kabar meragukan atau tawaran pinjaman/permainan daring berisiko di grup warga desa Bali (gunakan nama dummy). Uraikan langkah verifikasi, komunikasi kepada warga, dan upaya pencegahan jangka panjang.",
+          "rubric": [
+            "Menunjukkan sikap Saring/verifikasi sebelum menyebarkan atau menanggapi secara impulsif",
+            "Menjelaskan perlindungan warga dari risiko finansial/penipuan dan menjaga ketenangan sosial",
+            "Menggunakan data dummy tanpa NIK/KK/data asli"
+          ]
+        },
+        {
+          "id": "q-30-refleksi-rencana-pelatihan-cabe-3s",
+          "type": "essay",
+          "requires_human_grading": true,
+          "prompt": "Rancang kerangka mini pelatihan literasi digital (maksimal 8 kalimat) bagi perangkat desa dan pengurus banjar di Bali (gunakan contoh dummy) dengan menerapkan pilar CABE (Cakap, Aman, Budaya, Etika), prinsip 3S (Sadar, Saring, Seimbang), serta rencana tindak lanjut pasca-pelatihan.",
+          "rubric": [
+            "Memuat urutan logis pilar CABE serta sikap Sadar, Saring, Seimbang",
+            "Mencakup persiapan mengenal peserta dan tindak lanjut/pendamping lokal setelah sesi",
+            "Menggunakan contoh dummy tanpa data pribadi asli"
+          ]
+        }
+      ]
+    }
+  ]
+}

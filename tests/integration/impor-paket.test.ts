@@ -5,7 +5,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { CourseBundleSchema, QUESTION_IMPORT_CHUNK, bundleScenarioDefinitions } from '@patradesa/shared';
+import { CourseBundleSchema, QUESTION_IMPORT_CHUNK, bundleScenarioDefinitions, convertCoursePackageV1 } from '@patradesa/shared';
 import { Client, createHarness, type Harness } from '../helpers/harness';
 
 const ROOT = join(import.meta.dirname, '..', '..');
@@ -131,5 +131,43 @@ describe('impor bertahap', () => {
     expect(content.blocks.filter((b: any) => b.type === 'h2').map((b: any) => b.text)).toEqual(['1. AMATI', '2. ANALISIS', '3. AKSI', '4. ASESMEN']);
     expect(content.blocks).toContainEqual({ type: 'scenario', key: 'contoh-paket-beda-nama' });
     expect(content.scenarios).toHaveLength(1);
+  });
+});
+
+describe('format paket kelas 1.0.0 (Daya Desa)', () => {
+  const daya = () => JSON.parse(readFileSync(join(ROOT, 'tests', 'fixtures', 'daya-desa-literasi-digital-bali-paket-lengkap.json'), 'utf8'));
+
+  it('server mengenali dan mengubah berkas asli; catatan pengubahan masuk peringatan', async () => {
+    const r = await validate(admin, daya());
+    expect(r.status).toBe(200);
+    expect(r.body).toMatchObject({
+      ok: true,
+      format: 'course-package-1.0.0',
+      problems: [],
+      summary: { slug: 'daya-desa-literasi-digital-bali', visibility: 'private', lessons: 14, quizzes: 1, questions: 17, scenarios: 13 },
+    });
+    expect(r.body.warnings.join(' | ')).toContain('upsert_by_slug');
+    expect(r.body.scenarios.every((s: any) => s.action === 'create')).toBe(true);
+  });
+
+  it('kunci PG yang tidak cocok → masalah, bukan tebakan', async () => {
+    const p = daya();
+    p.modules[1].questions[0].correct_answer = 'tidak ada';
+    const r = await validate(admin, p);
+    expect(r.body.ok).toBe(false);
+    expect(r.body.problems.join(' | ')).toContain('correct_answer');
+  });
+
+  it('impor bertahap hasil pengubahan membuat kelas draf 14 materi + kuis akhir', async () => {
+    const conv = convertCoursePackageV1(daya());
+    const id = await runImport(admin, conv.bundle);
+    const d = (await admin.json('GET', `/api/v1/admin/courses/${id}`)).body;
+    expect(d.course).toMatchObject({ status: 'draft', visibility: 'private' });
+    expect(d.lessons).toHaveLength(14);
+    const quiz = d.lessons[13].assessment;
+    expect(quiz).toMatchObject({ mcq_count: 13, essay_count: 4, passing_score_pct: 70 });
+    expect(quiz.questions).toHaveLength(17);
+    const n = await h.env.DB.prepare(`SELECT COUNT(*) AS n FROM scenario_blocks WHERE status = 'draft' AND block_key LIKE 'sim-%'`).first<{ n: number }>();
+    expect(n!.n).toBe(13);
   });
 });

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { CourseBundleSchema, QUESTION_IMPORT_CHUNK, VILLAGE_ROLE_SHORT, bundleScenarioDefinitions, type CourseBundle } from '@patradesa/shared';
+import { CourseBundleSchema, QUESTION_IMPORT_CHUNK, VILLAGE_ROLE_SHORT, bundleScenarioDefinitions, convertCoursePackageV1, isCoursePackageV1, type CourseBundle } from '@patradesa/shared';
 import { api, errorMessage } from '../lib/api';
 import { Link } from '../lib/router';
 import { hasRole, useSession } from '../lib/session';
@@ -11,6 +11,7 @@ import { hasRole, useSession } from '../lib/session';
 
 interface Validation {
   ok: boolean;
+  format?: 'bundle-v1' | 'course-package-1.0.0';
   problems: string[];
   warnings: string[];
   summary: { title: string; slug: string; visibility: string; targetRoles: string[]; lessons: number; quizzes: number; questions: number; scenarios: number } | null;
@@ -60,6 +61,26 @@ export function ImportBundle() {
         data = JSON.parse(await file.text());
       } catch {
         throw new Error('Berkas bukan JSON yang valid. Periksa tanda kurung, koma, dan tanda kutip.');
+      }
+      // Format 1.0.0 diubah di browser dengan pengubah yang sama dengan server, agar yang diimpor = yang divalidasi.
+      if (isCoursePackageV1(data)) {
+        const conv = convertCoursePackageV1(data);
+        if (!conv.bundle) {
+          setVal({ ok: false, format: 'course-package-1.0.0', problems: conv.problems, warnings: conv.notes, summary: null, scenarios: [] });
+          return;
+        }
+        const v = await api<Validation>('/admin/courses/import-bundle/validate', { method: 'POST', body: conv.bundle });
+        v.format = 'course-package-1.0.0';
+        v.warnings = [...conv.notes, ...v.warnings.filter((w) => !conv.notes.includes(w))];
+        data = conv.bundle;
+        setRaw(data);
+        setVal(v);
+        if (v.ok) {
+          const parsed = CourseBundleSchema.safeParse(data);
+          if (parsed.success) setBundle(parsed.data);
+          else setErr('Paket lolos validasi server tetapi tidak terbaca di browser. Muat ulang halaman lalu coba lagi.');
+        }
+        return;
       }
       setRaw(data);
       const v = await api<Validation>('/admin/courses/import-bundle/validate', { method: 'POST', body: data });
@@ -152,6 +173,12 @@ export function ImportBundle() {
       {val && (
         <section className="card stack" aria-labelledby="hasil-periksa">
           <h3 id="hasil-periksa">Hasil pemeriksaan: {name}</h3>
+          {val.format === 'course-package-1.0.0' && (
+            <p className="alert alert-success" role="status">
+              Berkas berformat <strong>paket kelas 1.0.0</strong> (modules, content_html, interactive_blocks) dan sudah diubah otomatis ke format LMS. Baca
+              catatan pengubahan di bawah sebelum mengimpor.
+            </p>
+          )}
           {val.summary && (
             <ul>
               <li>
@@ -177,7 +204,7 @@ export function ImportBundle() {
           )}
           {val.warnings.length > 0 && (
             <div className="alert alert-warning">
-              <strong>Perhatian:</strong>
+              <strong>{val.format === 'course-package-1.0.0' ? 'Catatan pengubahan dan perhatian:' : 'Perhatian:'}</strong>
               <ul>
                 {val.warnings.map((w, i) => (
                   <li key={i}>{w}</li>
