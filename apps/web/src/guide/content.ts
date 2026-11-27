@@ -301,12 +301,12 @@ const admin: Guide = {
         'Versi terbit tidak diubah langsung. Dengan begitu nilai, kuis, dan sertifikat peserta yang sedang belajar tetap konsisten sampai Anda memindahkan mereka ke versi baru.',
         'Judul, visibilitas, dan jadwal kelas (tombol Edit kelas) langsung berlaku tanpa perlu terbit.',
       ],
-      image: { file: 'admin-03-editor.jpg', alt: 'Editor kelas berisi daftar materi dengan ikon pensil di setiap baris', caption: 'Editor kelas: daftar materi dengan ikon pensil.' },
+      image: { file: 'admin-03-editor.jpg', alt: 'Editor kelas dua kolom: info kelas di kiri, daftar materi dengan ikon pensil di kanan', caption: 'Editor kelas: info kelas dan daftar materi.' },
     },
     {
       id: 'pengaturan',
       title: 'Edit kelas dan foto sampul',
-      intro: 'Klik tombol Edit kelas di kanan atas editor. Perubahan di sini langsung berlaku.',
+      intro: 'Klik tombol Edit kelas di kolom info kelas (kiri; di HP paling atas). Perubahan di sini langsung berlaku.',
       points: [
         'Judul dan Deskripsi. Deskripsi mendukung format sederhana: "## Judul", "- butir", "1. langkah", "**tebal**". Ringkasan katalog diambil otomatis (maksimal 5 baris).',
         'Visibilitas: Publik tampil di katalog dan mesin pencari; Privat hanya untuk pemegang tautan dan peserta yang sudah terdaftar.',

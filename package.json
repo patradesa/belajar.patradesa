@@ -28,6 +28,7 @@
     "db:migrate:local": "wrangler d1 migrations apply DB --local",
     "seed:dev": "node scripts/seed-dev.mjs",
     "e2e:server": "node scripts/e2e-server.mjs",
+    "lokal": "node scripts/lokal.mjs",
     "check": "npm run typecheck && npm run lint && npm run test && npm run build && npm run budget"
   },
   "devDependencies": {

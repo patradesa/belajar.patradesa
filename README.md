@@ -25,6 +25,14 @@ npm run seed:dev                     # terminal lain: kelas demo fiktif lewat AP
 ```
 Masuk di `/masuk` dengan **Login pengembangan** (hanya aktif di localhost saat `ENVIRONMENT=development`).
 
+**Cara cepat sehari-hari: `npm run lokal`** (satu perintah, satu terminal). Membangun tampilan, migrasi D1 lokal, menjalankan server, dan
+mengisi kelas demo sekali. Data disimpan di `.wrangler/lokal` (tetap ada setelah server dimatikan); tampilan dibangun ulang otomatis ±1 detik
+setelah kode diubah, cukup muat ulang halaman. Admin: `/admin/masuk` → **Masuk (dev)**. Mulai dari kosong: `npm run lokal -- --reset`.
+Di Claude desktop, panel Browser menjalankannya lewat `.claude/launch.json` (nama `lms-lokal`).
+
+Alur kerja yang disarankan: selama mengubah kode jalankan tes yang terkait saja (mis. `npx vitest run tests/unit/x.test.ts`,
+`npx tsc -p apps/web`), lalu `npm run check` + `npm run test:e2e` sekali sebelum commit.
+
 ## Perintah
 | Perintah | Fungsi |
 |---|---|
