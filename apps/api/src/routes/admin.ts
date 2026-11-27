@@ -1,4 +1,3 @@
-import { adminImportBundleRoute } from './admin/importBundle';
 import { Hono, type Context } from 'hono';
 import {
   ERROR_CODES,
@@ -29,6 +28,7 @@ import { recomputeAfterReviewStatement, resultFromScoreStatement } from '../serv
 import { createGradingDemo } from '../services/demoGrading';
 import { assertScenarioKeysExist, pinScenarioStatements } from '../services/scenarios';
 import { upgradeEnrollment } from '../services/enrollmentUpgrade';
+import { adminImportBundleRoutes } from './admin/importBundle';
 import { LESSON_FIELDS, QUIZ_FIELDS, courseLog, diffFields, draftChanges, publishProblems } from '../services/courseChanges';
 import { integrationConfigured, integrationProblem, issueAfterAttempt, pushToStudio, revokeCertificate, type CertificateRow } from '../services/certificates';
 
@@ -892,11 +892,9 @@ export function adminRoutes(deps: Deps) {
     await auditStmt(c.env.DB, now, u.id, 'certificate.revoke', 'certificate', out.id).run();
     return c.json({ status: out.status });
   });
-  });
 
-  r.route('/', adminImportBundleRoute);
+  // Impor paket kelas: validasi + rencana (impor bertahap dijalankan halaman admin).
+  r.route('/', adminImportBundleRoutes());
 
   return r;
 }
-
-
