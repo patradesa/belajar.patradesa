@@ -186,7 +186,7 @@ async function callStudio(
   path: string,
   payload: unknown,
   now: number,
-): Promise<{ status: number; data: StudioReply | null }> {
+): Promise<{ status: number; data: StudioReply | null; diag: string }> {
   const body = JSON.stringify(payload);
   const ts = String(now);
   const signature = await hmacHex(env.SERTIFIKAT_INTEGRATION_SECRET!, `${ts}.${body}`);
@@ -200,13 +200,47 @@ async function callStudio(
     body,
     signal: AbortSignal.timeout(STUDIO_TIMEOUT_MS),
   });
+  const text = await res.text().catch(() => '');
   let data: StudioReply | null = null;
   try {
-    data = (await res.json()) as StudioReply;
+    data = JSON.parse(text) as StudioReply;
   } catch {
     data = null;
   }
-  return { status: res.status, data };
+  let diag = '';
+  if (res.status < 200 || res.status >= 300) {
+    // Keterangan untuk melacak asal galat (mis. 522 dari tepi Cloudflare vs jawaban Studio). Tanpa secret/tanda tangan.
+    const snippet = data ? '' : text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 120);
+    diag = [
+      `host ${new URL(studioApiBase(env)).host}`,
+      res.headers.get('server') ? `server ${res.headers.get('server')}` : '',
+      res.headers.get('cf-ray') ? `cf-ray ${res.headers.get('cf-ray')}` : '',
+      snippet ? `isi "${snippet}"` : '',
+    ]
+      .filter(Boolean)
+      .join('; ');
+    console.warn(`sertifikat-studio ${path} HTTP ${res.status}: ${diag}`);
+  }
+  return { status: res.status, data, diag };
+}
+
+/**
+ * Uji koneksi ke API integrasi Studio tanpa mengubah data: minta pencabutan kode yang pasti tidak ada.
+ * Studio yang terhubung dan menerima tanda tangan menjawab 404 "Sertifikat tidak ditemukan".
+ */
+export async function checkStudio(env: Env, fetchFn: FetchFn, now: number): Promise<{ ok: boolean; status: number | null; message: string; diag: string }> {
+  const problem = integrationProblem(env);
+  if (problem) return { ok: false, status: null, message: `Integrasi belum siap: ${problem}`, diag: '' };
+  let r: { status: number; data: StudioReply | null; diag: string };
+  try {
+    r = await callStudio(env, fetchFn, '/api/integrasi/cabut', { code: 'ZZZZZZZZZZZZZZZZ', reason: 'uji koneksi LMS' }, now);
+  } catch (err) {
+    const name = err instanceof Error ? err.name : 'galat';
+    return { ok: false, status: null, message: `Studio tidak dapat dihubungi (${name}).`, diag: `host ${new URL(studioApiBase(env)).host}` };
+  }
+  if (r.status === 404 && r.data) return { ok: true, status: 404, message: 'Terhubung: Studio menerima tanda tangan LMS.', diag: '' };
+  if (r.status === 401) return { ok: false, status: 401, message: 'Terhubung, tetapi tanda tangan ditolak: secret LMS dan Studio tidak sama.', diag: r.diag };
+  return { ok: false, status: r.status, message: `Gagal (HTTP ${r.status}).`, diag: r.diag };
 }
 
 function dateLabel(ms: number): string {
@@ -237,7 +271,7 @@ async function markFailed(db: D1Database, row: CertificateRow, now: number, erro
 export async function pushToStudio(env: Env, fetchFn: FetchFn, row: CertificateRow, now: number): Promise<CertificateRow> {
   const problem = integrationProblem(env);
   if (problem) return markFailed(env.DB, row, now, `Integrasi Sertifikat Studio belum siap: ${problem}`);
-  let r: { status: number; data: StudioReply | null };
+  let r: { status: number; data: StudioReply | null; diag: string };
   try {
     r = await callStudio(
       env,
@@ -263,7 +297,7 @@ export async function pushToStudio(env: Env, fetchFn: FetchFn, row: CertificateR
     d.serial.length > 0 &&
     d.serial.length <= 80;
   if (!okShape) {
-    const reason = typeof d.error === 'string' ? d.error.slice(0, 200) : 'jawaban tidak dikenali';
+    const reason = typeof d.error === 'string' ? d.error.slice(0, 200) : `jawaban tidak dikenali${r.diag ? ` (${r.diag})` : ''}`;
     return markFailed(env.DB, row, now, `Studio menolak (HTTP ${r.status}): ${reason}`);
   }
   const parsed = typeof d.issuedAt === 'string' ? Date.parse(d.issuedAt) : NaN;
@@ -325,14 +359,14 @@ export async function revokeCertificate(
   if (row.status === 'issued') {
     const problem = integrationProblem(env);
     if (problem) throw new HttpError(503, ERROR_CODES.INTERNAL, `Integrasi Sertifikat Studio belum siap: ${problem}`);
-    let r: { status: number; data: StudioReply | null };
+    let r: { status: number; data: StudioReply | null; diag: string };
     try {
       r = await callStudio(env, fetchFn, '/api/integrasi/cabut', { code: row.verification_code, reason }, now);
     } catch {
       throw new HttpError(502, ERROR_CODES.INTERNAL, 'Sertifikat Studio tidak dapat dihubungi. Coba lagi nanti.');
     }
     if (r.status !== 200) {
-      throw new HttpError(502, ERROR_CODES.INTERNAL, `Sertifikat Studio menolak pencabutan (HTTP ${r.status}).`);
+      throw new HttpError(502, ERROR_CODES.INTERNAL, `Sertifikat Studio menolak pencabutan (HTTP ${r.status}${r.diag ? `; ${r.diag}` : ''}).`);
     }
   }
   await env.DB.prepare(

@@ -43,6 +43,20 @@ export function Certificates() {
   const { run, view } = useAction();
   const [revoking, setRevoking] = useState<string | null>(null);
   const [reason, setReason] = useState('');
+  const [check, setCheck] = useState<{ ok: boolean; status: number | null; message: string; diag: string } | null>(null);
+  const [checking, setChecking] = useState(false);
+
+  const testStudio = async () => {
+    setChecking(true);
+    setCheck(null);
+    try {
+      setCheck(await api<{ ok: boolean; status: number | null; message: string; diag: string }>('/admin/certificates/studio-check', { method: 'POST' }));
+    } catch (e) {
+      setCheck({ ok: false, status: null, message: e instanceof Error ? e.message : 'Gagal menguji koneksi.', diag: '' });
+    } finally {
+      setChecking(false);
+    }
+  };
 
   const retry = (id: string) =>
     run(async () => {
@@ -86,6 +100,17 @@ export function Certificates() {
           Studio” sampai variabel <span className="mono">SERTIFIKAT_BASE_URL</span> dan secret <span className="mono">SERTIFIKAT_INTEGRATION_SECRET</span>{' '}
           (minimal 32 karakter, sama dengan <span className="mono">LMS_INTEGRATION_SECRET</span> di Studio) dipasang di Worker (lihat docs/deploy.md).
           Setelah itu Cron menerbitkannya otomatis.
+        </div>
+      )}
+      <div className="btn-row">
+        <button type="button" className="btn btn-secondary" disabled={checking} onClick={() => void testStudio()}>
+          {checking ? 'Menguji…' : 'Uji koneksi Studio'}
+        </button>
+      </div>
+      {check && (
+        <div className={check.ok ? 'alert alert-success' : 'alert alert-error'} role="status">
+          <strong>{check.ok ? 'Koneksi Studio baik.' : 'Koneksi Studio bermasalah.'}</strong> {check.message}
+          {check.diag ? <span className="mono"> ({check.diag})</span> : null}
         </div>
       )}
       {view}
