@@ -301,7 +301,7 @@ const admin: Guide = {
         'Versi terbit tidak diubah langsung. Dengan begitu nilai, kuis, dan sertifikat peserta yang sedang belajar tetap konsisten sampai Anda memindahkan mereka ke versi baru.',
         'Judul, visibilitas, dan jadwal kelas (tombol Edit kelas) langsung berlaku tanpa perlu terbit.',
       ],
-      image: { file: 'admin-03-editor.jpg', alt: 'Editor kelas berisi daftar materi dengan ikon pensil di setiap baris', caption: 'Editor kelas: daftar materi dengan ikon pensil.' },
+      image: { file: 'admin-03-editor.jpg', alt: 'Editor kelas dua kolom: info kelas di kiri, daftar materi dengan ikon pensil di kanan', caption: 'Editor kelas: info kelas dan daftar materi.' },
     },
     {
       id: 'pengaturan',
