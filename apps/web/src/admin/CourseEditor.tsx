@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { VILLAGE_ROLES, VILLAGE_ROLE_LABELS, VILLAGE_ROLE_SHORT } from '@patradesa/shared';
 import { api, errorMessage } from '../lib/api';
 import { hasRole, useSession } from '../lib/session';
+import { navigate } from '../lib/router';
 import { ErrorAlert, Loading, useAsync } from '../components/common';
 import { useAction } from './useAction';
 import { ImportQuestions } from './ImportQuestions';
@@ -25,7 +26,23 @@ const fmtDate = (ms: unknown) =>
 const STATUS_NAME: Record<string, string> = { published: 'Diterbitkan', draft: 'Draf', archived: 'Diarsipkan' };
 
 /** Kolom kiri editor: identitas kelas (sampul, status, ringkasan) seperti panel info di LMS lain. */
-function CourseInfo({ c, data, statusLine, lessons, showSettings, onToggleSettings }: { c: Row; data: Row; statusLine: string; lessons: Row[]; showSettings: boolean; onToggleSettings: () => void }) {
+function CourseInfo({
+  c,
+  data,
+  statusLine,
+  lessons,
+  showSettings,
+  onToggleSettings,
+  actions,
+}: {
+  c: Row;
+  data: Row;
+  statusLine: string;
+  lessons: Row[];
+  showSettings: boolean;
+  onToggleSettings: () => void;
+  actions: React.ReactNode;
+}) {
   // Di HP detail tertutup dulu agar daftar materi cepat terlihat; di desktop terbuka.
   const [open, setOpen] = useState(() => typeof window === 'undefined' || !window.matchMedia || window.matchMedia('(min-width: 960px)').matches);
   const minutes = lessons.reduce((t, l) => t + Math.round(Number(l.required_active_seconds) / 60), 0);
@@ -53,6 +70,11 @@ function CourseInfo({ c, data, statusLine, lessons, showSettings, onToggleSettin
           {String(c.title)}
         </h2>
         <p className="muted course-info-status">{statusLine}</p>
+        {status === 'archived' && (
+          <p className="alert alert-warning course-info-archived" role="status">
+            <strong>Diarsipkan.</strong> Kelas tidak tampil di katalog dan peserta tidak bisa membukanya. Data belajar dan sertifikat tetap tersimpan.
+          </p>
+        )}
         <button type="button" className="btn btn-secondary icon-text" aria-expanded={showSettings} onClick={onToggleSettings}>
           <Icon name="pencil" /> Edit kelas
         </button>
@@ -68,6 +90,10 @@ function CourseInfo({ c, data, statusLine, lessons, showSettings, onToggleSettin
             <dt>Isi</dt>
             <dd>
               {lessons.length} materi · {quizzes} kuis · {minutes} menit minimum
+            </dd>
+            <dt>Peserta</dt>
+            <dd>
+              {Number(data.enrollmentCount ?? 0)} terdaftar · {Number(data.certificateCount ?? 0)} sertifikat
             </dd>
             {roles.length > 0 && (
               <>
@@ -93,6 +119,7 @@ function CourseInfo({ c, data, statusLine, lessons, showSettings, onToggleSettin
             <dd>{fmtDate(c.updated_at)}</dd>
           </dl>
         </div>
+        {actions}
       </div>
     </aside>
   );
@@ -703,13 +730,58 @@ export function CourseEditor({ id }: { id: string }) {
     if (ok && mode === 'publish') setPublishOpen(true);
   };
 
+  const enrolled = Number(data.enrollmentCount ?? 0) + Number(data.certificateCount ?? 0);
+  const archived = c.status === 'archived';
+  const archive = () =>
+    window.confirm(
+      `Arsipkan kelas "${String(c.title)}"?\n\nKelas hilang dari katalog dan peserta tidak bisa membukanya. Pendaftaran, nilai, dan sertifikat tetap tersimpan, dan kelas bisa dipulihkan kapan saja.`,
+    ) && void act(() => api(`/admin/courses/${id}/archive`, { method: 'POST' }), 'Kelas diarsipkan.');
+  const unarchive = () => void act(() => api(`/admin/courses/${id}/unarchive`, { method: 'POST' }), 'Kelas dipulihkan dari arsip.');
+  const remove = async () => {
+    const typed = window.prompt(
+      `Hapus permanen kelas "${String(c.title)}" beserta semua materi, kuis, dan soalnya? Tindakan ini tidak bisa dibatalkan.\n\nKetik HAPUS untuk melanjutkan.`,
+    );
+    if (typed?.trim().toUpperCase() !== 'HAPUS') return;
+    const ok = await run(() => api(`/admin/courses/${id}`, { method: 'DELETE' }), 'Kelas dihapus.');
+    if (ok) navigate('/admin');
+  };
+  const courseActions = isAdmin ? (
+    <div className="course-info-actions">
+      <h3>Kelola kelas</h3>
+      {archived ? (
+        <button type="button" className="btn btn-secondary" onClick={unarchive}>
+          Pulihkan dari arsip
+        </button>
+      ) : (
+        <button type="button" className="btn btn-secondary" onClick={archive}>
+          Arsipkan kelas
+        </button>
+      )}
+      {enrolled === 0 ? (
+        <button type="button" className="btn btn-danger" onClick={() => void remove()}>
+          Hapus permanen
+        </button>
+      ) : (
+        <p className="help">Hapus permanen tidak tersedia karena kelas sudah punya peserta. Arsipkan untuk menyembunyikannya.</p>
+      )}
+    </div>
+  ) : null;
+
   const statusLine = `${c.status === 'published' ? `Terbit v${String(current?.version_no ?? '-')}` : 'Belum pernah terbit'} · ${c.visibility === 'private' ? 'Privat' : 'Publik'}${
     isDraft ? ` · draf v${String(editing?.version_no)} belum terbit` : ''
   }`;
 
   return (
     <div className="course-manage">
-      <CourseInfo c={c} data={data} statusLine={statusLine} lessons={lessons} showSettings={showSettings} onToggleSettings={() => setShowSettings((x) => !x)} />
+      <CourseInfo
+        c={c}
+        data={data}
+        statusLine={statusLine}
+        lessons={lessons}
+        showSettings={showSettings}
+        onToggleSettings={() => setShowSettings((x) => !x)}
+        actions={courseActions}
+      />
       <div className="stack course-manage-main">
       {view}
       {notice && (

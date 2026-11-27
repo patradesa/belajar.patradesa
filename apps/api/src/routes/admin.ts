@@ -244,8 +244,14 @@ export function adminRoutes(deps: Deps) {
       .bind(id)
       .all();
     const cover = await db.prepare('SELECT updated_at FROM course_covers WHERE course_id = ?').bind(id).first<{ updated_at: number }>();
+    const usage = await db
+      .prepare('SELECT (SELECT COUNT(*) FROM enrollments WHERE course_id = ?1) AS enrollments, (SELECT COUNT(*) FROM certificates WHERE course_id = ?1) AS certificates')
+      .bind(id)
+      .first<{ enrollments: number; certificates: number }>();
     return c.json({
       course,
+      enrollmentCount: usage?.enrollments ?? 0,
+      certificateCount: usage?.certificates ?? 0,
       versions,
       editingVersion: editing,
       lessons: outLessons,
@@ -297,6 +303,72 @@ export function adminRoutes(deps: Deps) {
     }
     stmts.push(auditStmt(c.env.DB, now, u.id, 'course.update', 'course', id, { fields: Object.keys(b).join(',') }));
     await c.env.DB.batch(stmts);
+    return c.json({ ok: true });
+  });
+
+  // Arsip: kelas hilang dari katalog dan peserta tidak bisa membukanya; pendaftaran, nilai, dan sertifikat tetap tersimpan.
+  r.post('/courses/:id/archive', admins, async (c) => {
+    const u = currentUser(c);
+    const id = param(c, 'id');
+    const row = await c.env.DB.prepare('SELECT status FROM courses WHERE id = ?').bind(id).first<{ status: string }>();
+    if (!row) throw notFound('Kelas');
+    if (row.status === 'archived') return c.json({ ok: true, status: 'archived' });
+    const now = deps.now();
+    await c.env.DB.batch([
+      c.env.DB.prepare(`UPDATE courses SET status = 'archived', updated_at = ? WHERE id = ?`).bind(now, id),
+      auditStmt(c.env.DB, now, u.id, 'course.archive', 'course', id, { from: row.status }),
+    ]);
+    return c.json({ ok: true, status: 'archived' });
+  });
+
+  // Pulihkan dari arsip: kembali terbit bila pernah punya versi terbit, selain itu kembali draf.
+  r.post('/courses/:id/unarchive', admins, async (c) => {
+    const u = currentUser(c);
+    const id = param(c, 'id');
+    const row = await c.env.DB.prepare('SELECT status, current_version_id FROM courses WHERE id = ?').bind(id).first<{ status: string; current_version_id: string | null }>();
+    if (!row) throw notFound('Kelas');
+    const to = row.current_version_id ? 'published' : 'draft';
+    if (row.status !== 'archived') return c.json({ ok: true, status: row.status });
+    const now = deps.now();
+    await c.env.DB.batch([
+      c.env.DB.prepare('UPDATE courses SET status = ?, updated_at = ? WHERE id = ?').bind(to, now, id),
+      auditStmt(c.env.DB, now, u.id, 'course.unarchive', 'course', id, { to }),
+    ]);
+    return c.json({ ok: true, status: to });
+  });
+
+  // Hapus permanen hanya untuk kelas tanpa peserta dan tanpa sertifikat (mis. salah impor). Materi, kuis, dan soal
+  // ikut terhapus lewat ON DELETE CASCADE; blok skenario tidak terikat kelas sehingga tetap ada di tab Skenario.
+  r.delete('/courses/:id', admins, async (c) => {
+    const u = currentUser(c);
+    const id = param(c, 'id');
+    const db = c.env.DB;
+    const course = await db.prepare('SELECT title, slug FROM courses WHERE id = ?').bind(id).first<{ title: string; slug: string }>();
+    if (!course) throw notFound('Kelas');
+    const usage = await db
+      .prepare('SELECT (SELECT COUNT(*) FROM enrollments WHERE course_id = ?1) AS enrollments, (SELECT COUNT(*) FROM certificates WHERE course_id = ?1) AS certificates')
+      .bind(id)
+      .first<{ enrollments: number; certificates: number }>();
+    if ((usage?.enrollments ?? 0) > 0 || (usage?.certificates ?? 0) > 0) {
+      throw new HttpError(
+        409,
+        ERROR_CODES.CONFLICT,
+        `Kelas ini punya ${usage?.enrollments ?? 0} peserta terdaftar dan ${usage?.certificates ?? 0} sertifikat. Arsipkan saja agar data belajar dan sertifikat tetap tersimpan.`,
+      );
+    }
+    const { results: files } = await db
+      .prepare(
+        `SELECT file_key FROM course_covers WHERE course_id = ?1
+         UNION ALL SELECT l.file_key FROM lessons l JOIN course_versions cv ON cv.id = l.course_version_id WHERE cv.course_id = ?1 AND l.file_key IS NOT NULL`,
+      )
+      .bind(id)
+      .all<{ file_key: string }>();
+    const now = deps.now();
+    await db.batch([
+      db.prepare('DELETE FROM courses WHERE id = ?').bind(id),
+      auditStmt(db, now, u.id, 'course.delete', 'course', id, { title: course.title.slice(0, 160), slug: course.slug }),
+    ]);
+    for (const f of files) await c.env.FILES.delete(f.file_key).catch(() => {});
     return c.json({ ok: true });
   });
 

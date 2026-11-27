@@ -310,6 +310,8 @@ const admin: Guide = {
       points: [
         'Judul dan Deskripsi. Deskripsi mendukung format sederhana: "## Judul", "- butir", "1. langkah", "**tebal**". Ringkasan katalog diambil otomatis (maksimal 5 baris).',
         'Visibilitas: Publik tampil di katalog dan mesin pencari; Privat hanya untuk pemegang tautan dan peserta yang sudah terdaftar.',
+        'Arsipkan kelas (bagian Kelola kelas, khusus admin): kelas hilang dari katalog dan peserta tidak bisa membukanya; pendaftaran, nilai, dan sertifikat tetap tersimpan. Tombol Pulihkan dari arsip mengembalikannya.',
+        'Hapus permanen hanya tersedia untuk kelas yang belum punya peserta dan sertifikat (mis. salah impor). Ketik HAPUS untuk konfirmasi; materi, kuis, dan soal ikut terhapus, sedangkan skenario tetap ada di tab Skenario.',
         'Jadwal akses & sesi (opsional): pendaftaran dibuka/ditutup, masa akses, durasi akses per peserta, dan masa aktif sesi belajar.',
         'Disarankan untuk jabatan: centang jabatan sasaran agar kelas ditandai di katalog peserta.',
         'Foto sampul: JPG, PNG, atau WebP, maksimal 2 MB, disarankan lanskap 1200×750 px. Jangan memakai foto warga tanpa izin.',

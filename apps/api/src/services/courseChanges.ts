@@ -134,6 +134,8 @@ const ACTION_LABEL: Record<string, string> = {
   'course.publish': 'Versi diterbitkan',
   'course.cover': 'Foto sampul diubah',
   'course.cover_delete': 'Foto sampul dihapus',
+  'course.archive': 'Kelas diarsipkan',
+  'course.unarchive': 'Kelas dipulihkan dari arsip',
   'lesson.create': 'Materi ditambahkan',
   'lesson.update': 'Materi disimpan',
   'lesson.delete': 'Materi dihapus',
