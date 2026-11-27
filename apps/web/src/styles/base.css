@@ -1982,3 +1982,24 @@ td .badge {
     display: none;
   }
 }
+
+/* Kelola kelas: arsip dan hapus (kolom info kelas). */
+.course-info-actions {
+  display: grid;
+  gap: var(--space-2);
+  border-top: 1px solid var(--color-border-subtle);
+  padding-top: var(--space-3);
+}
+.course-info-actions h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+.course-info-actions .btn {
+  justify-self: start;
+}
+.course-info-actions .help {
+  margin: 0;
+}
+.course-info-archived {
+  margin: 0;
+}

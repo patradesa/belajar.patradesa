@@ -139,7 +139,7 @@ function CourseList() {
                 {data?.courses.map((c) => (
                   <tr key={String(c.id)}>
                     <td>{String(c.title)}</td>
-                    <td>{String(c.status)}</td>
+                    <td>{({ published: 'Terbit', draft: 'Draf', archived: 'Diarsipkan' } as Record<string, string>)[String(c.status)] ?? String(c.status)}</td>
                     <td>
                       v{String(c.latest_version ?? 1)}
                       {c.draft_version_id ? ' (ada draft)' : ''}
