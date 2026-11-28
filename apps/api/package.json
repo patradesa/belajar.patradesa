@@ -6,7 +6,7 @@
   "main": "src/index.ts",
   "dependencies": {
     "@patradesa/shared": "*",
-    "hono": "4.13.19",
+    "hono": "4.13.22",
     "jose": "6.2.18",
     "zod": "4.6.7"
   }
